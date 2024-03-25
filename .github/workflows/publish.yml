@@ -34,6 +34,7 @@ jobs:
           export-env: true
         if: github.ref == 'refs/heads/prod'
         env: 
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           SITE_URL: "op://DevOps//biel-env-vars/prod/prod-site-url"
       - name: set qa variables
         uses: 1password/load-secrets-action@v1
@@ -42,6 +43,7 @@ jobs:
           export-env: true
         if: github.ref == 'refs/heads/qa'
         env: 
+         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
          SITE_URL: "op://DevOps//biel-env-vars/qa/qa-site-url"
       - name: set dev (and preview) variables
         uses: 1password/load-secrets-action@v1
@@ -50,6 +52,7 @@ jobs:
           export-env: true
         if: github.ref != 'refs/heads/prod' && github.ref != 'refs/heads/qa'
         env: 
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           SITE_URL: "op://DevOps//biel-env-vars/dev/dev-site-url"
       - name: Checkout
         uses: actions/checkout@v3
