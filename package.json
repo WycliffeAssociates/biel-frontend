@@ -16,28 +16,28 @@
     "pflocal": "WORDPRESS_GQL_PATH=index.php?graphql SITE_URL=https://bieldev.wpengine.com    TRANSLATIONS_JSON_ENDPOINT=https://bieldev.wpengine.com/wp-content/themes/bb-theme-child/data/translations.json node ./makePageFindIndex.js"
   },
   "dependencies": {
-    "@astrojs/check": "^0.5.5",
-    "@astrojs/cloudflare": "^9.0.1",
-    "@astrojs/sitemap": "^3.0.5",
+    "@astrojs/check": "^0.5.10",
+    "@astrojs/cloudflare": "^9.2.0",
+    "@astrojs/sitemap": "^3.1.1",
     "@astrojs/solid-js": "^4.0.1",
-    "@solid-primitives/media": "^2.2.6",
-    "@wordpress/base-styles": "^4.42.0",
-    "@wordpress/block-library": "^8.28.1",
-    "astro": "^4.4.0",
-    "linkedom": "^0.16.8",
-    "solid-js": "^1.8.15",
-    "typescript": "^5.3.3"
+    "@solid-primitives/media": "^2.2.8",
+    "@wordpress/base-styles": "^4.45.0",
+    "@wordpress/block-library": "^8.31.0",
+    "astro": "^4.5.9",
+    "linkedom": "^0.16.11",
+    "solid-js": "^1.8.16",
+    "typescript": "^5.4.3"
   },
   "devDependencies": {
-    "@unocss/reset": "^0.58.5",
-    "@unocss/transformer-directives": "^0.58.5",
-    "@unocss/transformer-variant-group": "^0.58.5",
+    "@unocss/reset": "^0.58.6",
+    "@unocss/transformer-directives": "^0.58.6",
+    "@unocss/transformer-variant-group": "^0.58.6",
     "glob": "^10.3.10",
     "pagefind": "^1.0.4",
     "purgecss": "^5.0.0",
-    "sass": "^1.71.0",
-    "unocss": "^0.58.5",
-    "vite": "^5.1.3",
-    "wrangler": "^3.28.3"
+    "sass": "^1.72.0",
+    "unocss": "^0.58.6",
+    "vite": "^5.2.6",
+    "wrangler": "^3.37.0"
   }
 }
