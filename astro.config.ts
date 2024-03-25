@@ -25,10 +25,6 @@ export default defineConfig({
   output: "hybrid",
   adapter: cloudflare({
     mode: "directory",
-    routes: {
-      strategy: "auto",
-      include: ["/serverless/*"],
-    },
     runtime: {
       mode: "local",
       type: "pages",

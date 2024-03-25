@@ -63,13 +63,13 @@ function replaceAllAbsoluteLinksToCms(dom: any) {
   const baseUrl = import.meta.env.SITE_URL;
   const allATags: NodeListOf<HTMLAnchorElement> =
     dom.querySelectorAll(`a[href]`);
-  allATags.forEach((t) => console.log(t.href));
+  // allATags.forEach((t) => console.log(t.href));
   const aTags: NodeListOf<HTMLAnchorElement> = dom.querySelectorAll(
     `a[href^="${baseUrl}"]`
   );
   aTags.forEach((tag) => {
     const newHref = tag.href.replace(baseUrl, "");
-    console.log(`old was ${tag.href}, and new is ${newHref}`);
+    // console.log(`old was ${tag.href}, and new is ${newHref}`);
     tag.setAttribute("href", newHref);
   });
 }
