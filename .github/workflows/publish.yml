@@ -12,37 +12,50 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     permissions:
-    contents: read
-    deployments: write
-    uses: 1password/load-secrets-action@v1
-    with:
-        # Export loaded secrets as environment variables
-        export-env: true
-    env: 
-      OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-      CF_ACCOUNT_ID: "op://DevOps/cloudflare-worker-deploy-token/CF_ACCOUNT_ID"
-      CF_API_TOKEN: "op://DevOps/cloudflare-worker-deploy-token/CF_API_TOKEN"
-      WORDPRESS_REST_MENU_ENDPOINT: "op://DevOps//biel-env-vars/wordpress_rest_menu_endpoint"
-      TRANSLATIONS_JSON_ENDPOINT: "op://DevOps//biel-env-vars/translations_json_endpoint"
-      WORDPRESS_GQL_PATH: "op://DevOps//biel-env-vars/dev/dev-site-url"
-    steps:
+      contents: read
+      deployments: write
+    steps: 
+      - name: set common vars
+        uses: 1password/load-secrets-action@v1
+        with:
+          # Export loaded secrets as environment variables
+          export-env: true
+        env: 
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          CF_ACCOUNT_ID: "op://DevOps/cloudflare-worker-deploy-token/CF_ACCOUNT_ID"
+          CF_API_TOKEN: "op://DevOps/cloudflare-worker-deploy-token/CF_API_TOKEN"
+          WORDPRESS_REST_MENU_ENDPOINT: "op://DevOps//biel-env-vars/wordpress_rest_menu_endpoint"
+          TRANSLATIONS_JSON_ENDPOINT: "op://DevOps//biel-env-vars/translations_json_endpoint"
+          WORDPRESS_GQL_PATH: "op://DevOps//biel-env-vars/dev/dev-site-url"
       - name: set prod variables
+        uses: 1password/load-secrets-action@v1
+        with:
+          # Export loaded secrets as environment variables
+          export-env: true
         if: github.ref == 'refs/heads/prod'
         env: 
-        SITE_URL: "op://DevOps//biel-env-vars/prod/prod-site-url"
+          SITE_URL: "op://DevOps//biel-env-vars/prod/prod-site-url"
       - name: set qa variables
+        uses: 1password/load-secrets-action@v1
+        with:
+          # Export loaded secrets as environment variables
+          export-env: true
         if: github.ref == 'refs/heads/qa'
         env: 
-        SITE_URL: "op://DevOps//biel-env-vars/qa/qa-site-url"
+         SITE_URL: "op://DevOps//biel-env-vars/qa/qa-site-url"
       - name: set dev (and preview) variables
+        uses: 1password/load-secrets-action@v1
+        with:
+          # Export loaded secrets as environment variables
+          export-env: true
         if: github.ref != 'refs/heads/prod' && github.ref != 'refs/heads/qa'
         env: 
-        SITE_URL: "op://DevOps//biel-env-vars/dev/dev-site-url"
+          SITE_URL: "op://DevOps//biel-env-vars/dev/dev-site-url"
   deploy:
     runs-on: ubuntu-latest
     permissions:
-    contents: read
-    deployments: write
+      contents: read
+      deployments: write
     env:
       WORDPRESS_GQL_PATH: ${{ env.WORDPRESS_GQL_PATH }}
       WORDPRESS_REST_MENU_ENDPOINT: ${{ env.WORDPRESS_REST_MENU_ENDPOINT }}
