@@ -9,7 +9,7 @@ on:
   push:
   workflow_dispatch:
 jobs:
-  setup:
+  deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -51,18 +51,6 @@ jobs:
         if: github.ref != 'refs/heads/prod' && github.ref != 'refs/heads/qa'
         env: 
           SITE_URL: "op://DevOps//biel-env-vars/dev/dev-site-url"
-  deploy:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      deployments: write
-    env:
-      WORDPRESS_GQL_PATH: ${{ env.WORDPRESS_GQL_PATH }}
-      WORDPRESS_REST_MENU_ENDPOINT: ${{ env.WORDPRESS_REST_MENU_ENDPOINT }}
-      TRANSLATIONS_JSON_ENDPOINT: ${{ env.TRANSLATIONS_JSON_ENDPOINT }}
-      SITE_URL: ${{ env.SITE_URL }}
-    name: Deploy to Cloudflare Pages
-    steps:
       - name: Checkout
         uses: actions/checkout@v3
       - name: get pnpm
@@ -92,9 +80,9 @@ jobs:
         run: |
           pnpm run pagefind
         env:
-          SITE_URL:  ${{ env.SITE_URL }}
-          WORDPRESS_GQL_PATH: ${{ env.WORDPRESS_GQL_PATH }}
-          TRANSLATIONS_JSON_ENDPOINT: ${{ env.TRANSLATIONS_JSON_ENDPOINT }}
+            SITE_URL:  ${{ env.SITE_URL }}
+            WORDPRESS_GQL_PATH: ${{ env.WORDPRESS_GQL_PATH }}
+            TRANSLATIONS_JSON_ENDPOINT: ${{ env.TRANSLATIONS_JSON_ENDPOINT }}
       - name: Publish
         uses: cloudflare/pages-action@1
         with:
