@@ -1,0 +1,81 @@
+---
+import "../styles/wordpress.scss";
+import "../styles/global.scss";
+import {getFooter} from "@src/api/gql";
+import type {languageType} from "@customTypes/types";
+import Blocks from "@components/Blocks.astro";
+
+interface Props {
+  title: string;
+  langInfo: languageType;
+  langSwitcher: languageType[];
+  inlineCss: string[];
+  description: string;
+}
+import {ViewTransitions} from "astro:transitions";
+import {adjustCmsDomLinks} from "@src/utils";
+import {cacheFooterForDev, getCachedFooter} from "@lib/caching";
+
+const {title, inlineCss, langInfo, langSwitcher, description} = Astro.props;
+const forceRefresh = false;
+let cachedFooter =
+  import.meta.env.DEV && getCachedFooter(forceRefresh)
+    ? getCachedFooter()
+    : null;
+const footerData = cachedFooter ? cachedFooter : await getFooter(langInfo.code);
+import.meta.env.DEV && cacheFooterForDev(footerData);
+let {footerInlineStyles, footer} = footerData
+  ? footerData
+  : {footerInlineStyles: "", footer: {content: ""}};
+// const {footerInlineStyles, footer} = await
+let allStyles = [...inlineCss, ...footerInlineStyles];
+let deduped = new Set(allStyles);
+const dedupedInlineStyles = [...deduped].join("\n");
+
+//todo: link to BASE_URL FOR BASE CSS OF GEN PRESS ? maybe
+// todo: self host noto sans or lato font
+---
+
+<html lang={langInfo.code}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" /><!-- 180×180 -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <!-- https://bible-in-every-language.local/wp-content/themes/generatepress/assets/css/main.min.css -->
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    {inlineCss && <style id="headlessStyles" set:html={dedupedInlineStyles} />}
+    {
+      langSwitcher.map((version) => {
+        return (
+          <link
+            rel="alternate"
+            href={
+              version.localizedUrl ||
+              `${version.code == "en" ? "/" : `/${version.code}`}`
+            }
+            hreflang={version.code}
+          />
+        );
+      })
+    }
+    <!-- {import.meta.env.PROD && <ViewTransitions />} -->
+    <ViewTransitions />
+    <!--  -->
+  </head>
+  <body>
+    <div class="site">
+      <slot />
+      <footer class="wp-blocks site-footer">
+        <Blocks content={adjustCmsDomLinks(footer.content)} />
+      </footer>
+    </div>
+  </body><!-- todo: clean up server? Don't build if env var set? or just redirect to 404 all "server" paths--><!-- todo: Make mobile menu responsive --><!-- todo: Filter pages that haven't yet been translated? Or not for content?--><!-- Create pres for few hours on Mon: --><!-- Good: familiar env. Already wp.  Stable ecosystem. Faster frontend end. Do what we want with trnaslations page.  --><!-- How: Show page Edit. Site rebuild. --><!-- Caveats: can't use just any blocks. Some small chances of stale content with rebuilds.  Can't just use any plugins.  No gravity forms. Not just a headless thing, but should ALWAYS use relative links contray to the popup box that wordpress gives you. --><!-- Uncertain: WPML.  Works on auto. Their is a crowdin plugin (but you can't have both. You have to assign work, and I don't think you can just auto send it to crowdin when stuff is updated. Would have to explore --><!-- Uncertain: Still to do.  
+  Design touches.  
+  New Translation page approval? Would benefit from some add'l api stuff. Do Devops however Dan thinks is best. 
+    (Cron is simplest.  Wordpress hook -> Cloudflare HTTP request -> Timestamp a KV value -> Cron can debounce an event driven build) -->
+</html>

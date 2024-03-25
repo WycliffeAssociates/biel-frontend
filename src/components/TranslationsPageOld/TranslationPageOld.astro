@@ -1,0 +1,59 @@
+---
+import type {Language, translationPageOldEntry} from "@customTypes/types";
+import {i18nStrings} from "./i18n";
+import {SideBar} from "./Sidebar";
+import {MainPane} from "./Pane";
+interface Props {
+  languageCode: string;
+}
+
+const {languageCode} = Astro.props;
+const defaultEn = i18nStrings.en!;
+const target = i18nStrings[languageCode];
+const strings = !!target ? target : defaultEn;
+
+const loc = import.meta.env.TRANSLATIONS_JSON_ENDPOINT;
+const td = await fetch(loc);
+
+const translationsDataBlob = await td.blob();
+const translationsDataText = await translationsDataBlob.text();
+const translationsData = (await JSON.parse(translationsDataText)) as Language[];
+console.log(`fetched ${translationsData.length} lang data`);
+// prod url: can just get at build time;
+// bibleineverylanguage.org/wp-content/themes/bb-theme-child/data/translations.json
+// [{}, {}, {}]
+
+const langsList = translationsData.reduce(
+  (acc: Record<string, translationPageOldEntry>, lang) => {
+    const payload = {
+      code: lang.code,
+      name: lang.name,
+      englishName: lang.englishName,
+      direction: lang.direction,
+      contents: lang.contents,
+    };
+    acc[lang.code] = payload;
+    return acc;
+  },
+  {}
+);
+const defaultSelected = langsList.en!;
+---
+
+<div
+  class="flex px-2 md:px-4 relative items-start min-h-max gap-[16px] contain mb-12"
+>
+  <div
+    class="w-10 md:w-[clamp(100px,33%,400px)] md:min-w-100px md:sticky top-0"
+  >
+    <SideBar
+      i18Strings={strings}
+      langs={langsList}
+      client:load
+      languageCode={languageCode}
+    />
+  </div>
+  <div class="flex-grow">
+    <MainPane i18Strings={strings} initialData={defaultSelected} client:load />
+  </div>
+</div>

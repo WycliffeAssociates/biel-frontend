@@ -1,0 +1,92 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Blocks from "../components/Blocks.astro";
+import {getMenus, getWpmlLanguages, getHomePage} from "@src/api/gql";
+import {cacheHomePageDev, getDevHomePage} from "@lib/caching";
+import {adjustCmsDomLinks} from "@src/utils";
+import LanguageSwitcher from "@components/LanguageSwitcher.astro";
+import {DOMParser} from "linkedom";
+// import {HeaderMenu} from "@components/HeaderMenu";
+import {HeaderMenuOld} from "@components/HeaderMenuOld";
+import type {WpPage} from "@customTypes/types";
+const forceRefresh = true;
+const data =
+  import.meta.env.DEV && getDevHomePage(forceRefresh)
+    ? (getDevHomePage() as {page: WpPage})
+    : ((await getHomePage()) as {page: WpPage});
+if (import.meta.env.DEV) cacheHomePageDev(data);
+const {title, editorBlocks, link} = data.page;
+let inlineStyles: string[] = [];
+
+try {
+  const enSrcResponse = await fetch(link);
+  const pageRendered = await enSrcResponse.text();
+
+  const dom = new DOMParser().parseFromString(pageRendered, "text/html");
+  const inlineStyleIds = [
+    "generateblocks-inline-css",
+    "global-styles-inline-css",
+    "generate-style-inline-css",
+  ];
+
+  inlineStyles = inlineStyleIds.map((id) => {
+    const styleTag: HTMLStyleElement | undefined = dom.querySelector(`#${id}`);
+    if (styleTag) {
+      return styleTag.innerText;
+    } else return "";
+  });
+} catch (e) {
+  console.log("home page fetch for inline styles failed");
+  console.log({e});
+}
+
+const menus = await getMenus();
+const nonHiddenLanguages = new Set(Object.keys(menus));
+const wpmlLangDict = await getWpmlLanguages();
+const headerMenu =
+  menus["en"]?.["header-menu-old"] || menus.en?.["header-menu-old"]!;
+const langSwitcherList = Object.values(wpmlLangDict)
+  .filter((lang) => {
+    return nonHiddenLanguages.has(lang.code);
+  })
+  .map((lang) => {
+    // Mutate the langMenu while in this loop. For each of these languages, find the equivalent given its lang code
+    lang.localizedUrl = lang.code == "en" ? "/" : `/${lang.code}`;
+    return lang;
+  });
+const langInfo = wpmlLangDict["en"]!;
+const description = editorBlocks
+  .filter((b) => b.parentClientId == null)
+  .map((block) => {
+    return block.renderedHtml;
+  })
+  .join(" ")
+  .slice(0, 100);
+---
+
+<Layout
+  title={title}
+  inlineCss={inlineStyles}
+  langInfo={langInfo}
+  langSwitcher={langSwitcherList}
+  description={description}
+>
+  <LanguageSwitcher
+    langInfo={langSwitcherList}
+    currentLangCode={langInfo.code}
+  />
+  <HeaderMenuOld menu={headerMenu} langCode={langInfo.code} client:idle />
+  <main class="headless-insertion wp-blocks">
+    {
+      editorBlocks
+        ?.filter((b) => b.parentClientId == null)
+        .map((block: any) => {
+          return <Blocks content={adjustCmsDomLinks(block.renderedHtml)} />;
+        })
+    }
+
+    <!-- <Blocks content={absolutizeRelativeMediaUrls(content)} /> -->
+  </main>
+</Layout>
+
+<!-- <style set:html={inlineStyle}></style> -->

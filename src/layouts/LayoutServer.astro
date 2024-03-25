@@ -1,0 +1,64 @@
+---
+import "../styles/wordpress.scss";
+import "../styles/global.scss";
+import {getFooter} from "@src/api/gql";
+import type {languageType} from "@customTypes/types";
+import Blocks from "@components/Blocks.astro";
+// todo: change inline css to array (might fetch some dupes.  Dedupe the strings (just take the innerhtml of all style tags as needed)) and then concat and join.
+interface Props {
+  title: string;
+  langInfo: languageType;
+  langSwitcher: languageType[];
+  inlineCss: string[];
+}
+import {ViewTransitions} from "astro:transitions";
+import {adjustCmsDomLinks} from "@src/utils";
+
+const {title, inlineCss, langInfo, langSwitcher} = Astro.props;
+// const forceRefresh = false;
+const footerData = await getFooter(langInfo.code);
+let {footerInlineStyles, footer} = footerData
+  ? footerData
+  : {footerInlineStyles: "", footer: {content: ""}};
+// const {footerInlineStyles, footer} = await
+let allStyles = [...inlineCss, ...footerInlineStyles];
+let deduped = new Set(allStyles);
+const dedupedInlineStyles = [...deduped].join("\n");
+
+//todo: link to BASE_URL FOR BASE CSS OF GEN PRESS ? maybe
+---
+
+<html lang="en" lang={langInfo.code}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="Astro description" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- https://bible-in-every-language.local/wp-content/themes/generatepress/assets/css/main.min.css -->
+    <meta name="generator" content={Astro.generator} />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{title}</title>
+    {inlineCss && <style id="headlessStyles" set:html={dedupedInlineStyles} />}
+    {
+      langSwitcher.map((version) => {
+        return (
+          <link
+            rel="alternate"
+            href={
+              version.localizedUrl ||
+              `${version.code == "en" ? "/" : `/${version.code}`}`
+            }
+            hreflang={version.code}
+          />
+        );
+      })
+    }
+    {import.meta.env.PROD && <ViewTransitions />}
+  </head>
+  <body>
+    <slot />
+    <footer class="wp-blocks site-footer">
+      <Blocks content={adjustCmsDomLinks(footer.content)} />
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,162 @@
+// @todo: self host these instead of of this call;
+@font-face {
+  font-family: "Lato";
+  font-style: italic;
+  font-weight: 400;
+  src: local("Lato"), url("/fonts/Lato/Lato-Italic.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Lato";
+  font-style: normal;
+  font-weight: 400;
+  src: local("Lato"), url("/fonts/Lato/Lato-Regular.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Lato";
+  font-style: normal;
+  font-weight: 700;
+  src: local("Lato"), url("/fonts/Lato/Lato-Bold.woff2") format("woff2");
+}
+
+// typograpy:
+/* @link https://utopia.fyi/type/calculator?c=280,16,1.2,1200,20,1.333,5,2,&s=0.75|0.5|0.25,1.5|2|3|4|6,s-l&g=s,l,xl,12 */
+
+:root {
+  --step--2: clamp(0.6331rem, 0.7113rem + -0.0962vi, 0.6944rem);
+  --step--1: clamp(0.8333rem, 0.8304rem + 0.0167vi, 0.844rem);
+  --step-0: clamp(1rem, 0.9657rem + 0.1961vi, 1.125rem);
+  --step-1: clamp(1.2rem, 1.1178rem + 0.47vi, 1.4996rem);
+  --step-2: clamp(1.44rem, 1.2865rem + 0.8769vi, 1.999rem);
+  --step-3: clamp(1.728rem, 1.4709rem + 1.4693vi, 2.6647rem);
+  --step-4: clamp(2.0736rem, 1.6678rem + 2.3191vi, 3.552rem);
+  --step-5: clamp(2.4883rem, 1.8716rem + 3.5239vi, 4.7348rem);
+
+  --color-accent: #0b5ad9;
+  --color-accent-lighter: #e6eefb;
+  --color-contrast: #343434;
+  --color-contrast-2: #66768b;
+
+  --flow-space: 1em;
+}
+html,
+body {
+  font-family: "Lato", sans-serif !important;
+}
+
+.headless-insertion,
+.site-footer {
+  h1 {
+    font-size: var(--step-4);
+  }
+  h2 {
+    font-size: var(--step-3);
+  }
+  h3 {
+    font-size: var(--step-2);
+  }
+  p,
+  ul,
+  li {
+    font-size: var(--step-0);
+  }
+  a {
+    // color: var(--color-accent);
+    // text-decoration: underline;
+  }
+}
+button,
+button:hover {
+  background-color: inherit !important;
+  color: inherit !important;
+}
+.site a {
+  text-decoration: none;
+  // color: inherit;
+}
+.site-footer a {
+  text-decoration: underline;
+  color: inherit;
+}
+.site-footer a:where(:hover, :focus) {
+  color: var(--color-accent);
+}
+.header a {
+  color: inherit;
+  text-decoration: inherit;
+}
+
+main img {
+  display: initial;
+}
+
+.site-container {
+  display: grid;
+  grid-template-columns:
+    1fr
+    min(1100px, 100%)
+    1fr;
+  padding-bottom: 2rem;
+}
+.contain {
+  width: min(1100px, 100%);
+  margin-left: auto;
+  margin-right: auto;
+}
+.site-container > * {
+  grid-column: 2;
+  padding-inline-start: 1rem;
+  padding-inline-end: 1rem;
+}
+.site-container .full-bleed {
+  width: 100%;
+  grid-column: 1 / 4;
+  padding-inline-start: 0;
+  padding-inline-end: 0;
+}
+// .site-container {
+//   max-width: 1100px;
+//   margin: 0 auto;
+// }
+.icon > svg {
+  fill: inherit !important;
+  stroke: inherit !important;
+  width: inherit !important;
+  // all: inherit !important;
+  // height: inherit !important;
+}
+.site-container > // Flow:
+* + *, .vertical-flow > * + * {
+  margin-top: var(--flow-space);
+}
+
+.wp-blocks p a:not(footer a) {
+  color: var(--color-accent);
+  text-decoration: underline;
+}
+.safe-svg-inside svg {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+@screen lt-sm {
+  .breakout {
+    @apply w-screen mx--1rem;
+  }
+}
+@screen lt-sm {
+  .sm\:breakout {
+    @apply w-screen mx--1rem;
+  }
+}
+@screen lt-md {
+  .md\:breakout {
+    @apply w-screen mx--1rem;
+  }
+}
+@screen lt-lg {
+  .lg\:breakout {
+    @apply w-screen mx--1rem;
+  }
+}

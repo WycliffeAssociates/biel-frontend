@@ -1,0 +1,24 @@
+---
+// todo: experiment with SSG build time on each resource since this is allowed? Can just do translations page also ssg like so if desired
+export async function getStaticPaths() {
+  return [
+    {
+      params: {
+        static: "static-one",
+      },
+      props: {page: "static-one"},
+    },
+    {
+      params: {
+        static: "static-two",
+      },
+      props: {page: "static-two"},
+    },
+  ];
+}
+const {page} = Astro.props;
+---
+
+<div>
+  {page}
+</div>

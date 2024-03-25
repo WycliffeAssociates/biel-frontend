@@ -1,0 +1,43 @@
+---
+import type {MenuItem} from "../customTypes/types";
+import {isAbsoluteUrl} from "@lib/web";
+
+interface Props {
+  menuItems: MenuItem[];
+  nested?: number;
+  langCode: string;
+}
+let {menuItems, nested, langCode} = Astro.props;
+function shapeLink(code: string, link: string) {
+  if (isAbsoluteUrl(link)) return link;
+  if (code == "en") {
+    if (link.startsWith("/")) {
+      return link;
+    } else return `/${link}`;
+  } else if (link.startsWith("/")) {
+    return `/${code}${link}`;
+  } else return `/${code}/${link}`;
+}
+---
+
+<ul class="flex gap-2">
+  {
+    menuItems.map((item) => (
+      <li>
+        <a href={shapeLink(langCode, item.attached_post?.uri || item.url)}>
+          {item.attached_post?.post_title || item.title}
+        </a>
+
+        {item.children && (
+          <ul class={`${nested ? `nested-${nested}` : "nested-1"}`}>
+            <Astro.self
+              langCode={langCode}
+              menuItems={item.children}
+              nested={nested ? (nested += 1) : 1}
+            />
+          </ul>
+        )}
+      </li>
+    ))
+  }
+</ul>

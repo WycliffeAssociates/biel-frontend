@@ -1,0 +1,92 @@
+name: Publish
+on:
+  schedule:
+    # Build daily (just a random early UTC time, that isn't around the hour. GA schedule event can be delayed during periods of high loads of actions runs, which include the start of every hour. If load is sufficiently high, some jobs may be dropped.  Schedule running at a different time of the hour)
+    # * is a special character in YAML so you have to quote this string
+    # 4:06 UTC = 10pm CST
+    - cron: '6 4 * * *'
+  push:
+  workflow_dispatch:
+   jobs:
+    setup:
+      runs-on: ubuntu-latest
+      permissions:
+      contents: read
+      deployments: write
+      uses: 1password/load-secrets-action@v1
+      with:
+          # Export loaded secrets as environment variables
+          export-env: true
+      env: 
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        CF_ACCOUNT_ID: "op://DevOps/cloudflare-worker-deploy-token/CF_ACCOUNT_ID"
+        CF_API_TOKEN: "op://DevOps/cloudflare-worker-deploy-token/CF_API_TOKEN"
+        WORDPRESS_REST_MENU_ENDPOINT: "op://DevOps//biel-env-vars/wordpress_rest_menu_endpoint"
+        TRANSLATIONS_JSON_ENDPOINT: "op://DevOps//biel-env-vars/translations_json_endpoint"
+        WORDPRESS_GQL_PATH: "op://DevOps//biel-env-vars/dev/dev-site-url"
+      steps:
+        - name: set prod variables
+          if: github.ref == 'refs/heads/prod'
+          env: 
+          SITE_URL: "op://DevOps//biel-env-vars/prod/prod-site-url"
+        - name: set qa variables
+          if: github.ref == 'refs/heads/qa'
+          env: 
+          SITE_URL: "op://DevOps//biel-env-vars/qa/qa-site-url"
+        - name: set dev (and preview) variables
+          if: github.ref != 'refs/heads/prod' && github.ref != 'refs/heads/qa'
+          env: 
+          SITE_URL: "op://DevOps//biel-env-vars/dev/dev-site-url"
+    deploy:
+     runs-on: ubuntu-latest
+     permissions:
+      contents: read
+      deployments: write
+      env:
+        WORDPRESS_GQL_PATH: ${{ env.WORDPRESS_GQL_PATH }}
+        WORDPRESS_REST_MENU_ENDPOINT: ${{ env.WORDPRESS_REST_MENU_ENDPOINT }}
+        TRANSLATIONS_JSON_ENDPOINT: ${{ env.TRANSLATIONS_JSON_ENDPOINT }}
+        SITE_URL: ${{ env.SITE_URL }}
+      name: Deploy to Cloudflare Pages
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v3
+        - name: get pnpm
+          uses: pnpm/action-setup@v2
+          with:
+            version: 8.14.0
+        - name: setup node
+          uses: actions/setup-node@v3
+          with:
+            node-version: "20"
+            cache: pnpm
+        - name: Upgrade JS dependencies
+          uses: actions/setup-node@v3
+          with:
+            node-version: "18"
+            cache: pnpm
+        - name: Install JS dependencies and build
+          run: |
+            pnpm install && pnpm build
+          env:
+            NODE_OPTIONS: --max_old_space_size=4096
+
+        - name: Purge extra css
+          run: |
+            pnpm run purgecss
+        - name: Generate Pagefind index
+          run: |
+            pnpm run pagefind
+          env:
+            SITE_URL:  ${{ env.SITE_URL }}
+            WORDPRESS_GQL_PATH: ${{ env.WORDPRESS_GQL_PATH }}
+            TRANSLATIONS_JSON_ENDPOINT: ${{ env.TRANSLATIONS_JSON_ENDPOINT }}
+        - name: Publish
+          uses: cloudflare/pages-action@1
+          with:
+            apiToken: ${{ env.CF_API_TOKEN }}
+            accountId: ${{ env.CF_ACCOUNT_ID }}
+            projectName: headless-biel
+            directory: dist # e.g. 'dist'
+            # automatically provided by ga
+            gitHubToken: ${{ secrets.GITHUB_TOKEN }}

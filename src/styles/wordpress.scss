@@ -1,0 +1,122 @@
+@use "sass:math";
+
+@import "@wordpress/base-styles/mixins";
+@import "@wordpress/base-styles/colors.native";
+@import "@wordpress/base-styles/z-index";
+@import "@wordpress/base-styles/default-custom-properties";
+@import "@wordpress/base-styles/colors";
+@import "@wordpress/base-styles/variables";
+@import "@wordpress/base-styles/breakpoints";
+@import "@wordpress/block-library/src/style";
+@import "@wordpress/block-library/src/theme";
+
+//  Note these are some additional base styles for WP, some copied, for some wordpress classnames.  I stripped a lot out though hence the empty rulesets
+.wp-blocks {
+  @apply overflow-x-hidden;
+
+  /* Block: Headings  ------------------------- */
+
+  /* Block: Image  ------------------------- */
+  .wp-block-image {
+    @apply block;
+  }
+  .aligncenter img {
+    @apply mx-auto;
+  }
+
+  .alignright {
+    @apply float-right;
+  }
+
+  .alightleft {
+    @apply float-left;
+  }
+
+  .is-style-circle-mask figure img {
+    @apply rounded-full;
+  }
+
+  /* Block: Paragraph  ------------------------- */
+
+  .has-text-align-center {
+    @apply text-center;
+  }
+
+  .has-text-align-right {
+    @apply text-right;
+  }
+
+  .has-text-align-left {
+    @apply text-left;
+  }
+
+  .has-drop-cap::first-letter {
+    @apply font-serif text-primary-600 float-left leading-8 text-6xl;
+    /* font-size: 75px; */
+    /* line-height: 60px; */
+    padding-top: 4px;
+    padding-right: 8px;
+    padding-left: 3px;
+
+    @supports (initial-letter: 4) or (-webkit-initial-letter: 4) {
+      initial-letter: 4;
+      -webkit-initial-letter: 4;
+      font-size: unset;
+      @apply float-none leading-normal p-0;
+    }
+  }
+
+  .has-small-font-size {
+    font-size: var(--step--1);
+  }
+
+  .has-normal-font-size {
+    font-size: var(--step-0);
+  }
+
+  .has-medium-font-size {
+    font-size: var(--step-1);
+  }
+
+  .has-large-font-size {
+    font-size: var(--step-2);
+  }
+
+  .has-huge-font-size {
+    font-size: var(--step-4);
+  }
+
+  /* Block: Separator  ------------------------- */
+
+  hr.wp-block-separator {
+  }
+
+  /* Block: Quote  ------------------------- */
+
+  blockquote {
+  }
+
+  .wp-block-cover blockquote {
+  }
+
+  /* Block: Lists  ------------------------- */
+  & > ol,
+  & > ul {
+  }
+  ol,
+  ul {
+    li::marker {
+    }
+  }
+
+  ol {
+  }
+
+  ul {
+    list-style-type: disc;
+    list-style-position: inside;
+    li > ul {
+      list-style-type: circle;
+    }
+  }
+}
