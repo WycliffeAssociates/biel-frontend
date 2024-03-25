@@ -30,6 +30,5 @@ src/dev/
 /public/pagefind
 src/pagefind/*
 !src/pagefind/pagefind.js
-functions/\[\[path\]\].js
 .mise.toml
 notes.md
