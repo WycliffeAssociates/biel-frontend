@@ -24,9 +24,9 @@ jobs:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           CF_ACCOUNT_ID: "op://DevOps/cloudflare-worker-deploy-token/CF_ACCOUNT_ID"
           CF_API_TOKEN: "op://DevOps/cloudflare-worker-deploy-token/CF_API_TOKEN"
-          WORDPRESS_REST_MENU_ENDPOINT: "op://DevOps//biel-env-vars/wordpress_rest_menu_endpoint"
-          TRANSLATIONS_JSON_ENDPOINT: "op://DevOps//biel-env-vars/translations_json_endpoint"
-          WORDPRESS_GQL_PATH: "op://DevOps//biel-env-vars/dev/dev-site-url"
+          WORDPRESS_REST_MENU_ENDPOINT: "op://DevOps/biel-env-vars/common/wordpress-rest-menu-endpoint"
+          TRANSLATIONS_JSON_ENDPOINT: "op://DevOps/biel-env-vars/common/translations-json-endpoint"
+          WORDPRESS_GQL_PATH: "op://DevOps/biel-env-vars/common/wordpress-gql-path"
       - name: set prod variables
         uses: 1password/load-secrets-action@v1
         with:
@@ -35,7 +35,7 @@ jobs:
         if: github.ref == 'refs/heads/prod'
         env: 
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          SITE_URL: "op://DevOps//biel-env-vars/prod/prod-site-url"
+          SITE_URL: "op://DevOps/biel-env-vars/prod/prod-site-url"
       - name: set qa variables
         uses: 1password/load-secrets-action@v1
         with:
@@ -44,7 +44,7 @@ jobs:
         if: github.ref == 'refs/heads/qa'
         env: 
          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-         SITE_URL: "op://DevOps//biel-env-vars/qa/qa-site-url"
+         SITE_URL: "op://DevOps/biel-env-vars/qa/qa-site-url"
       - name: set dev (and preview) variables
         uses: 1password/load-secrets-action@v1
         with:
@@ -53,7 +53,7 @@ jobs:
         if: github.ref != 'refs/heads/prod' && github.ref != 'refs/heads/qa'
         env: 
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          SITE_URL: "op://DevOps//biel-env-vars/dev/dev-site-url"
+          SITE_URL: "op://DevOps/biel-env-vars/dev/dev-site-url"
       - name: Checkout
         uses: actions/checkout@v3
       - name: get pnpm
