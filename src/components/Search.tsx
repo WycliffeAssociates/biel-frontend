@@ -1,6 +1,7 @@
 // Import necessary modules from SolidJS
 import {For, Show, createSignal, onCleanup} from "solid-js";
 import {getDict} from "@src/i18n/strings.js";
+import {MangifyingGlass} from "@components/Icons";
 
 type SearchProps = {
   langCode: string;
@@ -39,7 +40,6 @@ export function Search(props: SearchProps) {
     setResults(res);
   };
   onCleanup(() => {
-    // @ts-ignore
     if (typeof window != "undefined") {
       // @ts-ignore
       if (window.pagefind) {
@@ -48,31 +48,30 @@ export function Search(props: SearchProps) {
         window.pagefind.destroy();
       }
     }
-    /* 
-    await pagefind.init();
-    */
   });
 
   return (
     <>
       {/* Input element for search */}
-      <input
-        style={{
-          border: "solid 2px #d1d5db",
-          background: "#e5e7eb",
-        }}
-        class="border-2 !border-gray-300 border-solid rounded p-2 !bg-gray-200 block"
-        id="search"
-        type="text"
-        placeholder={getDict(props.langCode).search}
-        value={query()}
-        onInput={(e) => setQuery(e.target.value)}
-        onKeyUp={handleInput}
-      />
+
+      <div class="relative">
+        <input
+          class="border border-gray-200 px-2 py-2 rounded-lg bg-white! pis-10 placeholder:(text-#777 font-bold) w-full"
+          id="search"
+          type="search"
+          placeholder={getDict(props.langCode).search}
+          value={query()}
+          onInput={(e) => setQuery(e.target.value)}
+          onKeyUp={handleInput}
+          // @ts-ignore chrome only
+          onSearch={handleInput}
+        />
+        <MangifyingGlass class="absolute start-2 top-2" />
+      </div>
 
       {/* Container for search results */}
       <Show when={results()?.length}>
-        <ul class="absolute top-full z-10 bg-white p-2 max-h-500px overflow-auto w-[clamp(200px,50vw,500px)] right-0">
+        <ul class="absolute top-full  z-10 bg-white p-3 max-h-500px overflow-auto w-[clamp(min(99vw,270px),50vw,500px)] right-0 border border-#aaa">
           <For each={results()}>
             {(item) => (
               <li class="border-y-solid border-y-1 border-gray-400 py-4">

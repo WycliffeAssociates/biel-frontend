@@ -1,6 +1,7 @@
 import type {Menu, MenuItem} from "@customTypes/types";
 import {isAbsoluteUrl} from "@lib/web";
 import {Show, createSignal, For, Switch, Match, createEffect} from "solid-js";
+import {WaLogo} from "./Logo";
 
 type HeaderMenuProps = {
   menu: Menu;
@@ -52,7 +53,7 @@ export function HeaderMenuMobile(props: HeaderMenuProps) {
       <nav class="relative">
         <div class="flex justify-between py-2 sm:text-blue">
           <a href="/" class="w-40 block">
-            <img src={`/images/wa_logo.png`} alt="Logo" />
+            <WaLogo />
           </a>
           <div>
             {/* search */}

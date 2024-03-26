@@ -3,6 +3,7 @@ import {isAbsoluteUrl} from "@lib/web";
 import {Show, createSignal, For} from "solid-js";
 import {createMediaQuery} from "@solid-primitives/media";
 import {Search} from "@components/Search";
+import {WaLogo} from "@components/Logo";
 
 type HeaderMenuProps = {
   menu: Menu;
@@ -34,7 +35,7 @@ export function HeaderMenuOld(props: HeaderMenuProps) {
               href={`${props.langCode == "en" ? "/" : `/${props.langCode}`}`}
               class="w-40 "
             >
-              <img src={`/images/wa_logo.png`} alt="Logo" />
+              <WaLogo />
             </a>
 
             <div class="flex gap-6 items-center">
@@ -131,10 +132,10 @@ export function HeaderMenuOldMobile(props: HeaderMenuProps) {
           href={`${props.langCode == "en" ? "/" : `/${props.langCode}`}`}
           class="w-40 "
         >
-          <img src={`/images/wa_logo.png`} alt="Logo" />
+          <WaLogo />
         </a>
         <div class="flex gap-4 items-center">
-          <div class="relative z-20">
+          <div class="md:relative z-20">
             <Search langCode={props.langCode} />
           </div>
           <button class="text-3xl" onClick={toggleDrawer}>

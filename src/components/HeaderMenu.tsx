@@ -3,6 +3,7 @@ import {isAbsoluteUrl} from "@lib/web";
 import {Show, createSignal, For, Switch, Match} from "solid-js";
 import {HeaderMenuMobile} from "./HeaderMenuMobile";
 import {createMediaQuery} from "@solid-primitives/media";
+import {WaLogo} from "./Logo";
 
 type HeaderMenuProps = {
   menu: Menu;
@@ -51,7 +52,7 @@ export function HeaderMenu(props: HeaderMenuProps) {
             onMouseLeave={() => setActiveIdx(null)}
           >
             <a href="/" class="w-40 ">
-              <img src={`/images/wa_logo.png`} alt="Logo" />
+              <WaLogo />
             </a>
 
             {/* <svg class= xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.75 12.25h10.5m-10.5-4h10.5m-10.5-4h10.5" /></svg> */}

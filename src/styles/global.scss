@@ -131,7 +131,7 @@ main img {
   margin-top: var(--flow-space);
 }
 
-.wp-blocks p a:not(footer a) {
+.wp-blocks a:where(:not(.gb-button):not(footer a)) {
   color: var(--color-accent);
   text-decoration: underline;
 }

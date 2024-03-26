@@ -74,7 +74,7 @@ export function SideBar(props: SideBarProps) {
       let codeToUse =
         props.languageCode == "es" ? "es-419" : props.languageCode;
       if (props.langs[codeToUse]) {
-        setSelectedLang(() => props.langs[props.languageCode]);
+        setSelectedLang(() => props.langs[codeToUse]);
       }
       if (langQueryParam && !!props.langs[langQueryParam]) {
         const newSelection = props.langs[langQueryParam];
