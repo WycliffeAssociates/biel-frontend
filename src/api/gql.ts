@@ -24,7 +24,7 @@ export async function getHomePage() {
       }
     }
   `;
-  const gqlUrl = `${import.meta.env.SITE_URL}/${
+  const gqlUrl = `${import.meta.env.CMS_URL}/${
     import.meta.env.WORDPRESS_GQL_PATH
   }`;
   const response = await fetch(gqlUrl, {
@@ -51,7 +51,7 @@ export async function getPage(uri: string, langCode: string) {
   if (uri.includes("home")) {
     uri = "/";
   }
-  const gqlUrl = `${import.meta.env.SITE_URL}/${
+  const gqlUrl = `${import.meta.env.CMS_URL}/${
     import.meta.env.WORDPRESS_GQL_PATH
   }`;
   const response = await fetch(gqlUrl, {
@@ -191,7 +191,7 @@ export async function getAllPages() {
       }
     }
   `;
-  const gqlUrl = `${import.meta.env.SITE_URL}/${
+  const gqlUrl = `${import.meta.env.CMS_URL}/${
     import.meta.env.WORDPRESS_GQL_PATH
   }`;
 
@@ -274,7 +274,7 @@ export async function getWpmlLanguages() {
       }
     }
   `;
-  const gqlUrl = `${import.meta.env.SITE_URL}/${
+  const gqlUrl = `${import.meta.env.CMS_URL}/${
     import.meta.env.WORDPRESS_GQL_PATH
   }`;
   const response = await fetch(gqlUrl, {
@@ -297,7 +297,7 @@ export async function getWpmlLanguages() {
   return asMap;
 }
 export async function getMenus() {
-  const restURl = `${import.meta.env.SITE_URL}/${
+  const restURl = `${import.meta.env.CMS_URL}/${
     import.meta.env.WORDPRESS_REST_MENU_ENDPOINT
   }`;
 
@@ -336,7 +336,7 @@ export async function getFooter(langCode: string) {
       }
     }
   `;
-  const gqlUrl = `${import.meta.env.SITE_URL}/${
+  const gqlUrl = `${import.meta.env.CMS_URL}/${
     import.meta.env.WORDPRESS_GQL_PATH
   }`;
   try {

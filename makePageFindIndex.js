@@ -16,7 +16,7 @@ const translationsDataText = await translationsDataBlob.text();
 const translationsData = await JSON.parse(translationsDataText);
 console.log(`fetched ${translationsData.length} lang data`);
 
-const wpInstanceUrl = `${process.env.SITE_URL}/${process.env.WORDPRESS_GQL_PATH}`;
+const wpInstanceUrl = `${process.env.CMS_URL}/${process.env.WORDPRESS_GQL_PATH}`;
 const query = `query getTranslationsPage {
   page(id: "translations", idType: URI) {
     languageCode

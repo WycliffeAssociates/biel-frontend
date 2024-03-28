@@ -13,7 +13,7 @@
     "purgecss": "node ./purge.js",
     "dbcfdeploy": "wrangler pages deployment tail",
     "pagefind": "node ./makePageFindIndex.js",
-    "pflocal": "WORDPRESS_GQL_PATH=index.php?graphql SITE_URL=https://bieldev.wpengine.com    TRANSLATIONS_JSON_ENDPOINT=https://bieldev.wpengine.com/wp-content/themes/bb-theme-child/data/translations.json node ./makePageFindIndex.js"
+    "pflocal": "WORDPRESS_GQL_PATH=index.php?graphql CMS_URL=https://bieldev.wpengine.com    TRANSLATIONS_JSON_ENDPOINT=https://bieldev.wpengine.com/wp-content/themes/bb-theme-child/data/translations.json node ./makePageFindIndex.js"
   },
   "dependencies": {
     "@astrojs/check": "^0.5.10",

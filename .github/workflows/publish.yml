@@ -35,6 +35,7 @@ jobs:
         if: github.ref == 'refs/heads/prod'
         env: 
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          CMS_URL: "op://DevOps/biel-env-vars/prod/prod-cms-url"
           SITE_URL: "op://DevOps/biel-env-vars/prod/prod-site-url"
       - name: set qa variables
         uses: 1password/load-secrets-action@v1
@@ -44,7 +45,8 @@ jobs:
         if: github.ref == 'refs/heads/qa'
         env: 
          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-         SITE_URL: "op://DevOps/biel-env-vars/qa/qa-site-url"
+         CMS_URL: "op://DevOps/biel-env-vars/qa/qa-cms-url"
+         SITE_URL: "op://DevOps/biel-env-vars/prod/qa-site-url"
       - name: set dev (and preview) variables
         uses: 1password/load-secrets-action@v1
         with:
@@ -53,7 +55,8 @@ jobs:
         if: github.ref != 'refs/heads/prod' && github.ref != 'refs/heads/qa'
         env: 
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          SITE_URL: "op://DevOps/biel-env-vars/dev/dev-site-url"
+          CMS_URL: "op://DevOps/biel-env-vars/dev/dev-cms-url"
+          SITE_URL: "op://DevOps/biel-env-vars/prod/prod-dev-url"
       - name: Checkout
         uses: actions/checkout@v3
       - name: get pnpm
@@ -83,6 +86,7 @@ jobs:
         run: |
           pnpm run pagefind
         env:
+            CMS_URL:  ${{ env.CMS_URL }}
             SITE_URL:  ${{ env.SITE_URL }}
             WORDPRESS_GQL_PATH: ${{ env.WORDPRESS_GQL_PATH }}
             TRANSLATIONS_JSON_ENDPOINT: ${{ env.TRANSLATIONS_JSON_ENDPOINT }}

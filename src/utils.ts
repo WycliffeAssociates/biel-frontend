@@ -32,7 +32,7 @@ export function adjustCmsDomLinks(stringToParse: string) {
   const wrapped = `<div id="absolutizeWrapper">${stringToParse}</div>`;
   const dom = new DOMParser().parseFromString(wrapped, "text/html");
   const images: HTMLImageElement[] = Array.from(dom.querySelectorAll("img"));
-  const baseUrl = import.meta.env.SITE_URL;
+  const baseUrl = import.meta.env.CMS_URL;
 
   images.forEach((img) => {
     let ownServerUrl: string | undefined = baseUrl.split("//")?.[1];
@@ -60,7 +60,7 @@ export function adjustCmsDomLinks(stringToParse: string) {
 }
 
 function replaceAllAbsoluteLinksToCms(dom: any) {
-  const baseUrl = import.meta.env.SITE_URL;
+  const baseUrl = import.meta.env.CMS_URL;
   const allATags: NodeListOf<HTMLAnchorElement> =
     dom.querySelectorAll(`a[href]`);
   // allATags.forEach((t) => console.log(t.href));
