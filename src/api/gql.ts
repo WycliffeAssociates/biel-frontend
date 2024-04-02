@@ -27,6 +27,7 @@ export async function getHomePage() {
   const gqlUrl = `${import.meta.env.CMS_URL}/${
     import.meta.env.WORDPRESS_GQL_PATH
   }`;
+  console.log(`fetching ${gqlUrl}`);
   const response = await fetch(gqlUrl, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
@@ -54,6 +55,8 @@ export async function getPage(uri: string, langCode: string) {
   const gqlUrl = `${import.meta.env.CMS_URL}/${
     import.meta.env.WORDPRESS_GQL_PATH
   }`;
+  console.log(`fetching ${gqlUrl}`);
+
   const response = await fetch(gqlUrl, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
@@ -194,7 +197,7 @@ export async function getAllPages() {
   const gqlUrl = `${import.meta.env.CMS_URL}/${
     import.meta.env.WORDPRESS_GQL_PATH
   }`;
-
+  console.log(`fetching ${gqlUrl}`);
   const response = await fetch(gqlUrl, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
