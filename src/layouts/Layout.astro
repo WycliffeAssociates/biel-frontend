@@ -18,7 +18,7 @@ import {adjustCmsDomLinks} from "@src/utils";
 import {cacheFooterForDev, getCachedFooter} from "@lib/caching";
 
 const {title, inlineCss, langInfo, langSwitcher, description} = Astro.props;
-const forceRefresh = false;
+const forceRefresh = true;
 let cachedFooter =
   import.meta.env.DEV && getCachedFooter(forceRefresh)
     ? getCachedFooter()

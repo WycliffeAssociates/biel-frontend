@@ -4,7 +4,6 @@ import {getGlobal, getMenus, getPage, getWpmlLanguages} from "@src/api/gql";
 import LayoutServer from "@layouts/LayoutServer.astro";
 import Blocks from "@components/Blocks.astro";
 import {DOMParser} from "linkedom";
-import LanguageSwitcher from "../../components/LanguageSwitcher.astro";
 // import {HeaderMenu} from "@components/HeaderMenu";
 import {HeaderMenuOld} from "@components/HeaderMenuOld";
 import {HeaderMenu} from "@components/HeaderMenu";
@@ -12,7 +11,6 @@ import TranslationsPageOld from "@components/TranslationsPageOld/TranslationPage
 import {blocksAreEmpty} from "@lib/web";
 import {getDict} from "@src/i18n/strings";
 import {adjustCmsDomLinks} from "@src/utils";
-import {LanguagePicker} from "@components/LanguagePicker";
 // style id=generateblocks-inline-css
 // const res = await fetch("http://bible-in-every-language.local/headless/");
 const {slug} = Astro.params;
@@ -20,14 +18,18 @@ if (!slug) return Astro.redirect("/404");
 const wpmlLangDict = await getWpmlLanguages();
 const parts = slug.split("/");
 const firstPart = parts[0] || "";
-const langCode = !!wpmlLangDict[firstPart] ? firstPart : "en";
-const pageData = await getPage(slug, langCode);
-const ctaData = await getGlobal("cta-interior", langCode);
-const contactSection = await getGlobal("contact", langCode);
-if (!pageData) return Astro.redirect("/404");
+const langInfo = !!wpmlLangDict[firstPart]
+  ? wpmlLangDict[firstPart]
+  : wpmlLangDict.en;
+if (!langInfo) return Astro.redirect("/404");
+// const langInfo.language_code = !!wpmlLangDict[firstPart] ? firstPart : "en";
+const page = await getPage(slug, langInfo.language_code);
+const ctaData = await getGlobal("cta-interior", langInfo.language_code);
+const contactSection = await getGlobal("contact", langInfo.language_code);
+if (!page) return Astro.redirect("/404");
 const menus = await getMenus();
 const nonHiddenLanguages = new Set(Object.keys(menus));
-const enSrcResponse = await fetch(pageData.link);
+const enSrcResponse = await fetch(page.link);
 const pageRendered = await enSrcResponse.text();
 const dom = new DOMParser().parseFromString(pageRendered, "text/html");
 const inlineStyleIds = [
@@ -47,13 +49,12 @@ if (ctaData?.inlineStyles) {
 if (contactSection?.inlineStyles) {
   inlineStyles.push(contactSection.inlineStyles);
 }
-pageData.inlineStyles = inlineStyles;
+page.inlineStyles = inlineStyles;
 // todo: reduce hardcode here
 const headerMenu =
-  menus[langCode]?.["header-menu"] || menus.en?.["header-menu"]!;
+  menus[langInfo.language_code]?.["header-menu"] || menus.en?.["header-menu"]!;
 // console.dir(headerMenu);
 
-const langInfo = wpmlLangDict[langCode] || wpmlLangDict.en!; //en default
 const langSwitcherList = Object.values(wpmlLangDict)
   .filter((lang) => {
     return nonHiddenLanguages.has(lang.code);
@@ -63,8 +64,8 @@ const langSwitcherList = Object.values(wpmlLangDict)
     const copy = {...lang};
     // Mutate the langMenu while in this loop. For each of these languages, find the equivalent given its lang code
     // todo: fix the ts-ignore;
-    let translatedUri = pageData.otherVersions?.[copy.code] || "";
-    if (pageData.uri == "/") {
+    let translatedUri = page.otherVersions?.[copy.code] || "";
+    if (page.uri == "/") {
       translatedUri = copy.code == "en" ? "/home" : `/${copy.code}/home`;
     }
 
@@ -86,7 +87,7 @@ const langSwitcherList = Object.values(wpmlLangDict)
 
 // const inlineStyle = inlineStyles?.innerText || "";
 // @ts-ignore
-const {title, editorBlocks} = pageData;
+const {title} = page;
 
 //  todo: would need an acfx block that takes a gravity form ID, that we
 ---
@@ -97,73 +98,73 @@ const {title, editorBlocks} = pageData;
   langInfo={langInfo}
   langSwitcher={langSwitcherList}
 >
-  <!-- <HeaderMenuOld menu={headerMenu} langCode={langInfo.code} client:load /> -->
+  <!-- <HeaderMenuOld menu={headerMenu} langInfo.language_code={langInfo.code} client:load /> -->
   <HeaderMenu
     allLangs={langSwitcherList}
     currentLang={langInfo}
     menu={headerMenu}
     client:load
   />
-  <main class={`${!pageData.isHomePage && "interior-page"} `}>
+  <main class={`${!page.isHomePage && "interior-page"} `}>
     {
-      !pageData.isHomePage && pageData.pageOptions.topBlurb && (
+      !page.isHomePage && page.pageOptions.topBlurb && (
         <div class="pbs-40 pbe-40 bg-brand-darkest bg-gradient-to-b from-[hsla(0,0%,0%,0.5)] to-[hsla(0,0%,0%,0)]">
           <div class="contain text-onSurface-invert px-4">
             <h1 class="font-bold font-size-[var(--step-3)] mb-6" style="">
-              {pageData.title}
+              {page.title}
             </h1>
             <p class="max-w-60ch font-size-[var(--step-0)]">
-              {pageData.pageOptions.topBlurb}
+              {page.pageOptions.topBlurb}
             </p>
           </div>
         </div>
       )
     }
     {
-      !pageData.isHomePage && !pageData.pageOptions.topBlurb && (
+      !page.isHomePage && !page.pageOptions.topBlurb && (
         <h1
           class="text-center text-6xl mb-12 bg-[rgba(0,0,0,0.7)] bg-blend-overlay text-white py-20 bg-no-repeat bg-cover"
           style="background-image: url('/images/page_bg.jpg')"
         >
-          {pageData.title}
+          {page.title}
         </h1>
       )
     }
 
     {
-      !pageData.isTranslationPage && (
+      !page.isTranslationPage && (
         <div
           class={`headless-insertion wp-blocks ${
-            !pageData.isHomePage && "site-container"
+            !page.isHomePage && "site-container"
           }`}
         >
-          {editorBlocks
+          {page.editorBlocks
             .filter((b) => b.parentClientId == null)
             .map((block) => {
               return <Blocks content={adjustCmsDomLinks(block.renderedHtml)} />;
             })}
-          {blocksAreEmpty(editorBlocks) && (
+          {blocksAreEmpty(page.editorBlocks) && (
             <h2 class="">{getDict(langInfo.code).notYetTranslated}</h2>
           )}
         </div>
       )
     }
     {
-      pageData.isTranslationPage && (
-        <TranslationsPageOld languageCode={langCode} />
+      page.isTranslationPage && (
+        <TranslationsPageOld languageCode={langInfo.language_code} />
       )
     }
     {
       ctaData && (
         <div class="headless-insertion overflow-hidden">
-          <Blocks content={adjustCmsDomLinks(ctaData?.global.content)} />
+          <Blocks content={adjustCmsDomLinks(ctaData?.content)} />
         </div>
       )
     }
     {
       contactSection && (
         <div class="headless-insertion py-40">
-          <Blocks content={adjustCmsDomLinks(contactSection?.global.content)} />
+          <Blocks content={adjustCmsDomLinks(contactSection?.content)} />
         </div>
       )
     }

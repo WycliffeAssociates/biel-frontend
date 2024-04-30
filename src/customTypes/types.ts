@@ -123,6 +123,9 @@ type Translation = {
   isTranslationPage: boolean;
   isHomePage: boolean;
   editorBlocks: EditorBlock[];
+  pageOptions: {
+    topBlurb?: string;
+  };
 };
 
 export type footerType = {

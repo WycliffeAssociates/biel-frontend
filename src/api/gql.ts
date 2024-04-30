@@ -351,11 +351,12 @@ export async function getGlobal(slug: string, langCode: string) {
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({query}),
     });
+    // todo: this isn't a footer type, but shape is same
     const result = (await response.json()) as {data: footerType};
 
     let fetchLink = result.data.global.link;
-    const fetchFooter = await fetch(fetchLink);
-    const domText = await fetchFooter.text();
+    const fetchGlobal = await fetch(fetchLink);
+    const domText = await fetchGlobal.text();
     const globalDom = new DOMParser().parseFromString(domText, "text/html");
     const inlineStyleIds = [
       "generateblocks-inline-css",
@@ -376,7 +377,12 @@ export async function getGlobal(slug: string, langCode: string) {
         : result.data.global.translations.find(
             (t) => t.languageCode == langCode
           ) || result.data.global; //fallback to english if not translation with this langcode;
-    return {inlineStyles: inlineStyles, global: globalToUse};
+    return {
+      inlineStyles: inlineStyles,
+      global: globalToUse,
+      content: globalToUse.content,
+      allLangsGlobal: result.data.global,
+    };
   } catch (error) {
     console.error("footer fetch failed");
     console.error(error);

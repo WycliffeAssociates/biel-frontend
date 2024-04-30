@@ -1,4 +1,4 @@
-import type {Menu, MenuItem} from "./customTypes/types";
+import type {Menu, MenuItem, WpPage} from "./customTypes/types";
 import {DOMParser} from "linkedom";
 
 export function flatMenuToHierachical(menu: Menu) {
@@ -73,4 +73,119 @@ function replaceAllAbsoluteLinksToCms(dom: any) {
     // console.log(`old was ${tag.href}, and new is ${newHref}`);
     tag.setAttribute("href", newHref);
   });
+}
+
+type OptionalSectionsArg = {
+  targetLang: string;
+  sectionToAdd:
+    | {
+        content: string;
+        link: string;
+        translations: {
+          languageCode: string;
+          content: string;
+        }[];
+      }
+    | undefined;
+};
+export function addOptionalSectionsToCmsPages({
+  targetLang,
+  sectionToAdd,
+}: OptionalSectionsArg) {
+  let section = null;
+  if (sectionToAdd) {
+    if (targetLang == "en") {
+      section = sectionToAdd;
+    } else {
+      section =
+        sectionToAdd.translations.find((t) => t.languageCode == targetLang) ||
+        sectionToAdd;
+    }
+  }
+  return section;
+}
+
+type collectInlineStylesArgs = {
+  dom: {querySelector: (arg0: string) => any};
+  additionalStyles: Array<string[] | undefined>;
+};
+export function collectInlineStyles({
+  dom,
+  additionalStyles,
+}: collectInlineStylesArgs) {
+  const inlineStyleIds = [
+    "generateblocks-inline-css",
+    "global-styles-inline-css",
+    "generate-style-inline-css",
+  ];
+  const inlineStyles = inlineStyleIds.map((id) => {
+    const styleTag = dom.querySelector(`#${id}`);
+    if (styleTag) {
+      return styleTag.innerHTML;
+    } else return "";
+  });
+  if (additionalStyles) {
+    additionalStyles.forEach((style) => {
+      if (style) {
+        inlineStyles.push(...style);
+      }
+    });
+  }
+  return inlineStyles;
+}
+
+type getNonHiddenPagesArgs = {
+  pagesByLangCode: Record<string, Record<string, Omit<WpPage, "translations">>>;
+  nonHiddenLanguages: Set<string>;
+};
+export function getNonHiddenPages({
+  nonHiddenLanguages,
+  pagesByLangCode,
+}: getNonHiddenPagesArgs) {
+  const nonHiddenPages = Object.keys(pagesByLangCode).reduce(
+    (
+      accumulator: Record<string, Record<string, Omit<WpPage, "translations">>>,
+      currentLangCode
+    ) => {
+      const isNotHidden = nonHiddenLanguages.has(currentLangCode);
+      if (isNotHidden) {
+        // Record<string, Omit<WpPage, "translations">>
+        const value = pagesByLangCode[currentLangCode];
+        if (value) {
+          accumulator[currentLangCode] = value;
+        }
+      }
+      return accumulator;
+    },
+    {}
+  );
+  return nonHiddenPages;
+}
+
+type getOtherLanguagesPagesListArgs = {
+  otherLanguages: {
+    [x: string]: Record<string, Omit<WpPage, "translations">>;
+  };
+  englishPagesDict: Record<string, Omit<WpPage, "translations">>;
+};
+export function getOtherLanguagesPagesList({
+  otherLanguages,
+  englishPagesDict,
+}: getOtherLanguagesPagesListArgs) {
+  const otherLangsList = Object.values(otherLanguages)
+    .map((langDict) => {
+      const nested = Object.values(langDict).map((translatedPage) => {
+        // todo: some guards around the type here? or just say it won't be ? probably
+        const correspondingEnglishPage =
+          englishPagesDict[translatedPage.translationOfId];
+        if (correspondingEnglishPage?.inlineStyles) {
+          // mutate
+          translatedPage.inlineStyles = correspondingEnglishPage.inlineStyles;
+        }
+        return {pageId: translatedPage.databaseId, page: translatedPage};
+      });
+      return nested;
+    })
+    .flat();
+  return otherLangsList;
 }

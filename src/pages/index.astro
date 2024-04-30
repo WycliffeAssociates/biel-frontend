@@ -4,11 +4,12 @@ import Blocks from "../components/Blocks.astro";
 import {getMenus, getWpmlLanguages, getHomePage} from "@src/api/gql";
 import {cacheHomePageDev, getDevHomePage} from "@lib/caching";
 import {adjustCmsDomLinks} from "@src/utils";
-import LanguageSwitcher from "@components/LanguageSwitcher.astro";
 import {DOMParser} from "linkedom";
 // import {HeaderMenu} from "@components/HeaderMenu";
 import {HeaderMenuOld} from "@components/HeaderMenuOld";
 import type {WpPage} from "@customTypes/types";
+import {HeaderMenu} from "@components/HeaderMenu";
+// !NOTE: THIS IS ONLY THE ENGLISH PAGE, HECNE THE COERCCIONES AND HARDCODES TO .EN. THIS IS DUE TO WANTING TO ROUTE THE HOME PAGE TO /, BUT THE OTHER HOME PAGES ARE /ES FOR EXAMPLE
 const forceRefresh = true;
 const data =
   import.meta.env.DEV && getDevHomePage(forceRefresh)
@@ -43,8 +44,7 @@ try {
 const menus = await getMenus();
 const nonHiddenLanguages = new Set(Object.keys(menus));
 const wpmlLangDict = await getWpmlLanguages();
-const headerMenu =
-  menus["en"]?.["header-menu-old"] || menus.en?.["header-menu-old"]!;
+const headerMenu = menus["en"]?.["header-menu"] || menus.en?.["header-menu"]!;
 const langSwitcherList = Object.values(wpmlLangDict)
   .filter((lang) => {
     return nonHiddenLanguages.has(lang.code);
@@ -71,11 +71,12 @@ const description = editorBlocks
   langSwitcher={langSwitcherList}
   description={description}
 >
-  <LanguageSwitcher
-    langInfo={langSwitcherList}
-    currentLangCode={langInfo.code}
+  <HeaderMenu
+    allLangs={langSwitcherList}
+    currentLang={langInfo}
+    menu={headerMenu}
+    client:load
   />
-  <HeaderMenuOld menu={headerMenu} langCode={langInfo.code} client:idle />
   <main class="headless-insertion wp-blocks">
     {
       editorBlocks
@@ -84,9 +85,5 @@ const description = editorBlocks
           return <Blocks content={adjustCmsDomLinks(block.renderedHtml)} />;
         })
     }
-
-    <!-- <Blocks content={absolutizeRelativeMediaUrls(content)} /> -->
   </main>
 </Layout>
-
-<!-- <style set:html={inlineStyle}></style> -->
