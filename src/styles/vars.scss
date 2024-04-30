@@ -1,3 +1,5 @@
+// https://purgecss.com/safelisting.html#gotchas
+/*! purgecss start ignore */
 :root {
   --clr-brand-950: 232.9, 100%, 96.7%; //#eef0ff
   --clr-brand-900: 227, 100%, 92.7%; //#dae2ff
@@ -96,3 +98,4 @@
   --clr-surface-success: var(--clr-success-200);
   --clr-on-surface-success: var(--clr-success-800);
 }
+/*! purgecss end ignore */
