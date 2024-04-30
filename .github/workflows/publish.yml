@@ -56,7 +56,7 @@ jobs:
         env: 
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           CMS_URL: "op://DevOps/biel-env-vars/dev/dev-cms-url"
-          SITE_URL: "op://DevOps/biel-env-vars/prod/prod-dev-url"
+          SITE_URL: "op://DevOps/biel-env-vars/prod/prod-site-url"
       - name: Checkout
         uses: actions/checkout@v3
       - name: get pnpm
