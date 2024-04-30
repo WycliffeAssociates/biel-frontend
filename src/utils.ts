@@ -20,11 +20,12 @@ export function flatMenuToHierachical(menu: Menu) {
       }
     }
   });
+  // We have an assumption from design that things will only be in one level, but some will be is_featured and others are not.  On this one level, I want to reduce the menu.items to be featured_items and non_featured_items;
+  menu.featured_items = menu.items.filter((i) => i.is_featured);
+  menu.non_featured_items = menu.items.filter((i) => !i.is_featured);
   // We attached everythign where it should while in a flat list via references, so now we can get rid of everything except the top layer
   menu.items = menu.items.filter((i) => Number(i.menu_item_parent) == 0);
-  // if (menu.items.some((item) => Number(item.menu_item_parent) != 0)) {
-  //   return flatMenuToHierachical(menu);
-  // }
+
   return menu;
 }
 

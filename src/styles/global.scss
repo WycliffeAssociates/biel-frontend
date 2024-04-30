@@ -1,60 +1,84 @@
 // @todo: self host these instead of of this call;
 @font-face {
-  font-family: "Lato";
+  font-family: "Noto Sans";
+  src: url("/fonts/NotoSans/NotoSans-Italic.woff2") format("woff2"),
+    url("/fonts/NotoSans/NotoSans-Italic.woff") format("woff");
+  font-weight: normal;
   font-style: italic;
-  font-weight: 400;
-  src: local("Lato"), url("/fonts/Lato/Lato-Italic.woff2") format("woff2");
+  font-display: swap;
 }
 
 @font-face {
-  font-family: "Lato";
-  font-style: normal;
-  font-weight: 400;
-  src: local("Lato"), url("/fonts/Lato/Lato-Regular.woff2") format("woff2");
+  font-family: "Noto Sans";
+  src: url("/fonts/NotoSans/NotoSans-BoldItalic.woff2") format("woff2"),
+    url("/fonts/NotoSans/NotoSans-BoldItalic.woff") format("woff");
+  font-weight: bold;
+  font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
-  font-family: "Lato";
-  font-style: normal;
+  font-family: "Noto Sans";
+  src: url("/fonts/NotoSans/NotoSans-Bold.woff2") format("woff2"),
+    url("/fonts/NotoSans/NotoSans-Bold.woff") format("woff");
   font-weight: 700;
-  src: local("Lato"), url("/fonts/Lato/Lato-Bold.woff2") format("woff2");
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Noto Sans";
+  src: url("/fonts/NotoSans/NotoSans-ExtraBold.woff2") format("woff2"),
+    url("/fonts/NotoSans/NotoSans-ExtraBold.woff") format("woff");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Noto Sans";
+  src: url("/fonts/NotoSans/NotoSans-Regular.woff2") format("woff2"),
+    url("/fonts/NotoSans/NotoSans-Regular.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
 }
 
 // typograpy:
 /* @link https://utopia.fyi/type/calculator?c=280,16,1.2,1200,20,1.333,5,2,&s=0.75|0.5|0.25,1.5|2|3|4|6,s-l&g=s,l,xl,12 */
 
 :root {
-  --step--2: clamp(0.6331rem, 0.7113rem + -0.0962vi, 0.6944rem);
-  --step--1: clamp(0.8333rem, 0.8304rem + 0.0167vi, 0.844rem);
-  --step-0: clamp(1rem, 0.9657rem + 0.1961vi, 1.125rem);
-  --step-1: clamp(1.2rem, 1.1178rem + 0.47vi, 1.4996rem);
-  --step-2: clamp(1.44rem, 1.2865rem + 0.8769vi, 1.999rem);
-  --step-3: clamp(1.728rem, 1.4709rem + 1.4693vi, 2.6647rem);
-  --step-4: clamp(2.0736rem, 1.6678rem + 2.3191vi, 3.552rem);
-  --step-5: clamp(2.4883rem, 1.8716rem + 3.5239vi, 4.7348rem);
-
-  --color-accent: #0b5ad9;
-  --color-accent-lighter: #e6eefb;
-  --color-contrast: #343434;
-  --color-contrast-2: #66768b;
-
+  --step--2: clamp(0.5628rem, 0.52rem + 0.2447vi, 0.7035rem);
+  --step--1: clamp(0.7502rem, 0.6931rem + 0.3262vi, 0.9377rem);
+  --step-0: clamp(1rem, 0.9239rem + 0.4348vi, 1.25rem);
+  --step-1: clamp(1.333rem, 1.2316rem + 0.5796vi, 1.6663rem);
+  --step-2: clamp(1.7769rem, 1.6417rem + 0.7726vi, 2.2211rem);
+  --step-3: clamp(2.3686rem, 2.1884rem + 1.0298vi, 2.9607rem);
+  --step-4: clamp(3.1573rem, 2.9171rem + 1.3728vi, 3.9467rem);
+  --step-5: clamp(4.2087rem, 3.8885rem + 1.8299vi, 5.2609rem);
   --flow-space: 1em;
 }
 html,
 body {
-  font-family: "Lato", sans-serif !important;
+  font-family: "Noto Sans", sans-serif !important;
 }
 
 .headless-insertion,
 .site-footer {
   h1 {
-    font-size: var(--step-4);
+    font-size: var(--step-3);
+    font-weight: 700;
   }
   h2 {
-    font-size: var(--step-3);
+    font-size: var(--step-2);
   }
   h3 {
-    font-size: var(--step-2);
+    font-size: var(--step-1);
+    font-weight: 700;
+  }
+  h4 {
+    font-size: var(--step-1);
+    font-weight: 400;
   }
   p,
   ul,
@@ -65,11 +89,14 @@ body {
     // color: var(--color-accent);
     // text-decoration: underline;
   }
+  .txt-small {
+    font-size: var(--step--1);
+  }
 }
 button,
 button:hover {
-  background-color: inherit !important;
-  color: inherit !important;
+  background-color: inherit;
+  color: inherit;
 }
 .site a {
   text-decoration: none;
@@ -95,14 +122,18 @@ main img {
   display: grid;
   grid-template-columns:
     1fr
-    min(1100px, 100%)
+    min(1440px, 100%)
     1fr;
   padding-bottom: 2rem;
 }
 .contain {
-  width: min(1100px, 100%);
+  width: min(1440px, 100%);
   margin-left: auto;
   margin-right: auto;
+}
+.contain-pad {
+  padding-inline-start: 1rem;
+  padding-inline-end: 1rem;
 }
 .site-container > * {
   grid-column: 2;
@@ -115,13 +146,21 @@ main img {
   padding-inline-start: 0;
   padding-inline-end: 0;
 }
-// .site-container {
-//   max-width: 1100px;
-//   margin: 0 auto;
-// }
+@screen lt-md {
+  .max-md\:full-bleed {
+    @apply w-full pis-0 pie-0 col-span-full;
+  }
+  .max-md\:static {
+    @apply static;
+  }
+  .max-md\:relative {
+    @apply relative;
+  }
+}
+
 .icon > svg {
-  fill: inherit !important;
-  stroke: inherit !important;
+  // fill: inherit !important;
+  // stroke: inherit !important;
   width: inherit !important;
   // all: inherit !important;
   // height: inherit !important;
@@ -138,6 +177,16 @@ main img {
 .safe-svg-inside svg {
   width: 100% !important;
   height: 100% !important;
+}
+
+.footer-menu-col ul {
+  @apply list-none;
+}
+.footer-menu-col li {
+  @apply py-4 pie-8;
+}
+.footer-menu-col li a {
+  @apply decoration-none;
 }
 
 @screen lt-sm {
@@ -158,5 +207,12 @@ main img {
 @screen lt-lg {
   .lg\:breakout {
     @apply w-screen mx--1rem;
+  }
+}
+
+@screen md {
+  .cta-shadow {
+    box-shadow: -11px -40px 34px 0px rgba(3, 198, 203, 0.1),
+      35px 78px 92px 0px rgba(3, 86, 209, 0.1);
   }
 }

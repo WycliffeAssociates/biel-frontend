@@ -1,5 +1,6 @@
 ---
 import type {languageType} from "@customTypes/types";
+import {LanguagePicker} from "@components/LanguagePicker";
 
 interface Props {
   langInfo: languageType[];
@@ -9,7 +10,8 @@ const {langInfo, currentLangCode} = Astro.props;
 ---
 
 <div data-pagefind-ignore="all">
-  <ul
+  <LanguagePicker client:load />
+  <!-- <ul
     class="flex gap-1 py-3 flex-nowrap overflow-x-auto w-[fit-content] max-w-full ml-auto"
   >
     {
@@ -33,5 +35,5 @@ const {langInfo, currentLangCode} = Astro.props;
         );
       })
     }
-  </ul>
+  </ul> -->
 </div>

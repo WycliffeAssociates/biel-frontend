@@ -8,7 +8,13 @@ import {DOMParser} from "linkedom";
 // Step 1, get the content of each .html file. Feed content to domParser. Grab the style#headlessStyles.  Purge with content as raw content, and with that style tag as raw css.  Write back out to that file now that style tag is lesser.
 const srcFiles = globSync("./dist/**/*.html");
 // Safe text-black and bg-transparent for translations page bug
-const safelistPattern = [/\[.+\]/, /breakout$/, /text-black/, /bg-transparent/];
+const safelistPattern = [
+  /\[.+\]/,
+  /breakout$/,
+  /text-black/,
+  /bg-transparent/,
+  /contain/,
+];
 
 async function handleInlineStyleInGeneratedFiles() {
   for await (const filepath of srcFiles) {

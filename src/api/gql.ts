@@ -27,7 +27,6 @@ export async function getHomePage() {
   const gqlUrl = `${import.meta.env.CMS_URL}/${
     import.meta.env.WORDPRESS_GQL_PATH
   }`;
-  console.log(`fetching ${gqlUrl}`);
   const response = await fetch(gqlUrl, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
@@ -55,7 +54,6 @@ export async function getPage(uri: string, langCode: string) {
   const gqlUrl = `${import.meta.env.CMS_URL}/${
     import.meta.env.WORDPRESS_GQL_PATH
   }`;
-  console.log(`fetching ${gqlUrl}`);
 
   const response = await fetch(gqlUrl, {
     method: "POST",
@@ -93,6 +91,9 @@ export async function getPage(uri: string, langCode: string) {
         link
         languageCode
         uri
+        pageOptions {
+          topBlurb
+        }
         editorBlocks(flat:true) {
          ${editorBlocksFields}
         }
@@ -173,6 +174,9 @@ export async function getAllPages() {
           link
           languageCode
           uri
+          pageOptions {
+            topBlurb
+          }
           editorBlocks(flat:true) {
            ${editorBlocksFields}
           }
@@ -197,7 +201,6 @@ export async function getAllPages() {
   const gqlUrl = `${import.meta.env.CMS_URL}/${
     import.meta.env.WORDPRESS_GQL_PATH
   }`;
-  console.log(`fetching ${gqlUrl}`);
   const response = await fetch(gqlUrl, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
@@ -324,8 +327,63 @@ export async function getMenus() {
 
   return res;
 }
+
+export async function getGlobal(slug: string, langCode: string) {
+  const query = `
+    query getGlobal {
+      global(id: "${slug}", idType: SLUG) {
+        content(format: RENDERED)
+        uri
+        link
+        translations {
+          languageCode
+          content(format: RENDERED)
+        }
+      }
+    }
+  `;
+  const gqlUrl = `${import.meta.env.CMS_URL}/${
+    import.meta.env.WORDPRESS_GQL_PATH
+  }`;
+  try {
+    const response = await fetch(gqlUrl, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({query}),
+    });
+    const result = (await response.json()) as {data: footerType};
+
+    let fetchLink = result.data.global.link;
+    const fetchFooter = await fetch(fetchLink);
+    const domText = await fetchFooter.text();
+    const globalDom = new DOMParser().parseFromString(domText, "text/html");
+    const inlineStyleIds = [
+      "generateblocks-inline-css",
+      "global-styles-inline-css",
+      "generate-style-inline-css",
+    ];
+    const inlineStyles = inlineStyleIds.map((id) => {
+      const styleTag: HTMLStyleElement | undefined = globalDom.querySelector(
+        `#${id}`
+      );
+      if (styleTag) {
+        return styleTag.innerHTML;
+      } else return "";
+    });
+    const globalToUse =
+      langCode == "en"
+        ? result.data.global
+        : result.data.global.translations.find(
+            (t) => t.languageCode == langCode
+          ) || result.data.global; //fallback to english if not translation with this langcode;
+    return {inlineStyles: inlineStyles, global: globalToUse};
+  } catch (error) {
+    console.error("footer fetch failed");
+    console.error(error);
+  }
+}
 export async function getFooter(langCode: string) {
-  const footerSlug = "footer-old";
+  const footerSlug = "footer-new";
   const query = `
     query getFooter {
       global(id: "${footerSlug}", idType: SLUG) {

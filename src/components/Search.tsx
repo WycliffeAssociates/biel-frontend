@@ -5,12 +5,15 @@ import {MangifyingGlass} from "@components/Icons";
 
 type SearchProps = {
   langCode: string;
+  isBig?: boolean;
 };
 // Define the Search component
 export function Search(props: SearchProps) {
   const [query, setQuery] = createSignal("");
   const [results, setResults] = createSignal<any[]>([]);
-
+  const commonClassNames = "";
+  const mobileClassNames = ``;
+  const bigClassNames = `absolute top-full  z-10 bg-white p-3 max-h-500px overflow-auto w-[clamp(min(99vw,270px),50vw,500px)] right-0 border border-#aaa`;
   const handleInput = async (e: KeyboardEvent) => {
     const target = e.target as HTMLInputElement;
     const inputValue = target?.value;
@@ -71,7 +74,7 @@ export function Search(props: SearchProps) {
 
       {/* Container for search results */}
       <Show when={results()?.length}>
-        <ul class="absolute top-full  z-10 bg-white p-3 max-h-500px overflow-auto w-[clamp(min(99vw,270px),50vw,500px)] right-0 border border-#aaa">
+        <ul class={props.isBig ? bigClassNames : mobileClassNames}>
           <For each={results()}>
             {(item) => (
               <li class="border-y-solid border-y-1 border-gray-400 py-4">

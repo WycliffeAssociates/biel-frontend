@@ -1,16 +1,18 @@
 ---
 export const prerender = false;
-import {getMenus, getPage, getWpmlLanguages} from "@src/api/gql";
+import {getGlobal, getMenus, getPage, getWpmlLanguages} from "@src/api/gql";
 import LayoutServer from "@layouts/LayoutServer.astro";
 import Blocks from "@components/Blocks.astro";
 import {DOMParser} from "linkedom";
 import LanguageSwitcher from "../../components/LanguageSwitcher.astro";
 // import {HeaderMenu} from "@components/HeaderMenu";
 import {HeaderMenuOld} from "@components/HeaderMenuOld";
+import {HeaderMenu} from "@components/HeaderMenu";
 import TranslationsPageOld from "@components/TranslationsPageOld/TranslationPageOld.astro";
 import {blocksAreEmpty} from "@lib/web";
 import {getDict} from "@src/i18n/strings";
 import {adjustCmsDomLinks} from "@src/utils";
+import {LanguagePicker} from "@components/LanguagePicker";
 // style id=generateblocks-inline-css
 // const res = await fetch("http://bible-in-every-language.local/headless/");
 const {slug} = Astro.params;
@@ -20,6 +22,8 @@ const parts = slug.split("/");
 const firstPart = parts[0] || "";
 const langCode = !!wpmlLangDict[firstPart] ? firstPart : "en";
 const pageData = await getPage(slug, langCode);
+const ctaData = await getGlobal("cta-interior", langCode);
+const contactSection = await getGlobal("contact", langCode);
 if (!pageData) return Astro.redirect("/404");
 const menus = await getMenus();
 const nonHiddenLanguages = new Set(Object.keys(menus));
@@ -37,10 +41,17 @@ const inlineStyles = inlineStyleIds.map((id) => {
     return styleTag.innerHTML;
   } else return "";
 });
+if (ctaData?.inlineStyles) {
+  inlineStyles.push(ctaData.inlineStyles);
+}
+if (contactSection?.inlineStyles) {
+  inlineStyles.push(contactSection.inlineStyles);
+}
 pageData.inlineStyles = inlineStyles;
 // todo: reduce hardcode here
 const headerMenu =
-  menus[langCode]?.["header-menu-old"] || menus.en?.["header-menu-old"]!;
+  menus[langCode]?.["header-menu"] || menus.en?.["header-menu"]!;
+// console.dir(headerMenu);
 
 const langInfo = wpmlLangDict[langCode] || wpmlLangDict.en!; //en default
 const langSwitcherList = Object.values(wpmlLangDict)
@@ -86,14 +97,30 @@ const {title, editorBlocks} = pageData;
   langInfo={langInfo}
   langSwitcher={langSwitcherList}
 >
-  <LanguageSwitcher
-    langInfo={langSwitcherList}
-    currentLangCode={langInfo.code}
+  <!-- <HeaderMenuOld menu={headerMenu} langCode={langInfo.code} client:load /> -->
+  <HeaderMenu
+    allLangs={langSwitcherList}
+    currentLang={langInfo}
+    menu={headerMenu}
+    client:load
   />
-  <HeaderMenuOld menu={headerMenu} langCode={langInfo.code} client:idle />
   <main class={`${!pageData.isHomePage && "interior-page"} `}>
     {
-      !pageData.isHomePage && (
+      !pageData.isHomePage && pageData.pageOptions.topBlurb && (
+        <div class="pbs-40 pbe-40 bg-brand-darkest bg-gradient-to-b from-[hsla(0,0%,0%,0.5)] to-[hsla(0,0%,0%,0)]">
+          <div class="contain text-onSurface-invert px-4">
+            <h1 class="font-bold font-size-[var(--step-3)] mb-6" style="">
+              {pageData.title}
+            </h1>
+            <p class="max-w-60ch font-size-[var(--step-0)]">
+              {pageData.pageOptions.topBlurb}
+            </p>
+          </div>
+        </div>
+      )
+    }
+    {
+      !pageData.isHomePage && !pageData.pageOptions.topBlurb && (
         <h1
           class="text-center text-6xl mb-12 bg-[rgba(0,0,0,0.7)] bg-blend-overlay text-white py-20 bg-no-repeat bg-cover"
           style="background-image: url('/images/page_bg.jpg')"
@@ -124,6 +151,20 @@ const {title, editorBlocks} = pageData;
     {
       pageData.isTranslationPage && (
         <TranslationsPageOld languageCode={langCode} />
+      )
+    }
+    {
+      ctaData && (
+        <div class="headless-insertion overflow-hidden">
+          <Blocks content={adjustCmsDomLinks(ctaData?.global.content)} />
+        </div>
+      )
+    }
+    {
+      contactSection && (
+        <div class="headless-insertion py-40">
+          <Blocks content={adjustCmsDomLinks(contactSection?.global.content)} />
+        </div>
       )
     }
   </main>

@@ -46,6 +46,9 @@ export type MenuItem = {
   } | null;
   slug?: string;
   icon?: string;
+  featured_description?: string;
+  is_featured?: boolean;
+  parent_description?: string;
 };
 
 export type Menu = {
@@ -60,6 +63,8 @@ export type Menu = {
   count: number;
   filter: string;
   items: MenuItem[];
+  featured_items: MenuItem[];
+  non_featured_items: MenuItem[];
 };
 
 export type WPMLMenu = {
@@ -85,6 +90,9 @@ export type WpPage = {
   parentDatabaseId: number | null;
   link: string;
   languageCode: string;
+  pageOptions: {
+    topBlurb?: string;
+  };
   uri: string;
   editorBlocks: EditorBlock[];
   translations: Translation[];

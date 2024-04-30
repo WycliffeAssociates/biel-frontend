@@ -1,6 +1,7 @@
 ---
 import "../styles/wordpress.scss";
 import "../styles/global.scss";
+import "../styles/vars.scss";
 import {getFooter} from "@src/api/gql";
 import type {languageType} from "@customTypes/types";
 import Blocks from "@components/Blocks.astro";
@@ -55,7 +56,7 @@ const dedupedInlineStyles = [...deduped].join("\n");
     }
     {import.meta.env.PROD && <ViewTransitions />}
   </head>
-  <body>
+  <body class="bg-surface-primary">
     <slot />
     <footer class="wp-blocks site-footer">
       <Blocks content={adjustCmsDomLinks(footer.content)} />
