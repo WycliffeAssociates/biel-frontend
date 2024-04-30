@@ -208,7 +208,7 @@ const description = page.editorBlocks
   </div>
   <main class={`${!page.isHomePage && "interior-page"} `}>
     {
-      !page.isHomePage && page.pageOptions.topBlurb && (
+      !page.isHomePage && page.pageOptions?.topBlurb && (
         <div class="pbs-40 pbe-40 bg-brand-darkest bg-gradient-to-b from-[hsla(0,0%,0%,0.5)] to-[hsla(0,0%,0%,0)]">
           <div class="contain text-onSurface-invert px-4">
             <h1 class="font-bold font-size-[var(--step-3)] mb-6" style="">
@@ -222,7 +222,7 @@ const description = page.editorBlocks
       )
     }
     {
-      !page.isHomePage && !page.pageOptions.topBlurb && (
+      !page.isHomePage && !page.pageOptions?.topBlurb && (
         <h1
           class="text-center text-6xl mb-12 bg-[rgba(0,0,0,0.7)] bg-blend-overlay text-white py-20 bg-no-repeat bg-cover"
           style="background-image: url('/images/page_bg.jpg')"

@@ -24,7 +24,7 @@ const langInfo = !!wpmlLangDict[firstPart]
 if (!langInfo) return Astro.redirect("/404");
 // const langInfo.language_code = !!wpmlLangDict[firstPart] ? firstPart : "en";
 const page = await getPage(slug, langInfo.language_code);
-const ctaData = await getGlobal("cta-interior", langInfo.language_code);
+const ctaSection = await getGlobal("cta-interior", langInfo.language_code);
 const contactSection = await getGlobal("contact", langInfo.language_code);
 if (!page) return Astro.redirect("/404");
 const menus = await getMenus();
@@ -43,8 +43,8 @@ const inlineStyles = inlineStyleIds.map((id) => {
     return styleTag.innerHTML;
   } else return "";
 });
-if (ctaData?.inlineStyles) {
-  inlineStyles.push(ctaData.inlineStyles);
+if (ctaSection?.inlineStyles) {
+  inlineStyles.push(ctaSection.inlineStyles);
 }
 if (contactSection?.inlineStyles) {
   inlineStyles.push(contactSection.inlineStyles);
@@ -107,7 +107,7 @@ const {title} = page;
   />
   <main class={`${!page.isHomePage && "interior-page"} `}>
     {
-      !page.isHomePage && page.pageOptions.topBlurb && (
+      !page.isHomePage && page.pageOptions?.topBlurb && (
         <div class="pbs-40 pbe-40 bg-brand-darkest bg-gradient-to-b from-[hsla(0,0%,0%,0.5)] to-[hsla(0,0%,0%,0)]">
           <div class="contain text-onSurface-invert px-4">
             <h1 class="font-bold font-size-[var(--step-3)] mb-6" style="">
@@ -121,7 +121,7 @@ const {title} = page;
       )
     }
     {
-      !page.isHomePage && !page.pageOptions.topBlurb && (
+      !page.isHomePage && !page.pageOptions?.topBlurb && (
         <h1
           class="text-center text-6xl mb-12 bg-[rgba(0,0,0,0.7)] bg-blend-overlay text-white py-20 bg-no-repeat bg-cover"
           style="background-image: url('/images/page_bg.jpg')"
@@ -155,9 +155,9 @@ const {title} = page;
       )
     }
     {
-      ctaData && (
+      ctaSection && (
         <div class="headless-insertion overflow-hidden">
-          <Blocks content={adjustCmsDomLinks(ctaData?.content)} />
+          <Blocks content={adjustCmsDomLinks(ctaSection?.content)} />
         </div>
       )
     }
