@@ -15,7 +15,7 @@ const safelistPattern = [
   /bg-transparent/,
   /contain/,
   /^(hover|focus|active).*/, //class states like .hover\:font
-  /.*(.group).*/, //group variants
+  /.*(group).*/, //group variants
 ];
 const greedySafe = [];
 
