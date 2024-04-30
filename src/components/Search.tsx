@@ -12,7 +12,7 @@ export function Search(props: SearchProps) {
   const [query, setQuery] = createSignal("");
   const [results, setResults] = createSignal<any[]>([]);
   const commonClassNames = "";
-  const mobileClassNames = ``;
+  const mobileClassNames = `mobile`;
   const bigClassNames = `absolute top-full  z-10 bg-white p-3 max-h-500px overflow-auto w-[clamp(min(99vw,270px),50vw,500px)] right-0 border border-#aaa`;
   const handleInput = async (e: KeyboardEvent) => {
     const target = e.target as HTMLInputElement;

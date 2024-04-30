@@ -146,7 +146,10 @@ export function HeaderMenu(props: HeaderMenuProps) {
               </ul>
             </div>
             <div class="flex items-center gap-2">
-              <Search langCode={props.currentLang.language_code} />
+              <Search
+                langCode={props.currentLang.language_code}
+                isBig={isBig()}
+              />
               <LanguagePicker
                 allLangs={props.allLangs}
                 currentLang={props.currentLang}
