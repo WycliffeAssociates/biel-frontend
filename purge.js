@@ -9,12 +9,15 @@ import {DOMParser} from "linkedom";
 const srcFiles = globSync("./dist/**/*.html");
 // Safe text-black and bg-transparent for translations page bug
 const safelistPattern = [
-  /\[.+\]/,
+  /\[.+\]/, //arbitrary variants
   /breakout$/,
   /text-black/,
   /bg-transparent/,
   /contain/,
+  /^(hover|focus|active).*/, //class states like .hover\:font
+  /.*(.group).*/, //group variants
 ];
+const greedySafe = [];
 
 async function handleInlineStyleInGeneratedFiles() {
   for await (const filepath of srcFiles) {
@@ -40,6 +43,7 @@ async function handleInlineStyleInGeneratedFiles() {
       keyframes: true,
       safelist: {
         standard: safelistPattern,
+        greedy: greedySafe,
       },
       rejected: true, //for debuggin
       rejectedCss: true, //for debuggin
