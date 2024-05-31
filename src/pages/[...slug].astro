@@ -13,6 +13,7 @@ import {
   collectInlineStyles,
   getNonHiddenPages,
   getOtherLanguagesPagesList,
+  determineShowGlobal,
 } from "@src/utils";
 // import {HeaderMenu} from "@components/HeaderMenu";
 import {HeaderMenuOld} from "@components/HeaderMenuOld";
@@ -256,18 +257,20 @@ const description = page.editorBlocks
       )
     }
     {
-      ctaSection && (
+      determineShowGlobal({page, global: ctaSection}) && (
         <div class="headless-insertion overflow-hidden">
-          <Blocks content={adjustCmsDomLinks(ctaSection?.content)} />
+          <Blocks content={adjustCmsDomLinks(ctaSection?.content!)} />
         </div>
       )
     }
     {
-      contactSection && (
+      determineShowGlobal({page, global: contactSection}) && (
         <div class="headless-insertion py-40">
-          <Blocks content={adjustCmsDomLinks(contactSection?.content)} />
+          <Blocks content={adjustCmsDomLinks(contactSection?.content!)} />
         </div>
       )
     }
   </main>
 </Layout>
+
+<script></script>

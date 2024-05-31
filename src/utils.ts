@@ -189,3 +189,18 @@ export function getOtherLanguagesPagesList({
     .flat();
   return otherLangsList;
 }
+
+/**
+ * Determines whether to show the global content based on the page and global parameters.
+ *
+ * @return {boolean} List of exceptions that shouldnt' have any globals applied.  Truthiness is checked on global for type assertions
+ */
+export function determineShowGlobal({
+  page,
+  global,
+}: {
+  page: WpPage;
+  global: Record<string, any> | null | undefined;
+}) {
+  return !page.isContactPage && !!global;
+}

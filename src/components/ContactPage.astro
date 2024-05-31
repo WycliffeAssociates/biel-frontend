@@ -1,0 +1,38 @@
+---
+interface Props {
+  editorBlocks: EditorBlock[];
+  notTranslatedYet: boolean;
+  dict: i18nDict;
+  languageCode: string;
+}
+const {editorBlocks, notTranslatedYet, dict, languageCode} = Astro.props;
+import {adjustCmsDomLinks} from "@src/utils";
+import {blocksAreEmpty} from "@lib/web";
+import type {EditorBlock} from "@customTypes/types";
+import type {i18nDict} from "@src/i18n/strings";
+import {ContactForm} from "@components/ContactForm";
+import Blocks from "./Blocks.astro";
+const redirectUrl = Astro.request.url;
+---
+
+<div class={`headless-insertion wp-blocks  site-container`}>
+  <div
+    class="flex flex-col md:flex-row md:justify-center gap-10 py-20 items-center"
+  >
+    <div class="md:w-2/5" data-js="contactCmsData">
+      {
+        editorBlocks
+          .filter((b) => b.parentClientId == null)
+          .map((block) => {
+            return <Blocks content={adjustCmsDomLinks(block.renderedHtml)} />;
+          })
+      }
+      {notTranslatedYet && <h2 class="">{dict.notYetTranslated}</h2>}
+    </div>
+
+    <div class="w-full md:max-w-50ch">
+      <ContactForm dict={dict} languageCode={languageCode} client:load />
+      <!-- {dict.} -->
+    </div>
+  </div>
+</div>

@@ -10,7 +10,8 @@ import {HeaderMenu} from "@components/HeaderMenu";
 import TranslationsPageOld from "@components/TranslationsPageOld/TranslationPageOld.astro";
 import {blocksAreEmpty} from "@lib/web";
 import {getDict} from "@src/i18n/strings";
-import {adjustCmsDomLinks} from "@src/utils";
+import {adjustCmsDomLinks, determineShowGlobal} from "@src/utils";
+import ContactPage from "@components/ContactPage.astro";
 // style id=generateblocks-inline-css
 // const res = await fetch("http://bible-in-every-language.local/headless/");
 const {slug} = Astro.params;
@@ -120,7 +121,8 @@ const {title} = page;
         </div>
       )
     }
-    {
+    <!-- The old  header for interio pages. Kill later -->
+    <!-- {
       !page.isHomePage && !page.pageOptions?.topBlurb && (
         <h1
           class="text-center text-6xl mb-12 bg-[rgba(0,0,0,0.7)] bg-blend-overlay text-white py-20 bg-no-repeat bg-cover"
@@ -129,10 +131,10 @@ const {title} = page;
           {page.title}
         </h1>
       )
-    }
+    } -->
 
     {
-      !page.isTranslationPage && (
+      !page.isTranslationPage && !page.isContactPage && (
         <div
           class={`headless-insertion wp-blocks ${
             !page.isHomePage && "site-container"
@@ -155,16 +157,26 @@ const {title} = page;
       )
     }
     {
-      ctaSection && (
+      page.isContactPage && (
+        <ContactPage
+          languageCode={langInfo.language_code}
+          editorBlocks={page.editorBlocks}
+          notTranslatedYet={blocksAreEmpty(page.editorBlocks)}
+          dict={getDict(langInfo.code)}
+        />
+      )
+    }
+    {
+      determineShowGlobal({page, global: ctaSection}) && (
         <div class="headless-insertion overflow-hidden">
-          <Blocks content={adjustCmsDomLinks(ctaSection?.content)} />
+          <Blocks content={adjustCmsDomLinks(ctaSection?.content!)} />
         </div>
       )
     }
     {
-      contactSection && (
+      determineShowGlobal({page, global: contactSection}) && (
         <div class="headless-insertion py-40">
-          <Blocks content={adjustCmsDomLinks(contactSection?.content)} />
+          <Blocks content={adjustCmsDomLinks(contactSection?.content!)} />
         </div>
       )
     }

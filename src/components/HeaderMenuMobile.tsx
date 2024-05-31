@@ -61,7 +61,8 @@ export function HeaderMenuMobile(props: HeaderMenuProps) {
 
   createEffect(() => {
     if (typeof window !== "undefined") {
-      // {/* double check works on ios? */}
+      // src
+      // https://markus.oberlehner.net/blog/simple-solution-to-prevent-body-scrolling-on-ios/
       if (isOpen()) {
         console.log("locking body simply");
         setScrollPost(window.scrollY);

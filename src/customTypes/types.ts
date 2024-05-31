@@ -101,8 +101,9 @@ export type WpPage = {
   translationOfId: number;
   isHomePage: boolean;
   isTranslationPage: boolean;
+  isContactPage: boolean;
 };
-type EditorBlock = {
+export type EditorBlock = {
   parentClientId: null | string;
   name: string;
   renderedHtml: string;
@@ -121,6 +122,7 @@ type Translation = {
   modified: string;
   parentDatabaseId: number | null;
   isTranslationPage: boolean;
+  isContactPage: boolean;
   isHomePage: boolean;
   editorBlocks: EditorBlock[];
   pageOptions: {

@@ -136,6 +136,10 @@ export async function getPage(uri: string, langCode: string) {
   page.isTranslationPage =
     page.title.toLowerCase() == "translations" ||
     page.translations.some((t) => t.title.toLowerCase() == "translations");
+  // Contact page has its own layout
+  page.isContactPage =
+    page.title.toLowerCase() == "contact us" ||
+    page.translations.some((t) => t.title.toLowerCase() == "contact us");
   const otherVersions: Record<string, string> = {};
   page.translations.forEach((t) => {
     otherVersions[t.languageCode] = t.uri;
@@ -153,8 +157,7 @@ export async function getPage(uri: string, langCode: string) {
     t.otherVersions = otherVersions;
     t.isHomePage = page.uri == "/";
     t.isTranslationPage = page.isTranslationPage;
-    if (page.isTranslationPage) {
-    }
+    t.isContactPage = page.isContactPage;
   });
 
   return page;
@@ -231,6 +234,9 @@ export async function getAllPages() {
     // Every page needs an otherVersions to all others in the form of langCode -> databaseId of the localized version:
     page.isHomePage = page.uri == "/";
     page.isTranslationPage = page.title.toLowerCase() == "translations";
+    page.isContactPage =
+      page.title.toLowerCase() == "contact us" ||
+      page.translations.some((t) => t.title.toLowerCase() == "contact us");
     const otherVersions: Record<string, string> = {};
     page.translations.forEach((t) => {
       otherVersions[t.languageCode] = String(t.databaseId);
@@ -255,6 +261,7 @@ export async function getAllPages() {
 
       translation.isHomePage = rest.uri == "/";
       translation.isTranslationPage = rest.isTranslationPage;
+      translation.isContactPage = rest.isContactPage;
       if (rest.uri == "/") {
         translation.uri = `/${translation.languageCode}`;
         // Wpml also have these uri's as /, but they are really /langCode
