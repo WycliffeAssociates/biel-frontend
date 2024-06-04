@@ -1,6 +1,6 @@
 import type {i18nDict} from "@src/i18n/strings";
 
-import {Show, Suspense, createResource, createSignal} from "solid-js";
+import {JSX, Show, Suspense, createResource, createSignal} from "solid-js";
 import {createStore} from "solid-js/store";
 
 type ContactFormProps = {
@@ -8,8 +8,6 @@ type ContactFormProps = {
   languageCode: string;
 };
 export function ContactForm(props: ContactFormProps) {
-  // todo: just change to a singular on submit. I don't care about granular createResource loading / error state.  Just the 2.
-  //Care about, when submitting, the response
   const statuses = {
     unsubmitted: "unsubmitted",
     submitted: "submitted",
@@ -84,12 +82,12 @@ export function ContactForm(props: ContactFormProps) {
       }
     >
       <form onSubmit={submit}>
-        <span class="block mb-8">
-          <span class="text-error-onSurface">*</span>
-          {props.dict.requiredIndicator}
+        <span class="flex gap-2px mb-8">
+          <span>{props.dict.requiredIndicator}</span>
+          <RequiredIndicator />
         </span>
         <div class="flex flex-col gap-4">
-          <label class="flex flex-col gap-2 md:w-3/5">
+          <FormLabel text={props.dict.contactNameInput} classes="md:w-3/5">
             {props.dict.contactNameInput}
             <input
               type="text"
@@ -98,38 +96,31 @@ export function ContactForm(props: ContactFormProps) {
               class="py-2 px-4 rounded-lg border border-surface-border text-onSurface-tertiary bg-surface-primary!"
               placeholder={props.dict.contactNamePlaceholder}
             />
-          </label>
-          <label class="flex flex-col gap-2 md:w-4/5">
-            <span class="flex gap-2px mb-2">
-              {props.dict.contactEmailInput}
-              <span class="text-error-onSurface">*</span>
-            </span>
+          </FormLabel>
+          <FormLabel
+            classes="md:w-4/5"
+            text={props.dict.contactEmailInput}
+            required={true}
+          >
             <input
               type="email"
               name="email"
               class="py-2 px-4 rounded-lg border border-surface-border text-onSurface-tertiary bg-surface-primary!"
               placeholder={props.dict.contactEmailPlaceholder}
             />
-          </label>
-          <label class="flex flex-col gap-2">
-            <span class="flex gap-2px mb-2">
-              {props.dict.contactMessageInput}
-              <span class="text-error-onSurface">*</span>
-            </span>
+          </FormLabel>
+          <FormLabel required={true} text={props.dict.contactMessageInput}>
             <textarea
               placeholder={props.dict.contactMessagePlaceholder}
               name="message"
               rows="5"
               class="w-full py-2 px-2 rounded-lg border border-surface-border text-onSurface-tertiary bg-surface-primary!"
             ></textarea>
-          </label>
-          <button
+          </FormLabel>
+          <SubmitBtn
             disabled={formStatus().status === statuses.submitted}
-            type="submit"
-            class={`px-3 py-1 text-brand-base border border-brand-base hover:(bg-brand-base text-onSurface-invert) rounded-lg w-fit disabled:(opacity-50 cursor-not-allowed)`}
-          >
-            Submit
-          </button>
+            text={props.dict.submitForm}
+          />
         </div>
       </form>
     </Show>
@@ -197,4 +188,44 @@ function ConfirmationMessage(props: {
 
 function FailedMessage(props: {dict: i18nDict}) {
   return <div>{props.dict.formFailed}</div>;
+}
+
+function RequiredIndicator() {
+  return (
+    <>
+      <span class="text-error-onSurface">*</span>
+    </>
+  );
+}
+
+function FormLabel(props: {
+  text: string;
+  classes?: string;
+  required?: boolean;
+  children: JSX.Element;
+}) {
+  return (
+    <label class={`flex flex-col gap-2 ${props.classes}`}>
+      {props.required ? (
+        <span class="flex gap-2px mb-2">
+          <RequiredIndicator />
+          {props.children}
+        </span>
+      ) : (
+        props.children
+      )}
+    </label>
+  );
+}
+
+function SubmitBtn(props: {text: string; disabled: boolean}) {
+  return (
+    <button
+      disabled={props.disabled}
+      type="submit"
+      class={`px-3 py-1 text-brand-base border border-brand-base hover:(bg-brand-base text-onSurface-invert) rounded-lg w-fit disabled:(opacity-50 cursor-not-allowed)`}
+    >
+      {props.text}
+    </button>
+  );
 }

@@ -12,6 +12,7 @@ const en = {
   successHtml: `<p>Your email was successfully submitted to our tech support team. We will contact you as soon as possible.</p><p>You may also reach us on our English | Français | 普通话 中文 | Portuguese Telegram channels.</p>`,
   formFailed: "Something went wrong.  Please contact us.",
   backToHome: "Go Home",
+  submitForm: "Submit",
 } as const;
 type i18nKeysType = keyof typeof en;
 const ptbr: Record<i18nKeysType, string> = {
