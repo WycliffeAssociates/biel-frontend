@@ -1,9 +1,10 @@
 import * as pagefind from "pagefind";
 
 // Create a Pagefind search index to work with
-const {index} = await pagefind.createIndex();
+const { index } = await pagefind.createIndex();
 
 // Index all HTML files in a directory
+// todo: something:
 await index.addDirectory({
   path: "dist",
 });
@@ -31,7 +32,7 @@ const query = `query getTranslationsPage {
 }`;
 const langsRes = await fetch(wpInstanceUrl, {
   method: "POST",
-  headers: {"Content-Type": "application/json"},
+  headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
     query: query,
   }),
@@ -84,6 +85,6 @@ await index.writeFiles({
 const prodWrite = await index.writeFiles({
   outputPath: "./dist/pagefind",
 });
-console.log({prodWrite});
+console.log({ prodWrite });
 // clean up once complete
 await pagefind.close();

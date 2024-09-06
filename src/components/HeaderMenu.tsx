@@ -29,7 +29,7 @@ export function HeaderMenu(props: HeaderMenuProps) {
     } else return `/${props.currentLang.language_code}/${link}`;
   }
   function paneIsActive(idx: number) {
-    // debugger;
+    //
     return idx == activeIdx();
   }
   function isAlsoParent(item: MenuItem) {

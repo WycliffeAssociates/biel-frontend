@@ -14,7 +14,7 @@
       "@customTypes/*": ["src/customTypes/*"],
       "@src/*": ["src/*"]
     },
-
+    "types": ["vite-plugin-pwa/client"],
     "jsx": "preserve",
     "jsxImportSource": "solid-js"
   },

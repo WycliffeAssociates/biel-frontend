@@ -62,7 +62,7 @@ html,
 body {
   font-family: "Noto Sans", sans-serif !important;
 }
-
+// MOST OF THIS CSS IS TO OVERRIDE SOME STUFF THAT COMES FROM WORDPRESS, SET SOME DEFAULTS, AND DO A FEW THINGS THAT ARE JUST EASEIR IN CSS VS UNO/TW
 .headless-insertion,
 .site-footer {
   h1 {
@@ -94,7 +94,8 @@ body {
   }
 }
 button,
-button:hover {
+button:hover,
+button:focus {
   background-color: inherit;
   color: inherit;
 }
@@ -158,6 +159,18 @@ main img {
   }
 }
 
+@screen lt-lg {
+  .max-lg\:full-bleed {
+    @apply w-full pis-0 pie-0 col-span-full;
+  }
+  .max-lg\:static {
+    @apply static;
+  }
+  .max-lg\:relative {
+    @apply relative;
+  }
+}
+
 .icon > svg {
   // fill: inherit !important;
   // stroke: inherit !important;
@@ -216,3 +229,139 @@ main img {
       35px 78px 92px 0px rgba(3, 86, 209, 0.1);
   }
 }
+
+.hero-inner-shadow {
+  // box-shadow: inset 0 -8px 16px 0 #00184740;
+  box-shadow: inset 0 -24px 16px -16px #0e0e0e25;
+}
+.cta2 {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+}
+.cta2::after,
+.cta2::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
+.cta2::before {
+  top: 0;
+  left: 0;
+  bottom: unset;
+  right: unset;
+  box-shadow: 5px 5px 3rem 5rem hsla(198, 58%, 73%, 0.9),
+    10px 10px 3rem 5rem hsla(186, 58%, 76%, 0.5),
+    15px 15px 5rem 5rem hsla(182, 72%, 57%, 0.58);
+}
+.cta2::after {
+  box-shadow: -5px -5px 3rem 5rem hsla(198, 58%, 73%, 0.9),
+    -10px -10px 3rem 5rem hsla(186, 58%, 76%, 0.5),
+    -15px -15px 5rem 5cap hsla(182, 72%, 57%, 0.58);
+}
+@screen md {
+  .cta2::before {
+    box-shadow: 30px 30px 5rem 8rem hsla(198, 58%, 73%, 0.9),
+      20px 20px 6rem 8rem hsla(186, 58%, 76%, 0.5),
+      60px 60px 9rem 9rem hsla(182, 72%, 57%, 0.58);
+  }
+  .cta2::after {
+    box-shadow: -20px -20px 5rem 8rem hsla(198, 58%, 73%, 0.9),
+      -30px -30px 6rem 8rem hsla(186, 58%, 76%, 0.5),
+      -40px -40px 9rem 9rem hsla(182, 72%, 57%, 0.58);
+  }
+}
+
+.platform-detect.active {
+  background: hsl(var(--clr-brand-base)) !important;
+}
+.platform-detect.active .gb-button {
+  background: hsl(var(--clr-surface-primary)) !important;
+  color: hsl(var(--clr-brand-base)) !important;
+  cursor: pointer;
+}
+
+summary.webkit-hide-summary-arrow::-webkit-details-marker {
+  display: none;
+}
+
+.fullscreen:fullscreen {
+  background: hsl(var(--clr-surface-primary));
+  color: hsl(var(--clr-on-surface-primary));
+  margin: 1rem auto;
+  max-width: 70ch !important;
+}
+.fullscreen:fullscreen * {
+  max-height: none !important;
+}
+.fullscreen:fullscreen [data-css] {
+  max-width: 75ch;
+  margin: 1rem auto;
+}
+
+.accordion-anim-height {
+  overflow: hidden;
+  font-size: 16px;
+  animation: slideUp 300ms cubic-bezier(0.87, 0, 0.13, 1);
+}
+.accordion-anim-height[data-expanded] {
+  animation: slideDown 300ms cubic-bezier(0.87, 0, 0.13, 1);
+  animation-fill-mode: forwards;
+}
+@keyframes slideDown {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--kb-accordion-content-height);
+  }
+}
+@keyframes slideUp {
+  from {
+    height: var(--kb-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+.indeterminate-progress {
+  animation: indeterminateAnimation 1s infinite linear;
+}
+@keyframes indeterminateAnimation {
+  0% {
+    transform: translateX(0) scaleX(0);
+  }
+  40% {
+    transform: translateX(0) scaleX(0.4);
+  }
+  100% {
+    transform: translateX(100%) scaleX(0.5);
+  }
+}
+
+.theText ul {
+  list-style-type: disc;
+  padding-inline-start: 1rem;
+  list-style-position: inside;
+}
+
+.theTextTw h2 {
+  font-weight: 700;
+  font-size: var(--step-1);
+  margin-block-start: 1rem;
+}
+.theTextTw {
+  line-height: 1.8;
+}
+.theTextTw h3 {
+  font-weight: 700;
+  font-size: var(--step-0);
+}
+/* 
+dot-new: 
+top-level: css of hero-inner-shadow
+next -> align-items-center; 
+left-col: width 50
+right-col: flex grow 1 width 50
+*/

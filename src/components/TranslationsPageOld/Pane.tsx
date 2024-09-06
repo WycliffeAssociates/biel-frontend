@@ -10,11 +10,11 @@ type MainPaneProps = {
 
 export function MainPane(props: MainPaneProps) {
   // const selected = () => {
-  //   debugger;
+  //
   //   return selectedLang() ? selectedLang() : props.initialData;
   // };
   // createEffect(() => {
-  //   debugger;
+  //
   //   console.log(selectedLang());
   // });
 

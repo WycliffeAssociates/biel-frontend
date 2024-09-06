@@ -2,7 +2,7 @@
 import "../styles/wordpress.scss";
 import "../styles/global.scss";
 import "../styles/vars.scss";
-import {getFooter} from "@src/api/gql";
+import {getFooter} from "@src/data/wp";
 import type {languageType} from "@customTypes/types";
 import Blocks from "@components/Blocks.astro";
 // todo: change inline css to array (might fetch some dupes.  Dedupe the strings (just take the innerhtml of all style tags as needed)) and then concat and join.
@@ -11,11 +11,12 @@ interface Props {
   langInfo: languageType;
   langSwitcher: languageType[];
   inlineCss: string[];
+  isContactPage: boolean;
 }
 import {ViewTransitions} from "astro:transitions";
 import {adjustCmsDomLinks} from "@src/utils";
 
-const {title, inlineCss, langInfo, langSwitcher} = Astro.props;
+const {title, inlineCss, langInfo, langSwitcher, isContactPage} = Astro.props;
 // const forceRefresh = false;
 const footerData = await getFooter(langInfo.code);
 let {footerInlineStyles, footer} = footerData
@@ -55,6 +56,15 @@ const dedupedInlineStyles = [...deduped].join("\n");
       })
     }
     {import.meta.env.PROD && <ViewTransitions />}
+    {
+      isContactPage && (
+        <script
+          src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+          async
+          defer
+        />
+      )
+    }
   </head>
   <body class="bg-surface-primary">
     <slot />

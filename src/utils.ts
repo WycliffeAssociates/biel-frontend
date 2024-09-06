@@ -1,5 +1,5 @@
 import type {Menu, MenuItem, WpPage} from "./customTypes/types";
-import {DOMParser} from "linkedom";
+import {DOMParser} from "linkedom/worker";
 
 export function flatMenuToHierachical(menu: Menu) {
   // For each menu->items, remove them from the the flat list, find the menu item who is their parent, and add it to children array on the item
@@ -202,5 +202,94 @@ export function determineShowGlobal({
   page: WpPage;
   global: Record<string, any> | null | undefined;
 }) {
+  // maybe opt into wp pages that opt in or out of their globals?
   return !page.isContactPage && !!global;
 }
+
+export const BibleBookCategories = {
+  OT: [
+    "GEN",
+    "EXO",
+    "LEV",
+    "NUM",
+    "DEU",
+    "JOS",
+    "JDG",
+    "RUT",
+    "1SA",
+    "2SA",
+    "1KI",
+    "2KI",
+    "1CH",
+    "2CH",
+    "EZR",
+    "NEH",
+    "EST",
+    "JOB",
+    "PSA",
+    "PRO",
+    "ECC",
+    "SNG",
+    "ISA",
+    "JER",
+    "LAM",
+    "EZK",
+    "DAN",
+    "HOS",
+    "JOL",
+    "AMO",
+    "OBA",
+    "JON",
+    "MIC",
+    "NAM",
+    "HAB",
+    "ZEP",
+    "HAG",
+    "ZEC",
+    "MAL",
+  ],
+  NT: [
+    "MAT",
+    "MRK",
+    "LUK",
+    "JHN",
+    "ACT",
+    "ROM",
+    "1CO",
+    "2CO",
+    "GAL",
+    "EPH",
+    "PHP",
+    "COL",
+    "1TH",
+    "2TH",
+    "1TI",
+    "2TI",
+    "TIT",
+    "PHM",
+    "HEB",
+    "JAS",
+    "1PE",
+    "2PE",
+    "1JN",
+    "2JN",
+    "3JN",
+    "JUD",
+    "REV",
+  ],
+};
+interface sortOrderI {
+  [key: string]: number;
+}
+const bibleBookSortOrder = Object.values(BibleBookCategories)
+  .flat()
+  .reduce((acc: sortOrderI, value: string, index: number) => {
+    acc[value] = index + 1;
+    return acc;
+  }, {});
+export {bibleBookSortOrder};
+// Generic pipe function with constraints
+
+/* 
+This type parameter might need an `extends (x: T) => U` constraint.
+*/

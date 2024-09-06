@@ -18,39 +18,40 @@ export function Search(props: SearchProps) {
     const target = e.target as HTMLInputElement;
     const inputValue = target?.value;
     if (!inputValue) setResults([]);
-    // Load the pagefind script only once
-    // @ts-ignore
-    if (!window.pagefind) {
+    if (!import.meta.env.SSR) {
       //@ts-ignore
-      window.pagefind = await import("../pagefind/pagefind.js");
-    }
-
-    // Search the index using the input value
-    // @ts-ignore
-    const search = await window.pagefind.search(inputValue);
-
-    // Add the new results
-    let res: any[] = [];
-    for (const result of search.results) {
-      const data = await result.data();
-      if (!!data?.meta?.isTranslationsPage) {
-        data.url = `/${data.raw_url}`;
+      // Load the pagefind script only once
+      if (!window.pagefind) {
+        //@ts-ignore
+        window.pagefind = await import("../pagefind/pagefind.js");
       }
-      res.push(data);
+      // Search the index using the input value
+      // @ts-ignore
+      const search = await window.pagefind.search(inputValue);
+
+      // Add the new results
+      let res: any[] = [];
+      for (const result of search.results) {
+        const data = await result.data();
+        if (!!data?.meta?.isTranslationsPage) {
+          data.url = `/${data.raw_url}`;
+        }
+        res.push(data);
+      }
+      //
+      console.log({res});
+      setResults(res);
     }
-    // debugger;
-    console.log({res});
-    setResults(res);
   };
   onCleanup(() => {
-    if (typeof window != "undefined") {
+    // if (typeof window != "undefined") {
+    // @ts-ignore
+    if (!import.meta.env.SSR && window.pagefind) {
+      console.log("Cleaning up pagefind");
       // @ts-ignore
-      if (window.pagefind) {
-        console.log("Cleaning up pagefind");
-        // @ts-ignore
-        window.pagefind.destroy();
-      }
+      window.pagefind.destroy();
     }
+    // }
   });
 
   return (

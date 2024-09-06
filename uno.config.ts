@@ -1,15 +1,33 @@
 import {defineConfig, presetUno, type UserConfig} from "unocss";
 import transformerDirectives from "@unocss/transformer-directives";
 import transformerVariantGroup from "@unocss/transformer-variant-group";
+import presetIcons from "@unocss/preset-icons";
 
 // const uno = presetUno();
 // console.log("containers");
 const config: UserConfig = {
   // ...UnoCSS options
   transformers: [transformerDirectives(), transformerVariantGroup()],
+  variants: [
+    (matcher) => {
+      if (!matcher.startsWith("fullscreen:")) {
+        return matcher;
+      }
+      return {
+        matcher: matcher.slice("fullscreen:".length),
+        selector: (s) => `${s}:fullscreen`,
+      };
+    },
+  ],
   presets: [
     presetUno({
       // prefix:
+    }),
+    presetIcons({
+      extraProperties: {
+        display: "inline-block",
+        "vertical-align": "middle",
+      },
     }),
   ],
   theme: {
@@ -49,6 +67,13 @@ const config: UserConfig = {
       md: "0 6px 6px 0 hsla(0, 0%, 12.2%, 23%), 0 10px 20px 0 hsla(0, 0%, 12.2%, 19%)",
       lg: "0 15px 12px 0 hsla(0, 0%, 12.2%, 22%), 0 19px 38px 0 hsla(0, 0%, 12.2%, 30%)",
     },
+    keyframes: {
+      "indeterminate-progress": {
+        "0%": {translateX: "0", scaleX: "0"},
+        "40%": {translateX: "0", scaleX: ".4"},
+        "100%": {translateX: "100%", scaleX: ".5"},
+      },
+    },
   },
 
   // rules: [["contain", {"max-width": "1440px", margin: "0 auto"}]],
@@ -70,11 +95,10 @@ const generateSafelistColors = (
 ) => {
   return prefixes.flatMap((prefix) => {
     return Object.entries(themeColors).flatMap(([key, value]) => {
-      // @ts-ignore
       const recurse = (
         path: string,
         value: string | Record<string, string>
-      ) => {
+      ): string[] => {
         if (typeof value === "string") {
           return [`${prefix}-${path}`];
         } else {
@@ -95,10 +119,21 @@ const safelistColors = generateSafelistColors(
 config.safelist = [
   ...safelistColors,
   "h-full",
+  "w-full",
+  "h-full!",
+  "w-full!",
   "absolute",
   "relative",
   "object-cover",
   "top-0",
+  "bottom-0",
+  "left-0",
+  "right-0",
+  "inset-0",
+  "overflow-hidden",
+  "pb-0!",
+  "pr-0!",
+  "pl-0!",
 ];
 
 export default defineConfig(config);

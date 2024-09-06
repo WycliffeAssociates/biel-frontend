@@ -1,10 +1,10 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Blocks from "../components/Blocks.astro";
-import {getMenus, getWpmlLanguages, getHomePage} from "@src/api/gql";
+import {getMenus, getWpmlLanguages, getHomePage} from "@src/data/wp";
 import {cacheHomePageDev, getDevHomePage} from "@lib/caching";
 import {adjustCmsDomLinks} from "@src/utils";
-import {DOMParser} from "linkedom";
+import {DOMParser} from "linkedom/worker";
 // import {HeaderMenu} from "@components/HeaderMenu";
 import {HeaderMenuOld} from "@components/HeaderMenuOld";
 import type {WpPage} from "@customTypes/types";

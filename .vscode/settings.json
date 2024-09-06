@@ -1,0 +1,38 @@
+{
+  "iconify.annotations": true,
+  "iconify.inplace": false,
+  "iconify.languageIds": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact",
+    "vue",
+    "svelte",
+    "html",
+    "pug",
+    "json",
+    "yaml",
+    "markdown",
+    "mdx",
+    "astro"
+  ],
+  "unocss.autocomplete.maxItems": 100,
+  "unocss.disable": false,
+  "unocss.languageIds": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact",
+    "vue",
+    "svelte",
+    "html",
+    "pug",
+    "json",
+    "yaml",
+    "markdown",
+    "mdx",
+    "astro"
+  ],
+  "unocss.root": ["./"],
+  "unocss.include": ["./src/**/*"]
+}

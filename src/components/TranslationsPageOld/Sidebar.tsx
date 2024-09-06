@@ -31,7 +31,7 @@ export function SideBar(props: SideBarProps) {
     new Set<string>()
   );
   const shownLangs = () => {
-    // debugger;
+    //
     if (!searchTerm() && subjectType() == "All") return props.langs;
 
     let filtered = props.langs;
@@ -68,7 +68,7 @@ export function SideBar(props: SideBarProps) {
   onMount(() => {
     setTimeout(() => {
       // ?lang query params;
-      const params = new URLSearchParams(location.search);
+      const params = new URLSearchParams(globalThis.location?.search);
       const langQueryParam = params.get("lang");
       const resourceQueryParam = params.get("resource")?.toLowerCase();
       let codeToUse =

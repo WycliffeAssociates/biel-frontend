@@ -1,5 +1,5 @@
-import {DropdownMenu} from "@kobalte/core";
-import {LangGlobe, ChevronDown, SmallArrowDown} from "@components/Icons";
+import {DropdownMenu} from "@kobalte/core/dropdown-menu";
+import {LangGlobe, SmallArrowDown} from "@components/Icons";
 import {For} from "solid-js";
 import type {languageType} from "@customTypes/types";
 
@@ -10,7 +10,7 @@ type LangPickerProps = {
 
 export function LanguagePicker(props: LangPickerProps) {
   return (
-    <DropdownMenu.Root>
+    <DropdownMenu>
       <DropdownMenu.Trigger class="flex  gap-2 items-center p-3 border-1 border-surface-border rounded-2xl text-onSurface-secondary fill-onSurface-secondary data-[expanded]:(bg-surface-invert! text-onSurface-invert! fill-onSurface-invert)">
         <DropdownMenu.Icon class="flex gap-2 items-center ">
           {/* <ChevronDownIcon /> */}
@@ -41,7 +41,7 @@ export function LanguagePicker(props: LangPickerProps) {
           </For>
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
-    </DropdownMenu.Root>
+    </DropdownMenu>
   );
 }
 

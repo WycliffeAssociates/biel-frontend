@@ -1,3 +1,9 @@
+import type {
+  contentsForLang,
+  languageForClient,
+  langWithContent,
+} from "@src/data/pubDataApi";
+
 export type MenuItem = {
   ID: number;
   post_author: string;
@@ -90,8 +96,16 @@ export type WpPage = {
   parentDatabaseId: number | null;
   link: string;
   languageCode: string;
+  ancestors: {
+    nodes: {
+      uri: string;
+      slug: string;
+      databaseId: number;
+    }[];
+  } | null;
   pageOptions: {
     topBlurb?: string;
+    breakout: boolean;
   };
   uri: string;
   editorBlocks: EditorBlock[];
@@ -125,8 +139,16 @@ type Translation = {
   isContactPage: boolean;
   isHomePage: boolean;
   editorBlocks: EditorBlock[];
+  ancestors: {
+    nodes: {
+      uri: string;
+      slug: string;
+      databaseId: number;
+    }[];
+  };
   pageOptions: {
     topBlurb?: string;
+    breakout: boolean;
   };
 };
 
@@ -173,4 +195,36 @@ export type translationPageOldEntry = {
   englishName: string;
   direction: string | null;
   contents: Content[];
+};
+
+export type ContentListingProps = {
+  contents: contentsForLang[];
+  language: languageForClient;
+};
+export type ScriptureStoreState = contentsForLang & {
+  activeRowIdx: number;
+};
+export type zipSrcBodyReq = {
+  type: "gateway" | "heart";
+  files: {
+    url: string;
+    hash: string | null;
+    size: number | null;
+  }[];
+};
+
+export type docRequest = {
+  email_address: null;
+  assembly_strategy_kind: "lbo";
+  layout_for_print: true;
+  generate_pdf: boolean;
+  generate_epub: boolean;
+  generate_docx: boolean;
+  resource_requests: Array<{
+    lang_code: string;
+    resource_type: string;
+    book_code: string;
+  }>;
+  document_request_source: string;
+  limit_words: false;
 };

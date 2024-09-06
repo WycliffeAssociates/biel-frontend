@@ -1,0 +1,85 @@
+---
+export const prerender = false;
+import "../../styles/wordpress.scss";
+import "../../styles/global.scss";
+import "../../styles/vars.scss";
+// import {getBielFiles} from "@src/data/github";
+// const bielFiles = await getBielFiles();
+// if (!bielFiles) return Astro.redirect("/404");
+import { getLanguagesWithContentForBiel } from "@src/data/pubDataApi";
+import { ResourceIndex } from "@components/ResourcesPage/Main";
+
+const startTime = performance.now();
+const json = await getLanguagesWithContentForBiel();
+const endTime = performance.now();
+console.log(endTime - startTime);
+---
+
+<html>
+    <head>
+        <meta charset="UTF-8" />
+    </head>
+    <body>
+        <div class="site">
+            <header class="h-15vh bg-pink-100 w-full"></header>
+            <section data-name="pubDataApi">
+                <ResourceIndex client:load languages={json.data.language} />
+            </section>
+            <header class="h-45vh bg-pink-100 w-full"></header>
+        </div>
+        <!-- <section data-name="gh-debug">
+{
+  Object.entries(bielFiles).map(([k, v]) => (
+    <div>
+      <div>
+        <div class="text-3xl text-green-700">
+          LANGUAGE
+          <h1 class="inline-block">{k}</h1>
+        </div>
+        {Object.entries(v).map(([k2, v2]) => (
+          <div>
+            RESOURCE TYPE
+            <h2 class="ml-4 ">{k2} </h2>
+            {Object.entries(v2).map(([k3, v3]) => (
+              <>
+                <div class="ml-8">
+                  CATEGORY
+                  <h3 class="">{k3}</h3>
+                </div>
+                <p>
+                  {v3.map((value) => (
+                    <div class="ml-12">
+                      <div>
+                        <p>Name: {value.name}</p>
+                      </div>
+                      <p>sort: {value.sort}</p>
+                      <ul class="ml-16">
+                        {value.links.map((l) => (
+                          <li>
+                            <p>{l.format}</p>
+                            <p>{l.url}</p>
+                            <a
+                              href={l.download}
+                              class="underline text-blue"
+                            >
+                              {l.download}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </p>
+              </>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  ))
+}
+      </section> -->
+    </body>
+</html>
+
+<div></div>

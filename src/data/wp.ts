@@ -5,7 +5,7 @@ import type {
   languageType,
 } from "@customTypes/types";
 import {flatMenuToHierachical} from "@src/utils";
-import {DOMParser} from "linkedom";
+import {DOMParser} from "linkedom/worker";
 
 const editorBlocksFields = `
 parentClientId
@@ -91,8 +91,15 @@ export async function getPage(uri: string, langCode: string) {
         link
         languageCode
         uri
+        ancestors {
+          nodes {
+            slug
+            uri
+          }
+        }
         pageOptions {
           topBlurb
+          breakout
         }
         editorBlocks(flat:true) {
          ${editorBlocksFields}
@@ -114,7 +121,7 @@ export async function getPage(uri: string, langCode: string) {
       }
     }
   `;
-
+  console.log(pageWithMatchingUri.databaseId);
   const thatPageRes = await fetch(gqlUrl, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
@@ -163,7 +170,9 @@ export async function getPage(uri: string, langCode: string) {
   return page;
 }
 
+// todo: tag the resourcesPage and then in stat /slug/whatever use server:defer to make it a server island, just cause I don't want to render the header (and maybe the footer) on the server.  Yeah, in fact, just use a server catch all route in the root of pages, import from build time a /ressources/x... typee thing. And then /ressources is the single and /x routes to view of that lang content
 export async function getAllPages() {
+  // todo: gql has an ancestors field, but it only seems to populate for english. But given that this fetches from english and has all pages, For each translation, I should be able to do an allPages.find(englishPage -> englishPage.slug == its ancestor slug) to populate across. Or rather, ancesotrs for each ancestor, allPages.find(ep => ep.slug == ancestor.slug) and then translations.find on that.
   const query = `
     query allPages {
       pages(first: 100, where: {language: "en"}) {
@@ -177,8 +186,16 @@ export async function getAllPages() {
           link
           languageCode
           uri
+          ancestors {
+            nodes {
+              slug
+              uri
+              databaseId
+            }
+          }
           pageOptions {
             topBlurb
+            breakout
           }
           editorBlocks(flat:true) {
            ${editorBlocksFields}
@@ -231,41 +248,71 @@ export async function getAllPages() {
     const page = pages.nodes[i];
     if (!page) continue;
     // if (page.slug?.toLowerCase() != "home") {
-    // Every page needs an otherVersions to all others in the form of langCode -> databaseId of the localized version:
+
+    // Set soem flags for special pages that get handled differently;
     page.isHomePage = page.uri == "/";
     page.isTranslationPage = page.title.toLowerCase() == "translations";
     page.isContactPage =
       page.title.toLowerCase() == "contact us" ||
       page.translations.some((t) => t.title.toLowerCase() == "contact us");
+    // Every page needs an otherVersions to all others in the form of langCode -> databaseId of the localized version: This is populating it for english, and we'll do same below;
     const otherVersions: Record<string, string> = {};
     page.translations.forEach((t) => {
       otherVersions[t.languageCode] = String(t.databaseId);
     });
     page.otherVersions = otherVersions;
-    const {translations, ...rest} = page;
+    const {translations, ...enPage} = page;
     if (pagesByLangCode.en) {
-      pagesByLangCode.en[rest.databaseId] = rest;
+      pagesByLangCode.en[enPage.databaseId] = enPage;
     }
     translations.forEach((translation) => {
+      // Used to populate links for i18n.. Ie, the other version of "recursos" in sp is "ressources" in fr
       const otherVersions: Record<string, string> = {};
       translations.forEach((trans) => {
         otherVersions[trans.languageCode] = String(trans.databaseId);
       });
-      otherVersions["en"] = String(rest.databaseId);
-      translation.translationOfId = rest.databaseId;
+      // manually poipulat the en one
+      otherVersions["en"] = String(enPage.databaseId);
+      translation.translationOfId = enPage.databaseId;
       translation.otherVersions = otherVersions;
       // NOTE we don't need to know if other langauges use Genesis blocks, bc we are assuming that we want all pages to be synced in content.  I.e. We are not going to have different layouts for different languages, and we'll change if explicitly told to.  If we want to just disable a page for a language, can probably reach for acf
       if (!pagesByLangCode[translation.languageCode]) {
         pagesByLangCode[translation.languageCode] = {};
       }
 
-      translation.isHomePage = rest.uri == "/";
-      translation.isTranslationPage = rest.isTranslationPage;
-      translation.isContactPage = rest.isContactPage;
-      if (rest.uri == "/") {
+      // flags for special
+      translation.isHomePage = enPage.uri == "/";
+      translation.isTranslationPage = enPage.isTranslationPage;
+      translation.isContactPage = enPage.isContactPage;
+      if (enPage.uri == "/") {
+        // Wpml / WP also have these uri's as /, but they are really /langCode cause we aren't ssr rendering / to whatever lang you want.  It's got to be at a different uri
         translation.uri = `/${translation.languageCode}`;
-        // Wpml also have these uri's as /, but they are really /langCode
       }
+
+      // Sort out the breadcrumbs;
+      enPage.ancestors?.nodes.forEach((ancestor) => {
+        const matching = pages.nodes.find(
+          (page) => page.databaseId == ancestor.databaseId
+        );
+        if (!translation.ancestors) {
+          translation.ancestors = {
+            nodes: [],
+          };
+        }
+        if (!matching) return;
+        const thatLangTranslation = matching.translations.find(
+          (t) => t.languageCode == translation.languageCode
+        );
+        if (!thatLangTranslation) return;
+        // todo: verify if this works;
+        translation.ancestors.nodes.push({
+          uri: `${thatLangTranslation.uri}`,
+          slug: thatLangTranslation.slug,
+          databaseId: thatLangTranslation.databaseId,
+        });
+        console.log({tAncestors: translation.ancestors});
+      });
+
       let byLang = pagesByLangCode[translation.languageCode];
       if (byLang) {
         byLang[translation.databaseId] = translation;

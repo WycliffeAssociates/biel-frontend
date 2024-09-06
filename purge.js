@@ -3,7 +3,7 @@ import {globSync} from "glob";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import {PurgeCSS} from "purgecss";
-import {DOMParser} from "linkedom";
+import {DOMParser} from "linkedom/worker";
 
 // Step 1, get the content of each .html file. Feed content to domParser. Grab the style#headlessStyles.  Purge with content as raw content, and with that style tag as raw css.  Write back out to that file now that style tag is lesser.
 const srcFiles = globSync("./dist/**/*.html");

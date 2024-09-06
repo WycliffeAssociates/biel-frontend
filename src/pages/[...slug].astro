@@ -3,10 +3,10 @@ import type {languageType} from "@customTypes/types";
 import {cachePageForDevSpeed, getDevCachedPages} from "@lib/caching";
 import TranslationsPageOld from "@components/TranslationsPageOld/TranslationPageOld.astro";
 import {getDict} from "@src/i18n/strings";
-import {getAllPages, getGlobal, getMenus, getWpmlLanguages} from "@src/api/gql";
+import {getAllPages, getGlobal, getMenus, getWpmlLanguages} from "@src/data/wp";
 import Layout from "@layouts/Layout.astro";
 import Blocks from "@components/Blocks.astro";
-import {DOMParser} from "linkedom";
+import {DOMParser} from "linkedom/worker";
 import {
   addOptionalSectionsToCmsPages,
   adjustCmsDomLinks,
@@ -52,7 +52,7 @@ export async function getStaticPaths() {
     // Due to fetching constraints, we can still the contact sections for all langs that are translated.
     const contactGlobal = await getGlobal("contact", "en");
     const contactGlobalAll = contactGlobal?.allLangsGlobal;
-    const ctaGlobal = await getGlobal("cta-interior", "en");
+    const ctaGlobal = await getGlobal("cta-interior-2", "en");
     const ctaGlobalAll = ctaGlobal?.allLangsGlobal;
     const nonHiddenLanguages = new Set(Object.keys(menus));
     const wpmlLangDict = await getWpmlLanguages();
@@ -208,6 +208,18 @@ const description = page.editorBlocks
     />
   </div>
   <main class={`${!page.isHomePage && "interior-page"} `}>
+    <!-- todo: clean up these breadcrump -->
+    <ul class="list-none flex">
+      {
+        page.ancestors?.nodes.map((a) => {
+          return (
+            <li>
+              <a href={`${a.uri}`}>{a.slug}</a>
+            </li>
+          );
+        })
+      }
+    </ul>
     {
       !page.isHomePage && page.pageOptions?.topBlurb && (
         <div class="pbs-40 pbe-40 bg-brand-darkest bg-gradient-to-b from-[hsla(0,0%,0%,0.5)] to-[hsla(0,0%,0%,0)]">
@@ -264,6 +276,8 @@ const description = page.editorBlocks
       )
     }
     {
+      // figma changed. No more contact section. Revive if figma changes again.
+      // todo: backtrack and kill all contactSection globals if not revided on deploy.
       determineShowGlobal({page, global: contactSection}) && (
         <div class="headless-insertion py-40">
           <Blocks content={adjustCmsDomLinks(contactSection?.content!)} />

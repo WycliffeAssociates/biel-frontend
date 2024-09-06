@@ -2,9 +2,10 @@
 import "../styles/wordpress.scss";
 import "../styles/global.scss";
 import "../styles/vars.scss";
-import {getFooter} from "@src/api/gql";
+import {getFooter} from "@src/data/wp";
 import type {languageType} from "@customTypes/types";
 import Blocks from "@components/Blocks.astro";
+import {pwaInfo} from "virtual:pwa-info";
 
 interface Props {
   title: string;
@@ -50,6 +51,8 @@ const dedupedInlineStyles = [...deduped].join("\n");
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
     {inlineCss && <style id="headlessStyles" set:html={dedupedInlineStyles} />}
+    <script src="/src/pwa.ts"></script>
+    {pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}
     {
       langSwitcher.map((version) => {
         return (

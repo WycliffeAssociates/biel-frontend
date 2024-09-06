@@ -41,7 +41,7 @@ export function HeaderMenuMobile(props: HeaderMenuProps) {
     }
   }
   function paneIsActive(idx: number | string) {
-    // debugger;
+    //
     return idx == activePane();
   }
   function isAlsoParent(item: MenuItem) {
@@ -60,7 +60,7 @@ export function HeaderMenuMobile(props: HeaderMenuProps) {
   }
 
   createEffect(() => {
-    if (typeof window !== "undefined") {
+    if (!import.meta.env.SSR) {
       // src
       // https://markus.oberlehner.net/blog/simple-solution-to-prevent-body-scrolling-on-ios/
       if (isOpen()) {

@@ -1,5 +1,5 @@
 {
   "version": 1,
-  "include": ["/_image", "/preview/*", "/serverless/*"],
+  "include": ["/_image", "/preview/*", "/serverless/*", "/debug/*"],
   "exclude": []
 }
