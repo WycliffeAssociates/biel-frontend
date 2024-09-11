@@ -1,8 +1,7 @@
 import type {i18nDict} from "@src/i18n/strings";
 import {render} from "solid-js/web";
 
-import {type JSX, Show, Suspense, createResource, createSignal} from "solid-js";
-import {createStore} from "solid-js/store";
+import {type JSX, Show, createSignal} from "solid-js";
 
 type ContactFormProps = {
   dict: i18nDict;
@@ -47,7 +46,8 @@ export function ContactForm(props: ContactFormProps) {
       };
       await fadeEffect(cmsData);
       cmsData.innerHTML = ``;
-      const dispose = render(
+      // render returns a dispose fucntions if we need it.  Just easier to render a new solid component for this that manually updating the dom.
+      render(
         () => (
           <ConfirmationMessage
             dict={props.dict}

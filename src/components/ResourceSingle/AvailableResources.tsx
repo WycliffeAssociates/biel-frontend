@@ -1,46 +1,47 @@
 import type {contentsForLang} from "@src/data/pubDataApi";
-import {createSignal, For, Show, type Accessor, type Setter} from "solid-js";
+import {createSignal, For, Show} from "solid-js";
 import {contentContainsSearch, isScriptural} from "./lib";
 import type {SetStoreFunction} from "solid-js/store";
-import type {ScriptureStoreState} from "@customTypes/types";
+import type {ScriptureStoreState, tsFile} from "@customTypes/types";
 import {Dialog} from "@kobalte/core/dialog";
+import {useResourceSingleContext} from "./ResourceSingleContext";
+import {DownloadOptions} from "./DownloadOptions";
 
 type AvailableResourcesProps = {
-  isBig: () => boolean;
-  setSearchTerm: Setter<string>;
-  searchTerm: Accessor<string>;
-  allContents: contentsForLang[];
-  setActiveContent: SetStoreFunction<ScriptureStoreState>;
-  activeContent: ScriptureStoreState;
   classes?: string;
+  tsFiles: tsFile[] | undefined;
 };
 // todo: this is likely just gonna be "big", and have a separate export for small
 export function AvailableResources(props: AvailableResourcesProps) {
+  const {
+    isBig,
+    setActiveContent,
+    activeContent,
+    menuSearchTerm,
+    allLangContents,
+  } = useResourceSingleContext();
+
   return (
-    <Show
-      when={props.isBig()}
-      fallback={<AvailableResourcesSmall {...props} />}
-    >
+    <Show when={isBig()} fallback={<AvailableResourcesSmall {...props} />}>
       <div
         class={`hidden md:(flex shrink-0 flex-col gap-2) ${
           props.classes || ""
         }`}
       >
-        {/* <SearchBar
-        setSearchTerm={props.setSearchTerm}
-        searchTerm={props.searchTerm}
-      /> */}
         <ul class="flex flex-col gap-4">
-          <For
-            each={contentContainsSearch(props.searchTerm, props.allContents)}
-          >
+          <For each={contentContainsSearch(menuSearchTerm, allLangContents)}>
             {(row) => (
               <AvailableResource
-                setActiveContent={props.setActiveContent}
+                setActiveContent={setActiveContent}
                 content={row}
-                activeContent={props.activeContent}
+                activeContent={activeContent}
               />
             )}
+          </For>
+        </ul>
+        <ul>
+          <For each={props.tsFiles}>
+            {(row) => <TsFileDownload tsFile={row} />}
           </For>
         </ul>
       </div>
@@ -49,6 +50,9 @@ export function AvailableResources(props: AvailableResourcesProps) {
 }
 function AvailableResourcesSmall(props: AvailableResourcesProps) {
   const [open, setOpen] = createSignal(true);
+  const {setActiveContent, activeContent, menuSearchTerm, allLangContents} =
+    useResourceSingleContext();
+
   return (
     <Dialog open={open()} onOpenChange={setOpen}>
       <Dialog.Trigger
@@ -56,25 +60,31 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
           props.classes || ""
         }`}
       >
-        {props.activeContent.resource_type}
+        {activeContent.resource_type}
         <span class="i-ic:round-arrow-drop-down" />
       </Dialog.Trigger>
       <Dialog.Portal>
-        <div class="absolute inset-0 w-full h-screen bg-surface-primary ">
-          <Dialog.Title class="text-3xl inline-flex items-center ">
-            {/* todo i18n */}
-            <span class="i-ic:round-arrow-back rtl:rotate-180 w-.75em h-.75em text-onSurface-secondary" />
-            Resource Type
-          </Dialog.Title>
+        <div class="absolute inset-0 w-full h-screen bg-surface-primary px-4 py-4">
+          <div class="flex w-full justify-between items-center">
+            <Dialog.Title class="text-3xl inline-flex items-center gap-4">
+              {/* todo i18n */}
+              <button
+                class="i-ic:round-arrow-back rtl:rotate-180 w-.75em h-.75em bg-onSurface-secondary!"
+                onClick={() => setOpen(false)}
+              />
+              Resource Type
+            </Dialog.Title>
+            <DownloadOptions />
+          </div>
+          <SearchBar classes="my-4" />
+
           <ul class="">
-            <For
-              each={contentContainsSearch(props.searchTerm, props.allContents)}
-            >
+            <For each={contentContainsSearch(menuSearchTerm, allLangContents)}>
               {(row) => (
                 <AvailableResource
-                  setActiveContent={props.setActiveContent}
+                  setActiveContent={setActiveContent}
                   content={row}
-                  activeContent={props.activeContent}
+                  activeContent={activeContent}
                   additionalOnClick={() => setOpen(false)}
                 />
               )}
@@ -87,11 +97,11 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
 }
 
 type SearchBarProps = {
-  setSearchTerm: Setter<string>;
-  searchTerm: Accessor<string>;
   classes?: string;
 };
 export function SearchBar(props: SearchBarProps) {
+  const {setMenuSearchTerm} = useResourceSingleContext();
+
   return (
     <div class={`relative ${props.classes || ""}`}>
       <input
@@ -99,7 +109,7 @@ export function SearchBar(props: SearchBarProps) {
         // todo i18n
         placeholder="Search..."
         class="bg-surface-secondary px-6 py-2 rounded-lg w-full border border-surface-border"
-        onInput={(e) => props.setSearchTerm(e.currentTarget.value)}
+        onInput={(e) => setMenuSearchTerm(e.currentTarget.value)}
       />
       <span class="absolute ltr:right-2 rtl:left-2 top-1/2 -translate-y-1/2 i-ph:magnifying-glass"></span>
     </div>
@@ -117,7 +127,6 @@ export function AvailableResource(props: AvailableResourceProps) {
     return props.content.name === props.activeContent.name;
   };
   function setContent() {
-    console.log(`setting ${props.content.name}`);
     // props.setActiveContent(props.content);
     props.setActiveContent((prev) => {
       const newState = {
@@ -159,5 +168,30 @@ export function AvailableResource(props: AvailableResourceProps) {
         <span class="i-material-symbols:arrow-right-alt-rounded rtl:rotate-180 md:(hidden)" />
       </button>
     </li>
+  );
+}
+
+function TsFileDownload(props: {tsFile: tsFile}) {
+  // todo: Thomas change to think of only using url for whole repo and not each folder
+  const [category, {url, files}] = props.tsFile;
+  // https://raw.githubusercontent.com/wkelly17/biel-tk-example/master/en/docx.docx
+  const formPayload = {
+    payload: files,
+    name: category,
+  };
+  return (
+    <div class="flex justify-between w-full">
+      {category}
+      <form action="/ts-zip-files" method="post">
+        <input
+          type="hidden"
+          value={JSON.stringify(formPayload)}
+          name="zipPayload"
+        />
+        <button>
+          <span class="i-ic:round-file-download w-4 h-4" />
+        </button>
+      </form>
+    </div>
   );
 }

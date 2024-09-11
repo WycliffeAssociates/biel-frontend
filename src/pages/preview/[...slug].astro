@@ -148,7 +148,7 @@ const {title} = page;
               return <Blocks content={adjustCmsDomLinks(block.renderedHtml)} />;
             })}
           {blocksAreEmpty(page.editorBlocks) && (
-            <h2 class="">{getDict(langInfo.code).notYetTranslated}</h2>
+            <h2 class="">{getDict(langInfo.code, true)?.notYetTranslated}</h2>
           )}
         </div>
       )
@@ -164,7 +164,7 @@ const {title} = page;
           languageCode={langInfo.language_code}
           editorBlocks={page.editorBlocks}
           notTranslatedYet={blocksAreEmpty(page.editorBlocks)}
-          dict={getDict(langInfo.code)}
+          dict={getDict(langInfo.code, true)!}
         />
       )
     }

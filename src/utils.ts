@@ -1,4 +1,5 @@
 import type {Menu, MenuItem, WpPage} from "./customTypes/types";
+// todo: split this import out somewhere else, cause it's heavy and needs to only be used during build on server
 import {DOMParser} from "linkedom/worker";
 
 export function flatMenuToHierachical(menu: Menu) {
@@ -62,8 +63,6 @@ export function adjustCmsDomLinks(stringToParse: string) {
 
 function replaceAllAbsoluteLinksToCms(dom: any) {
   const baseUrl = import.meta.env.CMS_URL;
-  const allATags: NodeListOf<HTMLAnchorElement> =
-    dom.querySelectorAll(`a[href]`);
   // allATags.forEach((t) => console.log(t.href));
   const aTags: NodeListOf<HTMLAnchorElement> = dom.querySelectorAll(
     `a[href^="${baseUrl}"]`
@@ -193,7 +192,7 @@ export function getOtherLanguagesPagesList({
 /**
  * Determines whether to show the global content based on the page and global parameters.
  *
- * @return {boolean} List of exceptions that shouldnt' have any globals applied.  Truthiness is checked on global for type assertions
+ * Fxn contains a List of exceptions that shouldnt' have any globals wordpress sections in it (i.e. shared CTA's or contact sections).
  */
 export function determineShowGlobal({
   page,

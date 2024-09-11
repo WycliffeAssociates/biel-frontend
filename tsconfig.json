@@ -14,9 +14,14 @@
       "@customTypes/*": ["src/customTypes/*"],
       "@src/*": ["src/*"]
     },
-    "types": ["vite-plugin-pwa/client"],
+    "types": ["vite-plugin-pwa/client", "vite-plugin-pwa/info"],
     "jsx": "preserve",
     "jsxImportSource": "solid-js"
   },
-  "exclude": ["src/pagefind/*", "dist/**/*", "functions/[[path]].js"]
+  "exclude": [
+    "src/pagefind/*",
+    "dist/**/*",
+    "functions/[[path]].js",
+    "dev-dist/**/*"
+  ]
 }

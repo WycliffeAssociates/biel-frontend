@@ -1,21 +1,15 @@
-// main container (here
-/* 
-Heading, 
-Search Filter
-Filters
-Sorts
-Listings
- -> Listing
-  -> code, name, anglicized
-*/
-
+import {
+  createSignal,
+  For,
+  onMount,
+  Show,
+  type Accessor,
+  type Setter,
+} from "solid-js";
+import {MangifyingGlass} from "@components/Icons";
+import {map, sort, flow, when, filter} from "ramda";
 import type {queryReturn, queryReturnLanguage} from "@src/data/pubDataApi";
-import {createSignal, For, Show, type Accessor, type Setter} from "solid-js";
-import * as R from "ramda";
-import {MangifyingGlass, SmallArrowDown} from "@components/Icons";
-type ResourceIndexArgs = {
-  languages: queryReturn["data"]["language"];
-};
+
 type validSorts =
   | "CODE_AZ"
   | "CODE_ZA"
@@ -23,6 +17,15 @@ type validSorts =
   | "NAME_ZA"
   | "ANGLICIZED_AZ"
   | "ANGLICIZED_ZA";
+type ResourceIndexArgs = {
+  languages: queryReturn["data"]["language"];
+  revalidate: {
+    reqUrl: string;
+    reqInit: RequestInit;
+    cacheKeyUrl: string;
+  } | null;
+};
+
 export function ResourceIndex(props: ResourceIndexArgs) {
   const [languages, setLanguages] = createSignal(props.languages);
   const [searchTerm, setSearchTerm] = createSignal("");
@@ -49,7 +52,7 @@ export function ResourceIndex(props: ResourceIndexArgs) {
 
   const includesSearch = (lang: queryReturnLanguage) => {
     // const normalizedValues = R.pipe(m)
-    const valuesToCheck = R.map(
+    const valuesToCheck = map(
       (key) => adjustForCompare(lang[key]),
       filterableKeys
     );
@@ -70,7 +73,7 @@ export function ResourceIndex(props: ResourceIndexArgs) {
       ANGLICIZED_AZ: (a, b) => a.english_name.localeCompare(b.english_name),
       ANGLICIZED_ZA: (a, b) => b.english_name.localeCompare(a.english_name),
     };
-    return R.sort(sorters[sortOrder()], langs);
+    return sort(sorters[sortOrder()], langs);
   };
   function filterByStatus(lang: queryReturnLanguage) {
     if (Object.values(filters()).every((v) => v === true)) {
@@ -92,14 +95,37 @@ export function ResourceIndex(props: ResourceIndexArgs) {
   }
 
   const langToShow = () =>
-    R.flow(languages(), [
-      R.when(() => searchTerm().length >= 2, R.filter(includesSearch)),
-      R.filter(filterByStatus),
+    flow(languages(), [
+      when(() => searchTerm().length >= 2, filter(includesSearch)),
+      filter(filterByStatus),
       sortLangs,
     ]);
-  // const langsToShow = () => {
-  //   return R.pipe(languages(), includesSearch);
 
+  onMount(async () => {
+    if (props.revalidate) {
+      try {
+        debugger;
+        const res = await fetch(
+          props.revalidate.reqUrl,
+          props.revalidate.reqInit
+        );
+        // we could duplex but duplex doesn't work on the small number of clietns on http 1.x, and idk if cf even supports a reqeust body that is a stream, so just read it into a buffer.
+        const resBodyBuffer = await res.arrayBuffer();
+        if (res.ok) {
+          fetch(
+            `${globalThis.origin}/api/putInCfCache?routeToCache=resource-index&cacheKey=${props.revalidate.cacheKeyUrl}`,
+            {
+              method: "POST",
+              body: resBodyBuffer,
+            }
+          );
+          // call cf function to store in cach;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  });
   return (
     <div class="contain py-8">
       <div class="flex flex-col gap-8 pbe-4 md:(flex-row justify-between w-full items-center) ">
@@ -286,7 +312,6 @@ function SortDetails(params: SortProps) {
     let dir = direction ? direction : radioSorts().order;
     setRadioSorts({category: cat, order: dir});
     const joined = `${cat}_${dir}` as validSorts;
-    console.log(joined);
     params.setSetOrder(joined);
     // const joined =
   }

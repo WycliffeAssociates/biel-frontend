@@ -1,4 +1,5 @@
 ---
+export const prerender = false;
 import type {languageType} from "@customTypes/types";
 import {cachePageForDevSpeed, getDevCachedPages} from "@lib/caching";
 import TranslationsPageOld from "@components/TranslationsPageOld/TranslationPageOld.astro";
@@ -258,7 +259,7 @@ const description = page.editorBlocks
               return <Blocks content={adjustCmsDomLinks(block.renderedHtml)} />;
             })}
           {blocksAreEmpty(page.editorBlocks) && (
-            <h2 class="">{getDict(langInfo.code).notYetTranslated}</h2>
+            <h2 class="">{getDict(langInfo.code, true)!.notYetTranslated}</h2>
           )}
         </div>
       )

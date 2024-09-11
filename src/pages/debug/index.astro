@@ -6,28 +6,61 @@ import "../../styles/vars.scss";
 // import {getBielFiles} from "@src/data/github";
 // const bielFiles = await getBielFiles();
 // if (!bielFiles) return Astro.redirect("/404");
-import { getLanguagesWithContentForBiel } from "@src/data/pubDataApi";
-import { ResourceIndex } from "@components/ResourcesPage/Main";
+import {getLanguagesWithContentForBiel} from "@src/data/pubDataApi";
+import {ResourceIndex} from "@components/ResourcesPage/Main";
+import {Debug} from "@components/Debug";
 
 const startTime = performance.now();
-const json = await getLanguagesWithContentForBiel();
+const {data, cacheKey, revalidate, url, query, wasCached} =
+  await getLanguagesWithContentForBiel();
+if (!data) return Astro.redirect("/404");
+let revalidateArg: null | {
+  reqUrl: string;
+  reqInit: RequestInit;
+  cacheKeyUrl: string;
+} = null;
+if (revalidate && cacheKey) {
+  revalidateArg = {
+    reqUrl: url,
+    reqInit: {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({query}),
+    },
+    cacheKeyUrl: cacheKey.url,
+  };
+}
 const endTime = performance.now();
-console.log(endTime - startTime);
+const totalTime = endTime - startTime;
+console.log(
+  `time for resources index route on server ${totalTime} ms.
+  Was cached: ${wasCached}. 
+  Stale and will Revalidate: ${revalidate}.`
+);
 ---
 
 <html>
-    <head>
-        <meta charset="UTF-8" />
-    </head>
-    <body>
-        <div class="site">
-            <header class="h-15vh bg-pink-100 w-full"></header>
-            <section data-name="pubDataApi">
-                <ResourceIndex client:load languages={json.data.language} />
-            </section>
-            <header class="h-45vh bg-pink-100 w-full"></header>
-        </div>
-        <!-- <section data-name="gh-debug">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <script src="/src/pwa.ts"></script>
+  </head>
+  <body>
+    <div class="site">
+      <header class="h-15vh bg-pink-100 w-full"></header>
+      <section data-name="pubDataApi">
+        <!-- <pre>
+          {JSON.stringify(json, null, 2)}
+        </pre> -->
+        <ResourceIndex
+          client:load
+          revalidate={revalidateArg}
+          languages={data.data.language}
+        />
+      </section>
+      <header class="h-45vh bg-pink-100 w-full"></header>
+    </div>
+    <!-- <section data-name="gh-debug">
 {
   Object.entries(bielFiles).map(([k, v]) => (
     <div>
@@ -79,7 +112,5 @@ console.log(endTime - startTime);
   ))
 }
       </section> -->
-    </body>
+  </body>
 </html>
-
-<div></div>

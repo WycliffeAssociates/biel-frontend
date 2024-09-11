@@ -41,7 +41,7 @@ export async function fetchHtmlChapters(arg: {
   if (!arg.selected) return null;
   try {
     const res = await fetch(
-      `/api/fetchExternal?url=${arg.selected.url}&hash=${arg.selected.hash}`
+      `${globalThis.origin}/api/fetchExternal?url=${arg.selected.url}&hash=${arg.selected.hash}`
     );
     if (res.ok) {
       const text = await res.text();

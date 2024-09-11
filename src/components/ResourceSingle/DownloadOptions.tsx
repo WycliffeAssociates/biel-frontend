@@ -6,19 +6,11 @@ import type {
 import {DropdownMenu} from "@kobalte/core/dropdown-menu";
 import {Select} from "@kobalte/core/select";
 import {ToggleButton} from "@kobalte/core/toggle-button";
-import {Progress} from "@kobalte/core/progress";
-import type {RenderedContentRow} from "@src/data/pubDataApi";
+import {Dialog} from "@kobalte/core/dialog";
 import {createSignal, Show, type Accessor, type Setter} from "solid-js";
+import {useResourceSingleContext} from "./ResourceSingleContext";
 
-type DownloadOptionsProps = {
-  // allContent: RenderedContentRow[];
-  zipSrc: () => zipSrcBodyReq;
-  currentContent: ScriptureStoreState;
-  languageCode: string;
-  allContentResourceTypes: string[];
-  activeRow: () => RenderedContentRow | undefined;
-  langDirection: "ltr" | "rtl";
-};
+type DownloadOptionsProps = {};
 type DownloadArgs = {
   fileType: "PDF" | "EPUB" | "DOCX" | "SOURCE";
   includeTranslationsNotes: boolean;
@@ -26,8 +18,16 @@ type DownloadArgs = {
 };
 
 export function DownloadOptions(props: DownloadOptionsProps) {
+  const {
+    activeContent,
+    resourceTypes,
+    langDirection,
+    langCode,
+    isBig,
+    zipSrc,
+    fitsScripturalSchema,
+  } = useResourceSingleContext();
   // todo: make env var
-  const baseUrl = "https://doc-api.bibleineverylanguage.org";
   const [isLoading, setIsLoading] = createSignal(false);
   const [abortPoll, setAbortPoll] = createSignal(false);
   const [dialogOpen, setDialogOpen] = createSignal(false);
@@ -35,6 +35,8 @@ export function DownloadOptions(props: DownloadOptionsProps) {
   const [controller, setController] = createSignal<AbortController>(
     new AbortController()
   );
+  const activeRow = () =>
+    activeContent.rendered_contents.htmlChapters[activeContent.activeRowIdx];
   const abort = () => {
     setAbortPoll(true);
     controller().abort();
@@ -49,9 +51,11 @@ export function DownloadOptions(props: DownloadOptionsProps) {
     includeTranslationsNotes: false,
     includeAllBooks: false,
   });
+
   const canShowTn = () =>
-    props.allContentResourceTypes.map((x) => x.toLowerCase()).includes("tn") &&
-    downloadOptions().fileType !== "SOURCE";
+    resourceTypes()
+      .map((x) => x.toLowerCase())
+      .includes("tn") && downloadOptions().fileType !== "SOURCE";
   const doShowAllBooksToggle = () => downloadOptions().fileType !== "SOURCE";
 
   const updateDownloadOptions = (
@@ -66,6 +70,7 @@ export function DownloadOptions(props: DownloadOptionsProps) {
     });
   };
 
+  // todo: TW are special and I assume TM are so, probably will need that fits versifications schema or not param.
   const getDocRequestBody = () => {
     let optionsSelected = downloadOptions();
     const basePayload: docRequest = {
@@ -87,42 +92,57 @@ export function DownloadOptions(props: DownloadOptionsProps) {
     } else if (optionsSelected.fileType === "DOCX") {
       basePayload.generate_docx = true;
     }
-    // populate the resource_requests
-    const allBooksString = new Set(
-      props.currentContent.rendered_contents.htmlChapters.map(
-        (c) => c.scriptural_rendering_metadata.book_slug
-      )
-    );
-    // filter represents toggle btw all and current
-    let allBooksPayload = [...allBooksString]
-      .filter((bookString) =>
-        optionsSelected.includeAllBooks
-          ? true
-          : bookString ===
-            props.activeRow()?.scriptural_rendering_metadata.book_slug
-      )
-      .map((bookSlug) => {
-        return {
-          lang_code: props.languageCode.toLowerCase(),
-          resource_type: props.currentContent.resource_type.toLowerCase(),
-          book_code: bookSlug.toLowerCase(),
-        };
-      });
-    basePayload.resource_requests = [...allBooksPayload];
-
-    // map in a tn for each request if needed
-    if (optionsSelected.includeTranslationsNotes && canShowTn()) {
-      const allTnResourceRequests = basePayload.resource_requests.map((req) => {
-        return {
-          ...req,
-          resource_type: "tn",
-        };
-      });
+    if (!fitsScripturalSchema()) {
       basePayload.resource_requests = [
-        ...basePayload.resource_requests,
-        ...allTnResourceRequests,
+        // hard code a single book for like TW
+        {
+          book_code: "mat",
+          lang_code: langCode.toLowerCase(),
+          resource_type: activeContent.resource_type.toLowerCase(),
+        },
       ];
+      basePayload.layout_for_print = false;
+    } else {
+      // populate the resource_requests
+      const allBooksString = new Set(
+        activeContent.rendered_contents.htmlChapters.map(
+          (c) => c.scriptural_rendering_metadata?.book_slug
+        )
+      );
+      // filter represents toggle btw all and current
+      let allBooksPayload = [...allBooksString]
+        .filter((bookString) =>
+          optionsSelected.includeAllBooks
+            ? true
+            : bookString ===
+              activeRow()?.scriptural_rendering_metadata?.book_slug
+        )
+        .map((bookSlug) => {
+          return {
+            lang_code: langCode.toLowerCase(),
+            resource_type: activeContent.resource_type.toLowerCase(),
+            book_code: bookSlug.toLowerCase(),
+          };
+        });
+      basePayload.resource_requests = [...allBooksPayload];
+
+      // map in a tn for each request if needed
+      if (optionsSelected.includeTranslationsNotes && canShowTn()) {
+        const allTnResourceRequests = basePayload.resource_requests.map(
+          (req) => {
+            return {
+              ...req,
+              resource_type: "tn",
+            };
+          }
+        );
+        basePayload.resource_requests = [
+          ...basePayload.resource_requests,
+          ...allTnResourceRequests,
+        ];
+      }
     }
+
     return basePayload;
   };
 
@@ -219,35 +239,53 @@ export function DownloadOptions(props: DownloadOptionsProps) {
 
   return (
     <div class="md:(min-w-20)">
-      <DropdownMenu
-        open={dialogOpen()}
-        gutter={0}
-        placement={props.langDirection === "ltr" ? "bottom-end" : "top-start"}
-        sameWidth={false}
-      >
-        <DropdownMenu.Trigger
-          class="px-2 py-2 aspect-square md:aspect-auto bg-brand border-x-2 border-t-2 border-b-4 border-brand-darkest rounded-lg bg-brand-base text-onSurface-invert! flex gap-2 items-center hover:(bg-brand-darkest) active:(bg-brand-darkest) focus:(bg-brand-base ring-4 ring-brand ring-offset-6)"
-          onClick={() => setDialogOpen(!dialogOpen())}
+      <Show when={isBig()}>
+        <DropdownMenu
+          open={dialogOpen()}
+          gutter={0}
+          placement={langDirection === "ltr" ? "bottom-end" : "top-start"}
+          sameWidth={false}
         >
-          {/* todo i18n */}
-          <span class="i i-ic:baseline-download"></span>
-          <span class="hidden md:inline">download</span>
-          <span class="i i-mdi:chevron-down hidden md:inline"></span>
-        </DropdownMenu.Trigger>
-        <DropDownPortal
+          <DropdownMenu.Trigger
+            class="px-2 py-2 aspect-square bg-brand-light text-brand-base rounded-lg focus:(bg-brand-base ring-4 ring-brand ring-offset-6) md:(aspect-auto bg-brand border-x-2 border-t-2 border-b-4 border-brand-darkest  bg-brand-base text-onSurface-invert! flex gap-2 items-center hover:(bg-brand-darkest) active:(bg-brand-darkest))"
+            onClick={() => setDialogOpen(!dialogOpen())}
+          >
+            {/* todo i18n */}
+            <span class="i i-ic:baseline-download w-7 h-5"></span>
+            <span class="hidden md:inline">download</span>
+            <span class="i i-mdi:chevron-down hidden md:inline"></span>
+          </DropdownMenu.Trigger>
+          <DropDownPortal
+            dialogOpen={dialogOpen}
+            setDialogOpen={setDialogOpen}
+            updateDownloadOptions={updateDownloadOptions}
+            canShowTn={canShowTn}
+            startDownload={startDownload}
+            currentContent={activeContent}
+            zipSrc={zipSrc}
+            doShowAllBooksToggle={doShowAllBooksToggle}
+            isLoading={isLoading}
+            abort={abort}
+            docErred={docErred}
+          />
+        </DropdownMenu>
+      </Show>
+      <Show when={!isBig()}>
+        <DownloadModal
           dialogOpen={dialogOpen}
           setDialogOpen={setDialogOpen}
           updateDownloadOptions={updateDownloadOptions}
           canShowTn={canShowTn}
           startDownload={startDownload}
-          currentContent={props.currentContent}
-          zipSrc={props.zipSrc}
+          currentContent={activeContent}
+          zipSrc={zipSrc}
           doShowAllBooksToggle={doShowAllBooksToggle}
           isLoading={isLoading}
           abort={abort}
           docErred={docErred}
+          langDirection={langDirection}
         />
-      </DropdownMenu>
+      </Show>
     </div>
   );
 }
@@ -307,6 +345,65 @@ function DropDownPortal(props: DropDownPortalProps) {
         />
       </DropdownMenu.Content>
     </DropdownMenu.Portal>
+  );
+}
+
+function DownloadModal(
+  props: DropDownPortalProps & {
+    langDirection: "ltr" | "rtl";
+  }
+) {
+  return (
+    <Dialog>
+      <Dialog.Trigger
+        class="px-2 py-2 aspect-square bg-brand-light text-brand-base rounded-lg focus:(bg-brand-base ring-4 ring-brand ring-offset-6) md:(aspect-auto bg-brand border-x-2 border-t-2 border-b-4 border-brand-darkest  bg-brand-base text-onSurface-invert! flex gap-2 items-center hover:(bg-brand-darkest) active:(bg-brand-darkest))"
+        onClick={() => props.setDialogOpen(!props.dialogOpen())}
+      >
+        <span class="i i-ic:baseline-download w-7 h-5"></span>
+      </Dialog.Trigger>
+      <Dialog.Portal>
+        <Dialog.Content class="fixed inset-0 z-20 bg-surface-primary p-2 flex flex-col gap-4">
+          <div class="flex items-center gap-4">
+            <Dialog.CloseButton
+              class={`${
+                props.langDirection == "ltr"
+                  ? "i-material-symbols:arrow-back"
+                  : "i-material-symbols:arrow-forward"
+              } w-.75em h-.75em font-size-[var(--step-2)]`}
+            />
+            <Dialog.Title>
+              <h2 class="font-size-[var(--step-2)]">Download</h2>
+            </Dialog.Title>
+          </div>
+          <FileTypePicker updateDownloadOptions={props.updateDownloadOptions} />
+          <Show when={props.canShowTn()}>
+            <TranslationNotesToggle
+              updateDownloadOptions={props.updateDownloadOptions}
+            />
+          </Show>
+          <Show when={props.doShowAllBooksToggle()}>
+            <IncludeAllBooksToggle
+              updateDownloadOptions={props.updateDownloadOptions}
+            />
+          </Show>
+
+          <DownloadButton
+            startDownload={props.startDownload}
+            isLoading={props.isLoading}
+            abort={props.abort}
+            docErred={props.docErred}
+          />
+          <OpenInDocButton />
+          <a data-js="proxy-sw-doc" class="hidden">
+            Doc it
+          </a>
+          <HiddenZipSrcForm
+            currentContent={props.currentContent}
+            zipSrc={props.zipSrc}
+          />
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog>
   );
 }
 
@@ -380,7 +477,7 @@ function FileTypePicker(props: FileTypePickerProps) {
         </Select.Icon>
       </Select.Trigger>
       <Select.Portal>
-        <Select.Content class="bg-surface-primary z-10 shadow-sm bg-surface-secondary rounded-md overflow-hidden">
+        <Select.Content class="bg-surface-primary z-30 shadow-sm bg-surface-secondary rounded-md overflow-hidden">
           <Select.Listbox class="" />
         </Select.Content>
       </Select.Portal>
@@ -475,7 +572,7 @@ function DownloadButton(props: {
       <Show when={!props.isLoading()}>
         <button
           onClick={props.startDownload}
-          class="px-2 py-1 aspect-square md:aspect-auto bg-brand border-x-2 border-t-2 border-b-4 border-brand-darkest rounded-lg bg-brand-base text-onSurface-invert! flex gap-2 items-center hover:(bg-brand-darkest) active:(bg-brand-darkest) focus:(bg-brand-base ring-4 ring-brand ring-offset-6) justify-center items-center"
+          class="px-2 py-1 md:aspect-auto bg-brand border-x-2 border-t-2 border-b-4 border-brand-darkest rounded-lg bg-brand-base text-onSurface-invert! flex gap-2 items-center hover:(bg-brand-darkest) active:(bg-brand-darkest) focus:(bg-brand-base ring-4 ring-brand ring-offset-6) justify-center items-center"
         >
           <span class={` i-mdi:download h-4 w-4`} />
           Download

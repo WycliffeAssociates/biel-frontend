@@ -1,8 +1,19 @@
+import type {ghFile} from "@src/data/github";
 import type {
   contentsForLang,
   languageForClient,
   langWithContent,
 } from "@src/data/pubDataApi";
+
+declare global {
+  interface CacheStorage {
+    // cloudflare prod cache
+    default: {
+      put(request: Request | string, response: Response): Promise<undefined>;
+      match(request: Request | string): Promise<Response | undefined>;
+    };
+  }
+}
 
 export type MenuItem = {
   ID: number;
@@ -200,7 +211,9 @@ export type translationPageOldEntry = {
 export type ContentListingProps = {
   contents: contentsForLang[];
   language: languageForClient;
+  tsFiles: tsFile[] | undefined;
 };
+export type tsFile = [string, {url: string; files: ghFile[]}];
 export type ScriptureStoreState = contentsForLang & {
   activeRowIdx: number;
 };
@@ -216,7 +229,7 @@ export type zipSrcBodyReq = {
 export type docRequest = {
   email_address: null;
   assembly_strategy_kind: "lbo";
-  layout_for_print: true;
+  layout_for_print: boolean;
   generate_pdf: boolean;
   generate_epub: boolean;
   generate_docx: boolean;

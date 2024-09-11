@@ -4,6 +4,7 @@ export async function getBielFiles() {
     const REPO = "biel-files";
     const endpoint = `https://api.github.com/repos/${USER}/${REPO}/git/trees/master?recursive=1`;
     const res = await fetch(endpoint);
+
     if (!res.ok) throw new Error("couldn't fetch biel files on github");
     const json = (await res.json()) as githubReponse;
     const supportedLanguages = Object.keys(reviewersGuideMeta);
@@ -77,12 +78,111 @@ export async function getBielFiles() {
       }
       return acc;
     }, {});
-    console.log(formatted);
     return formatted;
   } catch (error) {
     console.error(error);
     return;
   }
+}
+export async function getTsFiles(language: string | undefined) {
+  if (!language) return;
+  // const USER = "wkelly17";
+  // const REPO = "biel-tk-example";
+  const USER = "wa-biel";
+  const REPO = "biel-files";
+  const endpoint = `https://api.github.com/repos/${USER}/${REPO}/git/trees/master?recursive=1`;
+
+  let cachedRes: Response | undefined;
+  let cachedEtag: string | undefined | null;
+  // cloudflare production cache
+  if (globalThis.caches) {
+    const cache = globalThis.caches.default;
+    const cacheMatch = await cache.match(endpoint);
+    if (cacheMatch) {
+      cachedRes = cacheMatch;
+      cachedEtag = cacheMatch.headers.get("etag");
+    }
+  }
+
+  // Etag fetches still hit the origin (i.e github) but they avoid the request body, so there will always be the fetch here to check for newest, but there will be no response body if the etag is the same, which lightens up the fetch considerably
+  const res = await fetch(endpoint, {
+    headers: {
+      "User-Agent": "wkelly17",
+      ...(cachedEtag && {"If-None-Match": cachedEtag}),
+    },
+    // @ts-ignore
+    cf: {
+      headers: {
+        "Cache-Control": "max-age=20",
+      },
+    },
+  });
+  // unmodified is ok. We handle below. This is an etag check
+  if (!res.ok && res.status != 304) throw new Error(res.statusText);
+
+  if (globalThis.caches && res.status !== 304) {
+    console.log("caching gh reponse");
+    // CF: Our implementation of the Cache API respects the following HTTP headers on the response passed to put(): ETAG, Expires, Last-Modified.  ETAG Allows cache.match() to evaluate conditional requests with If-None-Match.
+    globalThis.caches.default.put(endpoint, res.clone());
+  }
+  const json =
+    res.status === 304 && !!cachedRes
+      ? ((await cachedRes!.json()) as githubReponse)
+      : ((await res.json()) as githubReponse);
+  const formatted = json.tree.reduce(
+    (
+      acc: Record<
+        string,
+        {
+          [category: string]: {
+            url: string;
+            files: githubReponse["tree"];
+          };
+        }
+      >,
+      current
+    ) => {
+      // reduce into lang/category:::
+      // do everything from the blobs:
+      if (current.type === "blob") {
+        const parts = current.path.split("/");
+        const langPart = parts?.[0];
+        const category = parts?.[1] == current.path ? null : parts?.[1];
+        if (langPart) {
+          if (!acc[langPart]) acc[langPart] = {};
+          if (category) {
+            if (!acc[langPart][category])
+              acc[langPart][category] = {
+                url: `https://github.com/${USER}/${REPO}/tree/master/${encodeURIComponent(
+                  langPart
+                )}/${encodeURIComponent(category)}`,
+                files: [],
+              };
+            current.url = `https://raw.githubusercontent.com/${USER}/${REPO}/master/${encodeURIComponent(
+              current.path
+            )}`;
+            acc[langPart][category].files.push(current);
+          } else {
+            if (!acc[langPart]["default"])
+              acc[langPart]["default"] = {
+                url: `https://github.com/${USER}/${REPO}/tree/master`,
+                files: [],
+              };
+            current.url = `https://raw.githubusercontent.com/${USER}/${REPO}/master/${encodeURIComponent(
+              current.path
+            )}`;
+            acc[langPart]["default"].files.push(current);
+          }
+        }
+        return acc;
+      }
+      return acc;
+    },
+    {}
+  );
+  if (!formatted[language]) return;
+  const asArr = Object.entries(formatted[language]);
+  return asArr;
 }
 let filters = {
   isBlob: (f: ghFile) => f.type === "blob",
@@ -129,11 +229,12 @@ ot: [{
     links: []
   }]
 */
-type ghFile = {
+export type ghFile = {
   path: string;
   type: "blob";
   sha: string;
   url: string;
+  size?: number;
 };
 type githubReponse = {
   tree: Array<ghFile>;

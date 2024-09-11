@@ -11,7 +11,6 @@ type SearchProps = {
 export function Search(props: SearchProps) {
   const [query, setQuery] = createSignal("");
   const [results, setResults] = createSignal<any[]>([]);
-  const commonClassNames = "";
   const mobileClassNames = `mobile`;
   const bigClassNames = `absolute top-full  z-10 bg-white p-3 max-h-500px overflow-auto w-[clamp(min(99vw,270px),50vw,500px)] right-0 border border-#aaa`;
   const handleInput = async (e: KeyboardEvent) => {
@@ -63,7 +62,7 @@ export function Search(props: SearchProps) {
           class="border border-gray-200 px-2 py-2 rounded-lg bg-white! pis-10 placeholder:(text-#777 font-bold) w-full"
           id="search"
           type="search"
-          placeholder={getDict(props.langCode).search}
+          placeholder={getDict(props.langCode, true)!.search}
           value={query()}
           onInput={(e) => setQuery(e.target.value)}
           onKeyUp={handleInput}

@@ -8,14 +8,12 @@ export const POST: APIRoute = async ({request, url}) => {
   const docUrl = body.generate_docx
     ? `${baseUrl}/documents_docx`
     : `${baseUrl}/documents`;
-  console.log(body);
   try {
     const res = await fetch(docUrl, {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify(body),
     });
-    console.log(res);
     if (!res.ok) {
       throw new Error(res.statusText);
     }

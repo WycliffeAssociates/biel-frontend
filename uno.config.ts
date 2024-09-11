@@ -31,6 +31,9 @@ const config: UserConfig = {
     }),
   ],
   theme: {
+    maxWidth: {
+      prose: "75ch",
+    },
     colors: {
       brand: {
         base: "hsla(var(--clr-brand-base))",

@@ -4,8 +4,6 @@ import {
   Show,
   createSignal,
   For,
-  Switch,
-  Match,
   createEffect,
   type JSXElement,
   type Setter,

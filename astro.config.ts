@@ -13,7 +13,10 @@ const isDev = import.meta.env.DEV;
 // https://astro.build/config
 export default defineConfig({
   vite: {
-    build: {},
+    build: {
+      // todo: change for produ, but can make false to inspect deployed bundle
+      minify: false,
+    },
     resolve: {
       conditions: !isDev ? ["worker", "webworker"] : [],
       mainFields: !isDev ? ["module"] : [],
@@ -24,6 +27,7 @@ export default defineConfig({
       // noExternal: ["path-to-regexp"],
     },
     plugins: [
+      // @ts-ignore
       visualizer({
         template: "treemap", // or sunburst
         open: false,
@@ -45,6 +49,10 @@ export default defineConfig({
       srcDir: "src",
       filename: "sw.ts",
       registerType: "autoUpdate",
+      injectManifest: {
+        globIgnores: ["**/*.html", "sw.js"],
+        globPatterns: ["**/*.{js,css}", "fonts/**/*", "images/**/*"],
+      },
       /* your pwa options */
     }),
     UnoCSS({
@@ -54,6 +62,11 @@ export default defineConfig({
     solidJs(),
   ],
   output: "hybrid",
-  // uses custom routes.json in public
-  adapter: cloudflare({}),
+  // Reminder uses custom routes.json in public
+  adapter: cloudflare({
+    platformProxy: {
+      enabled: true,
+      configPath: ".dev.vars",
+    },
+  }),
 });

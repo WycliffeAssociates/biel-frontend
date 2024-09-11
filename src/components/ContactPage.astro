@@ -7,12 +7,11 @@ interface Props {
 }
 const {editorBlocks, notTranslatedYet, dict, languageCode} = Astro.props;
 import {adjustCmsDomLinks} from "@src/utils";
-import {blocksAreEmpty} from "@lib/web";
 import type {EditorBlock} from "@customTypes/types";
 import type {i18nDict} from "@src/i18n/strings";
 import {ContactForm} from "@components/ContactForm";
 import Blocks from "./Blocks.astro";
-const redirectUrl = Astro.request.url;
+// const redirectUrl = Astro.request.url;
 ---
 
 <div class={`headless-insertion wp-blocks  site-container pb-0!`}>

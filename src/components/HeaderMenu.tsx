@@ -1,6 +1,6 @@
 import type {Menu, MenuItem, languageType} from "@customTypes/types";
 import {isAbsoluteUrl} from "@lib/web";
-import {Show, createSignal, For, Switch, Match} from "solid-js";
+import {Show, createSignal, For} from "solid-js";
 import {HeaderMenuMobile} from "./HeaderMenuMobile";
 import {createMediaQuery} from "@solid-primitives/media";
 import {WaLogo} from "./Logo";

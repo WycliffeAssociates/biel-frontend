@@ -2,7 +2,15 @@ import {bibleBookSortOrder} from "@src/utils";
 const bielFilter = `show_on_biel: {_eq: true},status: {_eq: "Primary"}`;
 import {groupBy} from "ramda";
 const hasRenderings = `count: {predicate: {_gt: 0}}`;
-export async function getLanguagesWithContentForBiel() {
+export async function getLanguagesWithContentForBiel(): Promise<{
+  data: queryReturn | null;
+  revalidate: boolean | null;
+  wasCached: boolean;
+  cacheKey: Request | null;
+  url: string;
+  query: string;
+}> {
+  // todo: think about swr and other caching headers for this
   const query = `
 query MyQuery {
   language(
@@ -29,37 +37,56 @@ query MyQuery {
     wa_language_metadata {
       is_gateway
     }
-    contents {
-      resource_type
-      name
-      id
-      wa_content_metadata {
-        show_on_biel
-        status
-      }
-      rendered_contents_aggregate {
-        aggregate {
-          count
-        }
-      }
-    }
   }
 }
 `;
-  console.log(query);
   // todo env var;  try/catch.
   const url = "https://api.bibleineverylanguage.org/v1/graphql";
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({query}),
-  });
-  const size = res.headers.get("content-length");
-  console.log(
-    `getLanguagesWithContentForBiel size is ${Number(size) / 1000} kb`
-  );
-  const json = (await res.json()) as queryReturn;
-  return json;
+  const swrThresholdSeconds = 40;
+  try {
+    // CF doesn't support SWR yet, but we cna implement it for one route.  Just use caches.default and put one in with a custom x-swr header. When this is called, do a caches.match()... if the max-age or s-max isn't expired, cf should just use that. Then,
+    // todo: test all this tomorrow
+    let json: any;
+    const {match, revalidate, cacheKey} = await manageCfCachePostReq({
+      query,
+      url,
+      swrThresholdSeconds,
+    });
+    console.log({didMatch: !!match, revalidate, hasCacheKey: !!cacheKey});
+    if (match) {
+      json = (await match.json()) as queryReturn;
+      return {data: json, revalidate, cacheKey, url, query, wasCached: !!match};
+    } else {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({query}),
+      });
+      if (res) {
+        json = (await res.json()) as queryReturn;
+        return {
+          data: json,
+          revalidate,
+          cacheKey,
+          url,
+          query,
+          wasCached: !!match,
+        };
+      } else {
+        throw new Error("No response");
+      }
+    }
+  } catch (e) {
+    console.error(e);
+    return {
+      data: null,
+      revalidate: null,
+      cacheKey: null,
+      url,
+      query,
+      wasCached: false,
+    };
+  }
 }
 
 export type queryReturn = {
@@ -92,7 +119,7 @@ export type queryReturnLanguage = {
 };
 
 export async function getLanguageContents(language: string) {
-  const query2 = `query LangContents {
+  const query = `query LangContents {
   language(where: {ietf_code: {_eq: "${language}"}}) {
     national_name
     direction
@@ -125,13 +152,36 @@ export async function getLanguageContents(language: string) {
   }
 }
   `;
-  console.log(query2);
   const url = "https://api.bibleineverylanguage.org/v1/graphql";
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({query: query2}),
+
+  // Have to write cf specific code for caching post requests. It think we'll skip SWR for this stuff and just set it to an s-maxage of a day.
+  let res: Response | null | undefined = null;
+  const {match, cacheKey} = await manageCfCachePostReq({
+    query,
+    url,
+    // no swr for this route
   });
+  if (match) {
+    console.log(`Using cached res for ${language} contents`);
+    res = match;
+  }
+  if (!res) {
+    res = await fetch(url, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({query}),
+    });
+    if (res.ok && globalThis.caches?.default && cacheKey) {
+      console.log(`setting cache for ${language} contents`);
+      const clone = res.clone();
+      const headers = new Headers(clone.headers);
+      headers.set("Cache-Control", "public, max-age=60, s-maxage=86400");
+      await globalThis.caches.default.put(
+        cacheKey,
+        new Response(clone.body, {headers})
+      );
+    }
+  }
   const size = res.headers.get("content-length");
   console.log(`getLanguageContents size is ${Number(size) / 1000} kb`);
   const json = (await res.json()) as langContentReturn;
@@ -339,12 +389,6 @@ function sortHtmlChaptersCanonically(htmlChapters: RenderedContentRow[]) {
   htmlChapters?.sort((a, b) => {
     const aBookSlug = a.scriptural_rendering_metadata?.book_slug;
     const bBookSlug = b.scriptural_rendering_metadata?.book_slug;
-    if (!aBookSlug) {
-      console.log(`missing bookSlug in htmlChapters: ${a.url}`);
-    }
-    if (!bBookSlug) {
-      console.log(`missing bookSlug in htmlChapters: ${b.url}`);
-    }
     if (!aBookSlug || !bBookSlug) {
       return 0;
     }
@@ -368,4 +412,96 @@ function sortHtmlChaptersCanonically(htmlChapters: RenderedContentRow[]) {
       c.scriptural_rendering_metadata.chapter = "front";
     }
   });
+}
+
+type manageCfCacheArgs = {
+  swrThresholdSeconds?: number;
+  query: string;
+  url: string;
+};
+
+async function manageCfCachePostReq({
+  swrThresholdSeconds,
+  query,
+  url,
+}: manageCfCacheArgs) {
+  const returnVal = {
+    revalidate: true,
+    match: null,
+    cacheKey: null,
+  };
+  if (!globalThis.caches?.default) {
+    return returnVal;
+  }
+  // see caching post reqeust here: Basically making a unique cache key based on the url + query
+  // https://developers.cloudflare.com/workers/examples/cache-post-request
+  const hashedQuery = new TextEncoder().encode(query);
+  const hash = await crypto.subtle.digest("SHA-256", hashedQuery);
+  const hashHex = Array.from(new Uint8Array(hash))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join(""); // convert bytes to hex string
+  const cacheKeyName = `${url}-${hashHex}`;
+  const cacheKey = new Request(cacheKeyName, {
+    method: "GET",
+    headers: {"Content-Type": "application/json"},
+  });
+  const matched = await globalThis.caches.default.match(cacheKey);
+  if (!matched) {
+    return {
+      revalidate: true,
+      match: matched,
+      cacheKey: cacheKey,
+    };
+  }
+  if (!swrThresholdSeconds) {
+    return {
+      revalidate: false, //Cf's match on max-age or s-max will have determined whther this matched.
+      match: matched,
+      cacheKey,
+    };
+  }
+  const cacheControlHeader = matched.headers.get("Cache-Control");
+  if (cacheControlHeader) {
+    console.log({cacheControlHeader});
+  }
+  const maxAge = cacheControlHeader?.match(/max-age=(\d+)/)?.[1];
+  if (!maxAge) {
+    return {
+      revalidate: false, //Cf's match on max-age or s-max will have determined whther this matched.
+      match: matched,
+      cacheKey,
+    };
+  }
+  // const maxAgeSecs = matched.headers.get("max-age");
+  const storedDate = matched.headers.get("date");
+  const storedSeconds = Date.parse(storedDate || "");
+  const now = Date.now();
+  const diff = now - storedSeconds;
+  const diffSeconds = diff / 1000;
+  console.log({maxAge, diffSeconds});
+  if (maxAge && diffSeconds < Number(maxAge)) {
+    // fresh, don't revalidate.
+    return {
+      revalidate: false,
+      match: matched,
+      cacheKey,
+    };
+  }
+  if (
+    diffSeconds > Number(maxAge || 0) &&
+    diffSeconds < Number(swrThresholdSeconds)
+  ) {
+    return {
+      revalidate: true,
+      match: matched,
+      cacheKey,
+    };
+    // Older than max, but less than threshold.  Use the stale, but revalidate
+  }
+  // older than threshold.  Revalidate with no match
+  return {
+    revalidate: true,
+    match: null,
+    cacheKey: cacheKey,
+  };
 }
