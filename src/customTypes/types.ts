@@ -1,4 +1,5 @@
 import type {ghFile} from "@src/data/github";
+import type {i18nDict} from "@src/i18n/strings";
 import type {
   contentsForLang,
   languageForClient,
@@ -53,7 +54,10 @@ export type MenuItem = {
   description: string;
   classes: string[];
   xfn: string;
-  children?: MenuItem[];
+  children?: {
+    featured: MenuItem[];
+    non_featured: MenuItem[];
+  };
   attached_post: {
     post_id: string;
     post_title: string;
@@ -107,6 +111,11 @@ export type WpPage = {
   parentDatabaseId: number | null;
   link: string;
   languageCode: string;
+  featuredImage: {
+    node: {
+      sourceUrl: string;
+    };
+  } | null;
   ancestors: {
     nodes: {
       uri: string;
@@ -116,7 +125,16 @@ export type WpPage = {
   } | null;
   pageOptions: {
     topBlurb?: string;
-    breakout: boolean;
+    iconPreTitle?: null | {
+      sourceUrl: string;
+    };
+    heroLinks: Array<{
+      heroLinkText: string;
+      heroLinkUrl: string;
+      linkStyle: "filled" | "light";
+
+      heroLinkIcon?: null | string;
+    }>;
   };
   uri: string;
   editorBlocks: EditorBlock[];
@@ -150,6 +168,11 @@ type Translation = {
   isContactPage: boolean;
   isHomePage: boolean;
   editorBlocks: EditorBlock[];
+  featuredImage: {
+    node: {
+      sourceUrl: string;
+    };
+  } | null;
   ancestors: {
     nodes: {
       uri: string;
@@ -159,7 +182,15 @@ type Translation = {
   };
   pageOptions: {
     topBlurb?: string;
-    breakout: boolean;
+    iconPreTitle?: null | {
+      sourceUrl: string;
+    };
+    heroLinks: Array<{
+      heroLinkText: string;
+      heroLinkUrl: string;
+      linkStyle: "filled" | "light";
+      heroLinkIcon?: null | string;
+    }>;
   };
 };
 
@@ -212,6 +243,7 @@ export type ContentListingProps = {
   contents: contentsForLang[];
   language: languageForClient;
   tsFiles: tsFile[] | undefined;
+  i18nDict: i18nDict;
 };
 export type tsFile = [string, {url: string; files: ghFile[]}];
 export type ScriptureStoreState = contentsForLang & {

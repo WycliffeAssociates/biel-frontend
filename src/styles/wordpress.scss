@@ -18,8 +18,9 @@
 
   /* Block: Image  ------------------------- */
   .wp-block-image {
-    @apply block;
+    @apply block m0;
   }
+
   .aligncenter img {
     @apply mx-auto;
   }
@@ -110,6 +111,8 @@
   }
 
   ol {
+    list-style-type: decimal;
+    list-style-position: inside;
   }
 
   ul {

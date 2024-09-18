@@ -1,0 +1,228 @@
+.acrostic-heading {
+  display: block;
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-top: 2em;
+  margin-bottom: 1em;
+}
+
+/* Major Title */
+.majortitle-1 {
+  display: none;
+  font-size: inherit;
+}
+
+.majortitle-2 {
+  display: none;
+  font-size: inherit;
+}
+
+.majortitle-3 {
+  display: none;
+  font-size: inherit;
+}
+
+/* Footnotes */
+.footnotecaller {
+  font-size: 0.5em;
+  vertical-align: top;
+}
+a[href*="footnote-target"] {
+  color: var(--color-accent);
+  padding: 0.5rem; /* these have a hover popup on them.  It makes the popup hover target a little bigger */
+  margin: -0.5rem;
+}
+.footnotes {
+  font-size: 0.75em;
+}
+
+.footnote-header {
+  font-size: 1.2em;
+}
+
+.footnote-alternate-translation {
+  font-style: italic;
+}
+
+/* Chapter */
+.chapter {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  font-size: inherit;
+  position: relative;
+}
+
+.chaptermarker {
+  font-size: 1.5em;
+  font-weight: bold;
+  display: block;
+  float: left;
+  margin-inline-end: 0.25em;
+}
+
+/* Poetry */
+.poetry-1 {
+  font-size: inherit;
+  line-break: normal;
+  display: block;
+  margin-inline-start: 1.5em;
+  line-height: 1.3;
+}
+
+.poetry-2 {
+  font-size: inherit;
+  line-break: normal;
+  display: block;
+  margin-inline-start: 3em;
+  line-height: 1.3;
+}
+
+.poetry-3 {
+  font-size: inherit;
+  line-break: normal;
+  display: block;
+  margin-inline-start: 4.5em;
+  line-height: 1.3;
+}
+
+.poetry-outdent-1 {
+  margin-inline-start: -1.5em;
+}
+
+.poetry-outdent-2 {
+  margin-inline-start: -3em;
+}
+
+.selah-text {
+  font-style: italic;
+  text-align: end;
+}
+
+/* Verse */
+.verse {
+  font-size: var(--font-size-base);
+  font-weight: normal;
+}
+
+.versemarker {
+  font-size: 0.6em;
+}
+
+[class^="poetry-"] .versemarker {
+  position: absolute;
+  left: 0;
+  top: unset;
+  margin-top: 0.5em;
+}
+
+.closing {
+  text-align: end;
+}
+
+.reference {
+  font-style: italic;
+}
+
+/* Section */
+.sectionhead-1 {
+  margin-top: 2em;
+  font-size: 1.2em;
+  font-weight: bold;
+  display: block;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.sectionhead-2 {
+  margin-top: 1em;
+  font-size: 1.1em;
+  font-weight: bold;
+  display: block;
+}
+
+.sectionhead-3 {
+  margin-top: 1em;
+  font-size: 1.05em;
+  font-weight: bold;
+  display: block;
+}
+
+/* List */
+.list-1 {
+  line-break: normal;
+  display: block;
+  text-indent: 0px !important;
+}
+
+.list-2 {
+  line-break: normal;
+  display: block;
+  text-indent: 30px !important;
+}
+
+.list-3 {
+  line-break: normal;
+  display: block;
+  text-indent: 50px !important;
+}
+
+/* Special Strings */
+.quoted-book {
+  font-style: italic;
+}
+
+.additions {
+  font-style: italic;
+}
+
+.transliterated {
+  font-style: italic;
+}
+
+.small-caps {
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.75em;
+}
+
+.center-paragraph {
+  text-align: center;
+}
+
+.descriptive-text {
+  font-style: italic;
+  font-size: 85%;
+  margin-bottom: 1em;
+}
+
+.cross-ref-quote {
+  font-style: italic;
+}
+
+.cross-ref {
+  font-weight: bold;
+}
+
+.cross-header {
+  font-size: 1.2rem;
+}
+
+.toc2-ref {
+  display: inline;
+  visibility: hidden;
+}
+
+@media print {
+  .chapterlabel {
+    font-size: 20px;
+    font-weight: 700;
+    text-decoration: underline;
+  }
+}
+html[dir="rtl"] .chaptermarker {
+  float: right;
+}
+html[dir="rtl"] [class^="poetry-"] .versemarker {
+  right: 0;
+  left: unset;
+}

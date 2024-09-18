@@ -137,6 +137,10 @@ config.safelist = [
   "pb-0!",
   "pr-0!",
   "pl-0!",
+  "hidden!",
+  "md:block!",
+  "bg-brand-light",
+  "shadow-lg",
 ];
 
 export default defineConfig(config);

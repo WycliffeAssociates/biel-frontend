@@ -1,0 +1,75 @@
+---
+import type {WpPage} from "@customTypes/types";
+import {Image} from "astro:assets";
+
+interface Props {
+  pageOptions: WpPage["pageOptions"];
+  title: string;
+  featuredImage: WpPage["featuredImage"];
+}
+const {pageOptions, title, featuredImage} = Astro.props;
+---
+
+<header class="mb-16 full-bleed hero-inner-shadow pr-0! pl-0!">
+  <div class="contain">
+    <div class="flex flex-col md:(flex-row items-center) py-0 relative">
+      <div
+        class="w-full order-1 md:(w-1/2 order-0) z-10 relative py-14 my-8 mr--24 bg-surface-primary site-container"
+      >
+        <div class="flex gap-8px">
+          {
+            pageOptions.iconPreTitle && (
+              <Image
+                src={pageOptions.iconPreTitle.sourceUrl}
+                loading="eager"
+                alt=""
+                inferSize={true}
+              />
+            )
+          }
+
+          <h2 class="gb-headline gb-headline-1ab88ac3 gb-headline-text">
+            <strong>{title}</strong>
+          </h2>
+        </div>
+
+        <p class="text-onSurface-secondary">
+          {pageOptions.topBlurb}
+        </p>
+
+        <div class="flex gap-4">
+          {
+            pageOptions.heroLinks?.map((link) => {
+              return (
+                <a
+                  href={link.heroLinkUrl}
+                  class={`inline-flex items-center gap-2 w-fit py-2 px-16 rounded-2xl decoration-none! ${link.linkStyle == "filled" ? "border-x-2 border-t border-b-2 border-solid border-brand-darkest bg-brand-dark text-onSurface-invert!" : "bg-brand-light"}`}
+                >
+                  {link.heroLinkIcon && (
+                    <span
+                      class="font-size-[var(--step-0)]"
+                      set:html={link.heroLinkIcon}
+                    />
+                  )}
+                  {link.heroLinkText}
+                </a>
+              );
+            })
+          }
+        </div>
+      </div>
+      {
+        featuredImage?.node.sourceUrl && (
+          <div class="order-0 md:(order-1) max-md:relative">
+            <Image
+              src={featuredImage?.node.sourceUrl}
+              loading="eager"
+              alt={""}
+              inferSize={true}
+            />
+          </div>
+        )
+      }
+    </div>
+  </div>
+</header>

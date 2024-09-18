@@ -1,0 +1,112 @@
+---
+export const prerender = false;
+import {HeaderMenu} from "@components/HeaderMenu";
+import {getMenus, getWpmlLanguages, getResourcePageSlugs} from "@src/data/wp";
+import ResourceSingle from "@components/ResourceSingle/ResourceSingle.astro";
+import Layout from "@layouts/LayoutNoFooter.astro";
+import {getDict} from "@src/i18n/strings";
+import ResourceIndex from "@components/ResourcesPage/ResourcesPage.astro";
+const {resourceLang} = Astro.params;
+if (!resourceLang) return Astro.redirect("/404");
+
+// const wpmlLangDict = await getWpmlLanguages();
+// const menus = await getMenus();
+// const resourceSlugs = await getResourcePageSlugs();
+const [wpmlLangDict, menus, resourceSlugs] = await Promise.all([
+  getWpmlLanguages(),
+  getMenus(),
+  getResourcePageSlugs(),
+]);
+
+const parts = resourceLang.split("/");
+// if (parts.length < 2) return Astro.redirect("/404");
+console.log(parts);
+let isListingPageEn = parts[0] === "resources" && parts.length === 1;
+let isListingPageOther = parts.length == 2 && parts[0] != "resources";
+let isEnglishDetailPage = parts[0] === "resources" && parts.length === 2;
+let isDetailPageOther = parts.length == 3;
+console.log({
+  isListingPageEn,
+  isListingPageOther,
+  isEnglishDetailPage,
+  isDetailPageOther,
+});
+let isEnglish = parts[0] === "resources" && parts.length === 2;
+const thisLang = isListingPageEn || isEnglishDetailPage ? "en" : parts[0];
+if (!thisLang) return Astro.redirect("/404");
+const i18nDict = getDict(thisLang, true);
+let pubDataIetf = parts[parts.length - 1];
+if (!pubDataIetf) return Astro.redirect("/404");
+const thisTranslation = resourceSlugs.data.page.translations.find(
+  (t) => t.languageCode === thisLang
+);
+// const isReqForResources = isEnglish || thisTranslation?.slug == parts[1];
+const isReqForResources =
+  isListingPageEn ||
+  (isListingPageOther && thisTranslation?.slug == parts[1]) ||
+  isEnglishDetailPage ||
+  (isDetailPageOther && thisTranslation?.slug == parts[2]);
+// todo: 404 if not
+if (!isReqForResources) Astro.redirect("/404");
+
+const langInfo = !!wpmlLangDict[thisLang]
+  ? wpmlLangDict[thisLang]
+  : wpmlLangDict.en;
+if (!langInfo) return Astro.redirect("/404");
+const nonHiddenLanguages = new Set(Object.keys(menus));
+const headerMenu =
+  menus[langInfo.language_code]?.["header-menu"] || menus.en?.["header-menu"]!;
+const langSwitcherList = Object.values(wpmlLangDict)
+  .filter((lang) => {
+    return nonHiddenLanguages.has(lang.code);
+  })
+  .map((lang) => {
+    // Don't mutate the original dict item
+    const copy = {...lang};
+    const matchingSlug = resourceSlugs.data.page.translations.find(
+      (t) => t.languageCode === lang.code
+    );
+    if (lang.code == "en") {
+      copy.localizedUrl = `/resources/${pubDataIetf}`;
+    } else {
+      copy.localizedUrl = `/${lang.code}/${matchingSlug?.slug}/${pubDataIetf}`;
+    }
+    return copy;
+    // if not english, it's
+  });
+
+// it's not practical to generate a static slug for all languages.  the stuff that's liable to change is the menu, footer, and localizations of strings in this repo.  I dont need blocks though.  It'll be the header for that language and the for that languag. though we also have a problem with it's /resources but /fr/ressources...
+// So is the first paramter en or "resources"?
+// (or params lenght is 2 or 3)
+// Get the menu of the first lang parameter
+// /resources/arq  vs /fr/ressources/arq:
+// Get the menu and footer of that language
+---
+
+<Layout
+  title="resources single"
+  inlineCss={[]}
+  description="Resources Page"
+  langInfo={langInfo}
+  langSwitcher={langSwitcherList}
+  langDirection="ltr"
+>
+  <HeaderMenu
+    allLangs={langSwitcherList}
+    currentLang={langInfo}
+    menu={headerMenu}
+    client:load
+  />
+  {
+    (isListingPageEn || isListingPageOther) && (
+      <ResourceIndex detailPrefix={parts.join("/")} />
+    )
+  }
+  {
+    (isEnglishDetailPage || isDetailPageOther) && (
+      <div class="md:my-12 max-w-max mx-auto">
+        <ResourceSingle languageToFetch={pubDataIetf} i18nDict={i18nDict!} />
+      </div>
+    )
+  }
+</Layout>

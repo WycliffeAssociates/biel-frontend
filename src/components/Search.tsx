@@ -1,11 +1,14 @@
 // Import necessary modules from SolidJS
-import {For, Show, createSignal, onCleanup} from "solid-js";
+import {For, Show, createSignal, onCleanup, onMount} from "solid-js";
 import {getDict} from "@src/i18n/strings.js";
 import {MangifyingGlass} from "@components/Icons";
+import {hydrate} from "solid-js/web";
 
 type SearchProps = {
   langCode: string;
   isBig?: boolean;
+  injected?: boolean;
+  addlClasses?: string;
 };
 // Define the Search component
 export function Search(props: SearchProps) {
@@ -13,6 +16,18 @@ export function Search(props: SearchProps) {
   const [results, setResults] = createSignal<any[]>([]);
   const mobileClassNames = `mobile`;
   const bigClassNames = `absolute top-full  z-10 bg-white p-3 max-h-500px overflow-auto w-[clamp(min(99vw,270px),50vw,500px)] right-0 border border-#aaa`;
+  // onMount(() => {
+  //   debugger;
+  //   if (props.hydrate) {
+  //     hydrate(
+  //       () => <Search isBig={props.isBig} langCode={props.langCode} />,
+  //       thisRef!,
+  //       {
+  //         renderId: "injectStaticSearch",
+  //       }
+  //     );
+  //   }
+  // });
   const handleInput = async (e: KeyboardEvent) => {
     const target = e.target as HTMLInputElement;
     const inputValue = target?.value;
@@ -37,8 +52,7 @@ export function Search(props: SearchProps) {
         }
         res.push(data);
       }
-      //
-      console.log({res});
+
       setResults(res);
     }
   };
@@ -56,8 +70,7 @@ export function Search(props: SearchProps) {
   return (
     <>
       {/* Input element for search */}
-
-      <div class="relative">
+      <div class="relative" data-injected-search={props.injected}>
         <input
           class="border border-gray-200 px-2 py-2 rounded-lg bg-white! pis-10 placeholder:(text-#777 font-bold) w-full"
           id="search"
@@ -74,7 +87,11 @@ export function Search(props: SearchProps) {
 
       {/* Container for search results */}
       <Show when={results()?.length}>
-        <ul class={props.isBig ? bigClassNames : mobileClassNames}>
+        <ul
+          class={`${props.isBig ? bigClassNames : mobileClassNames} ${
+            props.addlClasses
+          } list-none!`}
+        >
           <For each={results()}>
             {(item) => (
               <li class="border-y-solid border-y-1 border-gray-400 py-4">

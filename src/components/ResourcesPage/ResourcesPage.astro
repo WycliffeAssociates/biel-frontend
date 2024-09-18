@@ -1,0 +1,35 @@
+---
+import {getLanguagesWithContentForBiel} from "@src/data/pubDataApi";
+import {ResourceIndex} from "./Main";
+interface Props {
+  detailPrefix: string;
+}
+const startTime = performance.now();
+const runtime = Astro.locals.runtime;
+// note, cache is a noop in dev right now for cloudfalre adapter
+const cache = runtime.caches.default;
+const ctx = runtime.ctx;
+const pubDataApiUrl = runtime.env.PUBLIC_DATA_API;
+const {detailPrefix} = Astro.props;
+const {data, wasCached} = await getLanguagesWithContentForBiel({
+  cache,
+  ctx,
+  pubDataApiUrl,
+});
+if (!data) return Astro.redirect("/404");
+const endTime = performance.now();
+const totalTime = endTime - startTime;
+console.log(
+  `time for resources index route on server ${totalTime} ms.
+  Was cached: ${wasCached}. `
+);
+---
+
+<ResourceIndex
+  client:load
+  languages={data.data.language}
+  detailPrefix={detailPrefix}
+/>
+<!-- <slot /> -->
+<!--  children with the `slot="after-header"` attribute will go here -->
+<!-- </ResourceIndex> -->

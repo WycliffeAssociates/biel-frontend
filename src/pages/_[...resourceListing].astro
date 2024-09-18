@@ -1,0 +1,93 @@
+---
+// the resource landing page localized... Will be like, so needs to be a [...resourceListing], and then generate en/resources (filter out the other static param page that generates tchis) etc; This can just have a server island for the body
+// resources
+// fr/ressources
+import {getDict} from "@src/i18n/strings";
+
+import Layout from "@layouts/Layout.astro";
+import {HeaderMenu} from "@components/HeaderMenu";
+import {getMenus, getResourcePageSlugs, getWpmlLanguages} from "@src/data/wp";
+import ResourceIndex from "@components/ResourcesPage/ResourcesPage.astro";
+
+export async function getStaticPaths() {
+  const [wpmlLangDict, menus, resourceSlugs] = await Promise.all([
+    getWpmlLanguages(),
+    getMenus(),
+    getResourcePageSlugs(),
+  ]);
+  const nonHiddenLanguages = new Set(Object.keys(menus));
+
+  const langSwitcherList = Object.values(wpmlLangDict)
+    .filter((lang) => {
+      return nonHiddenLanguages.has(lang.code);
+    })
+    .map((lang) => {
+      const copy = {...lang};
+      const matchingSlug = resourceSlugs.data.page.translations.find(
+        (t) => t.languageCode === lang.code
+      );
+      if (lang.code == "en") {
+        copy.localizedUrl = "/resources";
+      } else {
+        copy.localizedUrl = `/${lang.code}/${matchingSlug?.slug}`;
+      }
+      return copy;
+    });
+  resourceSlugs.data.page.translations.push({
+    languageCode: "en",
+    slug: resourceSlugs.data.page.slug,
+    title: resourceSlugs.data.page.title,
+  });
+  const pageData = resourceSlugs.data.page.translations
+    .filter((t) => nonHiddenLanguages.has(t.languageCode))
+    .map((t) => {
+      const slug =
+        t.languageCode === "en" ? `${t.slug}` : `/${t.languageCode}/${t.slug}`;
+
+      const langInfo = wpmlLangDict[t.languageCode] || wpmlLangDict.en!;
+      const headerMenu =
+        menus[langInfo.language_code]?.["header-menu"] ||
+        menus.en?.["header-menu"]!;
+      return {
+        params: {
+          resourceListing: slug,
+        },
+        props: {
+          title: t.title,
+          allLangs: langSwitcherList,
+          langInfo,
+          headerMenu,
+          pageDict: getDict(t.languageCode, true)!,
+        },
+      };
+    });
+
+  return pageData;
+}
+
+const {title, allLangs, langInfo, headerMenu, pageDict} = Astro.props;
+---
+
+<Layout
+  title={title}
+  inlineCss={[]}
+  description="Resources Page"
+  langInfo={langInfo}
+  langSwitcher={allLangs}
+  langDirection="ltr"
+>
+  <div class="header">
+    <HeaderMenu
+      allLangs={allLangs}
+      currentLang={langInfo}
+      menu={headerMenu}
+      client:load
+    />
+  </div>
+  <!-- todo https://github.com/withastro/astro/issues/11793.  Doesn't work in prod yet. Just render it on the server for now, but fetch it in workbox's preinstall or cache the graphql call to header at cdn level?-->
+  <!-- todo: actually,m check astro 5.0 first, but I doubt it since the issue is open, but since I alreayd have one other cactch all route, I'm gonna have to merge this into that to get /resources /es/recursos / resources/fr etc;  -->
+  <ResourceIndex server:defer>
+    <!-- todo: i18n fallback loading message with better css -->
+    <div slot="fallback" class="min-h-screen">{pageDict.ls_Loading}</div>
+  </ResourceIndex>
+</Layout>

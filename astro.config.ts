@@ -62,11 +62,27 @@ export default defineConfig({
     solidJs(),
   ],
   output: "hybrid",
+  experimental: {
+    serverIslands: true,
+  },
   // Reminder uses custom routes.json in public
   adapter: cloudflare({
     platformProxy: {
       enabled: true,
       configPath: ".dev.vars",
     },
+    routes: {
+      extend: {
+        exclude: [
+          {pattern: "/fonts/**/*"},
+          {pattern: "/icon-*"},
+          {pattern: "/images/**/*"},
+          {pattern: "/pagefind/**/*"},
+        ],
+      },
+    },
   }),
+  image: {
+    domains: ["https://bieldev.wpengine.com"],
+  },
 });

@@ -10,23 +10,27 @@ export function flatMenuToHierachical(menu: Menu) {
   menu.items.forEach((item) => {
     topLevelIdMap.set(item.ID, item);
   });
+
   menu.items.forEach((item) => {
     if (Number(item.menu_item_parent) != 0) {
       const parent = topLevelIdMap.get(Number(item.menu_item_parent));
+
       if (parent) {
         if (!parent.children) {
-          parent.children = [];
+          parent.children = {
+            featured: [],
+            non_featured: [],
+          };
         }
-        parent.children.push(item);
+        if (item.is_featured) parent.children?.featured.push(item);
+        else parent.children?.non_featured.push(item);
       }
     }
   });
   // We have an assumption from design that things will only be in one level, but some will be is_featured and others are not.  On this one level, I want to reduce the menu.items to be featured_items and non_featured_items;
-  menu.featured_items = menu.items.filter((i) => i.is_featured);
-  menu.non_featured_items = menu.items.filter((i) => !i.is_featured);
+
   // We attached everythign where it should while in a flat list via references, so now we can get rid of everything except the top layer
   menu.items = menu.items.filter((i) => Number(i.menu_item_parent) == 0);
-
   return menu;
 }
 
@@ -174,7 +178,6 @@ export function getOtherLanguagesPagesList({
   const otherLangsList = Object.values(otherLanguages)
     .map((langDict) => {
       const nested = Object.values(langDict).map((translatedPage) => {
-        // todo: some guards around the type here? or just say it won't be ? probably
         const correspondingEnglishPage =
           englishPagesDict[translatedPage.translationOfId];
         if (correspondingEnglishPage?.inlineStyles) {
@@ -202,7 +205,7 @@ export function determineShowGlobal({
   global: Record<string, any> | null | undefined;
 }) {
   // maybe opt into wp pages that opt in or out of their globals?
-  return !page.isContactPage && !!global;
+  return !page.isContactPage && !page.isHomePage && !!global;
 }
 
 export const BibleBookCategories = {

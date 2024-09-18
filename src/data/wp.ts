@@ -12,6 +12,15 @@ parentClientId
 name
 renderedHtml
 `;
+const heroFields = `
+topBlurb
+heroLinks {
+  heroLinkText
+  heroLinkUrl
+  linkStyle
+  heroLinkIcon
+}
+`;
 export async function getHomePage() {
   const query = `
     query homePage {
@@ -36,7 +45,40 @@ export async function getHomePage() {
 
   return json.data;
 }
+export async function getResourcePageSlugs() {
+  const query = `
+  query resourcesSlugsQuery {
+  page(id: "resources", idType: URI) {
+    slug
+    title
+    translations {
+      languageCode
+      slug
+      title
+    }
+  }
+}
+  `;
+  const gqlUrl = `${import.meta.env.CMS_URL}/${
+    import.meta.env.WORDPRESS_GQL_PATH
+  }`;
 
+  const response = await fetch(gqlUrl, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({query}),
+  });
+  const json = (await response.json()) as {
+    data: {
+      page: {
+        slug: string;
+        title: string;
+        translations: {languageCode: string; slug: string; title: string}[];
+      };
+    };
+  };
+  return json;
+}
 export async function getPage(uri: string, langCode: string) {
   const allPagesOfThisLangReq = `
     query allPagesThisLang($lang: String!) {
@@ -91,6 +133,11 @@ export async function getPage(uri: string, langCode: string) {
         link
         languageCode
         uri
+        featuredImage {
+          node {
+            sourceUrl(size: LARGE)
+          }
+        }
         ancestors {
           nodes {
             slug
@@ -99,7 +146,7 @@ export async function getPage(uri: string, langCode: string) {
         }
         pageOptions {
           topBlurb
-          breakout
+
         }
         editorBlocks(flat:true) {
          ${editorBlocksFields}
@@ -121,7 +168,6 @@ export async function getPage(uri: string, langCode: string) {
       }
     }
   `;
-  console.log(pageWithMatchingUri.databaseId);
   const thatPageRes = await fetch(gqlUrl, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
@@ -186,6 +232,11 @@ export async function getAllPages() {
           link
           languageCode
           uri
+          featuredImage {
+          node {
+            sourceUrl(size: LARGE)
+          }
+        }
           ancestors {
             nodes {
               slug
@@ -194,8 +245,10 @@ export async function getAllPages() {
             }
           }
           pageOptions {
-            topBlurb
-            breakout
+            iconPreTitle {
+            sourceUrl(size: THUMBNAIL)
+            }
+            ${heroFields}
           }
           editorBlocks(flat:true) {
            ${editorBlocksFields}
@@ -204,6 +257,9 @@ export async function getAllPages() {
             editorBlocks(flat:true) {
               ${editorBlocksFields}
              }
+            pageOptions {
+              ${heroFields}
+            }
             title(format: RENDERED)
             databaseId
             slug
@@ -243,9 +299,12 @@ export async function getAllPages() {
   > = {
     en: {},
   };
+  const filteredNodes = pages.nodes.filter((p) => {
+    return p.title.toLowerCase() != "resources";
+  });
 
-  for (let i = 0; i < pages.nodes.length; i++) {
-    const page = pages.nodes[i];
+  for (let i = 0; i < filteredNodes.length; i++) {
+    const page = filteredNodes[i];
     if (!page) continue;
     // if (page.slug?.toLowerCase() != "home") {
 
@@ -270,6 +329,7 @@ export async function getAllPages() {
       const otherVersions: Record<string, string> = {};
       translations.forEach((trans) => {
         otherVersions[trans.languageCode] = String(trans.databaseId);
+        trans.featuredImage = page.featuredImage;
       });
       // manually poipulat the en one
       otherVersions["en"] = String(enPage.databaseId);
@@ -291,7 +351,7 @@ export async function getAllPages() {
 
       // Sort out the breadcrumbs;
       enPage.ancestors?.nodes.forEach((ancestor) => {
-        const matching = pages.nodes.find(
+        const matching = filteredNodes.find(
           (page) => page.databaseId == ancestor.databaseId
         );
         if (!translation.ancestors) {
@@ -310,7 +370,6 @@ export async function getAllPages() {
           slug: thatLangTranslation.slug,
           databaseId: thatLangTranslation.databaseId,
         });
-        console.log({tAncestors: translation.ancestors});
       });
 
       let byLang = pagesByLangCode[translation.languageCode];
@@ -360,12 +419,14 @@ export async function getMenus() {
   const restURl = `${import.meta.env.CMS_URL}/${
     import.meta.env.WORDPRESS_REST_MENU_ENDPOINT
   }`;
-
   const result = await fetch(restURl, {
     headers: {"Content-Type": "application/json"},
   });
-
+  if (!result.ok) {
+    throw new Error(result.statusText);
+  }
   const res = (await result.json()) as WPMLMenu;
+
   Object.keys(res).forEach((key) => {
     const menu = res[key];
     if (menu) {

@@ -25,6 +25,8 @@ import {Dialog} from "@kobalte/core/dialog";
 import {createMediaQuery} from "@solid-primitives/media";
 import {type zipSrcBodyReq} from "@customTypes/types";
 import {DownloadOptions} from "./DownloadOptions";
+import {useResourceSingleContext} from "./ResourceSingleContext";
+import type {i18nDict} from "@src/i18n/strings";
 
 // type ContentType = domainScripture & ScriptureStoreState;
 type ContentType = ScriptureStoreState;
@@ -34,7 +36,7 @@ type ScripturalViewProps = {
   langDirection: "ltr" | "rtl";
 };
 export function ScripturalView(props: ScripturalViewProps) {
-  // const activeRow = () =>
+  const {isBig, i18nDict} = useResourceSingleContext();
 
   const [text, {refetch}] = createResource(
     // when this source signal changes, i.e. the combo of content name changes, and or the active row changes
@@ -55,7 +57,7 @@ export function ScripturalView(props: ScripturalViewProps) {
     refetch();
   });
   return (
-    <div class="flex flex-col gap-4 fullscreen">
+    <div class="flex flex-col gap-4">
       {/* <MenuRow
         setActiveContent={props.setActiveContent}
         langDirection={props.langDirection}
@@ -63,47 +65,45 @@ export function ScripturalView(props: ScripturalViewProps) {
         // activeRowIdx={props.content.activeRowIdx}
         // activeRow={activeRow}
       /> */}
-      <TextOfResource text={text} />
+      <TextOfResource text={text} dict={i18nDict} />
+      <Show when={!isBig()}>
+        <div class="sticky bottom-4 shadow-surface-primary shadow-[0px_20px_0px_0px]">
+          <MenuRow />
+          {/* hides text scrolling undernath  */}
+          <div class="bg-surface-primary absolute bottom-0 w-full h-full z--1"></div>
+        </div>
+      </Show>
     </div>
   );
 }
 
 type MenuRowProps = {
-  content: ContentType;
-  // activeRow: () => RenderedContentRow | undefined;
-  resourceTypes: () => string[];
-  langDirection: "ltr" | "rtl";
-  langCode: string;
-  setActiveContent: SetStoreFunction<ScriptureStoreState>;
   classes?: string;
-  isBig: () => boolean;
-  zipSrc: () => zipSrcBodyReq;
 };
 // todo: probably refactor out of being in this file. Can have a menu for for script and non
 // todo: some things here are not strictly scriptural vs non scriptraul;
 export function MenuRow(props: MenuRowProps) {
-  console.log(props.content.gitRepo?.url);
+  const {setActiveContent, activeContent, isBig, langDirection} =
+    useResourceSingleContext();
 
   const activeRow = () =>
-    props.content.rendered_contents.htmlChapters[props.content.activeRowIdx];
+    activeContent.rendered_contents.htmlChapters[activeContent.activeRowIdx];
   return (
     <div class={`flex gap-4 ${props.classes || ""}`}>
+      {/* <DownloadOptions zipSrc={zipSrc} currentContent={props.content} /> */}
       <Menu
-        setActiveContent={props.setActiveContent}
-        langDirection={props.langDirection}
-        content={props.content}
+        setActiveContent={setActiveContent}
+        langDirection={langDirection}
+        content={activeContent}
         activeRow={activeRow}
       />
-
-      {/* <DownloadOptions zipSrc={zipSrc} currentContent={props.content} /> */}
-      <Show when={props.isBig()}>
+      <Show when={isBig()}>
         <DownloadOptions />
       </Show>
     </div>
   );
 }
 
-// todo: extrct into own props
 type MenuProps = {
   activeRow: () => RenderedContentRow | undefined;
   content: ContentType;
@@ -111,11 +111,10 @@ type MenuProps = {
   setActiveContent: SetStoreFunction<ScriptureStoreState>;
 };
 function Menu(props: MenuProps) {
-  // todo: the dialog for desktoip
   const numHtmlChaps = props.content.rendered_contents.htmlChapters.length;
   return (
     <div
-      class="flex flex-grow rtl:flex-row-reverse bg-surface-secondary  px-1 py-2 gap-2 md:(rounded-lg)"
+      class="flex flex-grow rtl:flex-row-reverse bg-surface-secondary  px-1 py-2 gap-2 rounded-lg md:(rounded-lg)"
       data-js="menuBoundingRect"
       data-css="menuBoundingRect"
     >
@@ -203,6 +202,7 @@ function MenuDialog(props: MenuDialogProps) {
                       />
                     </button>
                     <button />
+                    {/* todo: i18n */}
                     <Dialog.Title class="">Navigation</Dialog.Title>
                   </div>
                   <DownloadOptions />
@@ -247,6 +247,14 @@ function MenuDialog(props: MenuDialogProps) {
                                     htmlChapters: props.htmlChapters,
                                     setter: props.setActiveContent,
                                   });
+                                  if (globalThis.document) {
+                                    const theText = document.querySelector(
+                                      "[data-js='theText']"
+                                    );
+                                    if (theText) {
+                                      theText.scrollTop = 0;
+                                    }
+                                  }
                                   setDialogOpen(false);
                                 }}
                               >
@@ -315,20 +323,26 @@ function NavAdjacentButton(props: NavAdjacentButtonProps) {
       htmlChaptersLength: props.htmlChaptersLength,
       setter: props.setActiveContent,
     });
+    if (globalThis.document) {
+      const theText = document.querySelector("[data-js='theText']");
+      if (theText) {
+        theText.scrollTop = 0;
+      }
+    }
   };
   return (
     <Switch>
       <Match when={props.dir === "prev"}>
         <button
           disabled={isDisabled()}
-          class="hidden md:inline-block i-ic:round-chevron-left w-1.5em h-1.5em hover:(bg-brand-base) disabled:(cursor-not-allowed! opacity-50 bg-gray-700)"
+          class="md:inline-block i-ic:round-chevron-left w-1.5em h-1.5em hover:(bg-brand-base) disabled:(cursor-not-allowed! opacity-50 bg-gray-700)"
           onClick={onBtnClick}
         />
       </Match>
       <Match when={props.dir === "next"}>
         <button
           disabled={isDisabled()}
-          class="hidden md:inline-block i-ic:round-chevron-right w-1.5em h-1.5em hover:(bg-brand-base) disabled:(cursor-not-allowed! opacity-50 bg-gray-700)"
+          class=" md:inline-block i-ic:round-chevron-right w-1.5em h-1.5em hover:(bg-brand-base) disabled:(cursor-not-allowed! opacity-50 bg-gray-700)"
           onClick={onBtnClick}
         />
       </Match>
@@ -336,14 +350,37 @@ function NavAdjacentButton(props: NavAdjacentButtonProps) {
   );
 }
 
-function TextOfResource(props: {text: Resource<string | null | undefined>}) {
+function TextOfResource(props: {
+  text: Resource<string | null | undefined>;
+  dict: i18nDict;
+}) {
+  // debugger;
   return (
-    <div class="theText max-h-80vh overflow-auto" data-css="theText">
-      {/* todo i18n "loading" */}
+    <div
+      class="theText max-h-80vh overflow-auto relative"
+      data-css="theText"
+      data-js="theText"
+    >
+      {/* todo: nicer fallback for loading message */}
       <Suspense
-        fallback={<div innerHTML={props.text.latest || "Loading..."} />}
+        fallback={
+          <div
+            id="theTextFallback "
+            innerHTML={props.text.latest || props.dict.ls_Loading}
+          />
+        }
       >
-        <div class="" innerHTML={props.text() || ""} />
+        <Show
+          when={!props.text}
+          fallback={
+            <div
+              id="theTextFallback "
+              innerHTML={props.text.latest || props.dict.ls_Loading}
+            />
+          }
+        >
+          <div class="" innerHTML={props.text() || ""} />
+        </Show>
       </Suspense>
     </div>
   );

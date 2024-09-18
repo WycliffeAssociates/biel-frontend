@@ -121,7 +121,6 @@ export async function getTsFiles(language: string | undefined) {
   if (!res.ok && res.status != 304) throw new Error(res.statusText);
 
   if (globalThis.caches && res.status !== 304) {
-    console.log("caching gh reponse");
     // CF: Our implementation of the Cache API respects the following HTTP headers on the response passed to put(): ETAG, Expires, Last-Modified.  ETAG Allows cache.match() to evaluate conditional requests with If-None-Match.
     globalThis.caches.default.put(endpoint, res.clone());
   }

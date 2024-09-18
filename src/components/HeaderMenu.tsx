@@ -1,19 +1,22 @@
 import type {Menu, MenuItem, languageType} from "@customTypes/types";
 import {isAbsoluteUrl} from "@lib/web";
-import {Show, createSignal, For} from "solid-js";
+import {Show, createSignal, For, onMount} from "solid-js";
 import {HeaderMenuMobile} from "./HeaderMenuMobile";
 import {createMediaQuery} from "@solid-primitives/media";
 import {WaLogo} from "./Logo";
 import {ChevronDown, SmallArrowDown} from "@components/Icons";
 import {Search} from "@components/Search";
 import {LanguagePicker} from "./LanguagePicker";
+import {hydrate} from "solid-js/web";
 
 type HeaderMenuProps = {
   menu: Menu;
   allLangs: languageType[];
   currentLang: languageType;
+  doHydrateInjectedSearch?: boolean;
 };
 export function HeaderMenu(props: HeaderMenuProps) {
+  // debugger;
   const [activeIdx, setActiveIdx] = createSignal<number | null>();
   const isBig = createMediaQuery("(min-width: 900px)", true);
   const canHover = createMediaQuery("(hover: hover)", true);
@@ -32,9 +35,27 @@ export function HeaderMenu(props: HeaderMenuProps) {
     //
     return idx == activeIdx();
   }
-  function isAlsoParent(item: MenuItem) {
-    return item.children?.length;
+  function isParent(item: MenuItem) {
+    return !!item.children;
   }
+  onMount(() => {
+    if (props.doHydrateInjectedSearch) {
+      console.log("hydrating injected search");
+      hydrate(
+        () => (
+          <Search
+            isBig={isBig()}
+            langCode={props.currentLang.language_code}
+            addlClasses="w-full!"
+          />
+        ),
+        document.querySelector("[data-injected-search]")!.parentElement!,
+        {
+          renderId: "injectStaticSearch",
+        }
+      );
+    }
+  });
   // function prependLangIfLocalizeTrue(menuLink) {
   //   if (menuLink.localize) {
   //     return `/${lang}${menuLink.url}`;
@@ -52,7 +73,6 @@ export function HeaderMenu(props: HeaderMenuProps) {
         />
       </Show>
       <Show when={canHover() && isBig()}>
-        {/* todo example detecting mobile support*/}
         <div class="relative">
           <nav
             class="relative p-4 flex items-center justify-between z-10 contain h-20"
@@ -71,22 +91,22 @@ export function HeaderMenu(props: HeaderMenuProps) {
                     return (
                       <li class="group">
                         {/* top level info */}
-                        <span class="inline-block px-2 hover:bg-primaryLighter rounded-md">
+                        <span class="inline-block px-2 hover:bg-brand-light rounded-md">
                           <a
                             class="font-bold  group-has-[:hover]:(text-blue-700) focus:(text-blue-700) inline-flex gap-2 items-center"
                             onFocus={() => setActiveIdx(index)}
                             onMouseOver={() => setActiveIdx(index)}
-                            href={shapeLink(menuLink)}
+                            href={`${shapeLink(menuLink)}`}
                           >
                             {menuLink.title}
-                            <SmallArrowDown />
+                            <Show when={isParent(menuLink)}>
+                              <SmallArrowDown />
+                            </Show>
                           </a>
                         </span>
                         {/* nested pane */}
                         <Show
-                          when={
-                            menuLink.children?.length && paneIsActive(index())
-                          }
+                          when={isParent(menuLink) && paneIsActive(index())}
                         >
                           <div class="bg-white  fixed top-20 left-0 w-full">
                             <div class="contain py-4 flex gap-10">
@@ -104,9 +124,9 @@ export function HeaderMenu(props: HeaderMenuProps) {
                                 </div>
                                 <p>{menuLink.parent_description}</p>
                               </div>
-                              <Show when={props.menu.featured_items}>
+                              <Show when={menuLink.children?.featured}>
                                 <ul class="flex flex-col gap-2 w-1/2">
-                                  <For each={props.menu.featured_items}>
+                                  <For each={menuLink.children?.featured}>
                                     {(featured) => (
                                       <FeaturedMenuItem
                                         featured={featured}
@@ -116,9 +136,9 @@ export function HeaderMenu(props: HeaderMenuProps) {
                                   </For>
                                 </ul>
                               </Show>
-                              <Show when={props.menu.non_featured_items}>
+                              <Show when={menuLink.children?.non_featured}>
                                 <ul class="flex flex-col gap-2 w-1/4">
-                                  <For each={props.menu.non_featured_items}>
+                                  <For each={menuLink.children?.non_featured}>
                                     {(nonFeatured) => (
                                       <li>
                                         <a
@@ -136,7 +156,6 @@ export function HeaderMenu(props: HeaderMenuProps) {
                                 </ul>
                               </Show>
                             </div>
-                            {/* todo: One col for featured and one for not */}
                           </div>
                         </Show>
                       </li>
@@ -233,10 +252,12 @@ export function FeaturedMenuItem(props: FeaturedMenuItemProps) {
         href={props.shapeLink(props.featured)}
       >
         <h3 class="flex gap-2 text-brand-base group-hover/featured:text-inherit! font-size-[var(--step-1)]">
-          <span
-            class="w-6 text-inherit icon [&_path]:(text-inherit! fill-current) "
-            innerHTML={props.featured.icon}
-          />
+          <Show when={props.featured.icon}>
+            <span
+              class="w-6 text-inherit icon [&_path]:(text-inherit! fill-current) "
+              innerHTML={props.featured.icon}
+            />
+          </Show>
           {props.featured.title}
         </h3>
         <p class="flex items-baseline justify-between">

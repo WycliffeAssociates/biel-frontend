@@ -42,8 +42,8 @@ export function HeaderMenuMobile(props: HeaderMenuProps) {
     //
     return idx == activePane();
   }
-  function isAlsoParent(item: MenuItem) {
-    return item.children?.length;
+  function isParent(item: MenuItem) {
+    return !!item.children;
   }
   function shapeLink(item: MenuItem) {
     const link = item.attached_post?.uri || item.url;
@@ -106,54 +106,67 @@ export function HeaderMenuMobile(props: HeaderMenuProps) {
               <For each={props.menu.items}>
                 {(menuLink, index) => {
                   return (
-                    <li
-                      class="py-4 w-full flex justify-between content-center flex-shrink-0 last:(border-b border-surface-border pb-12)"
-                      onClick={() => setActivePane(index())}
-                    >
-                      <span class="font-bold">{menuLink.title}</span>
-                      <span class="inline-block transform -rotate-90">
-                        <ChevronDown />
-                      </span>
-                      <Show when={paneIsActive(index())}>
-                        <MobileNestedContainer>
-                          <MobileNestedLayerTitleBar
-                            text={menuLink.title}
-                            paneSetter={() => setActivePane(null)}
-                          />
-                          <Show when={props.menu.featured_items}>
-                            <ul class="flex flex-col gap-2 w-full pb-8 border-b border-b-surface-border">
-                              <For each={props.menu.featured_items}>
-                                {(featured) => (
-                                  <FeaturedMenuItem
-                                    featured={featured}
-                                    shapeLink={shapeLink}
-                                  />
-                                )}
-                              </For>
-                            </ul>
+                    <>
+                      <Show when={isParent(menuLink)}>
+                        <li class="py-4 w-full flex justify-between content-center flex-shrink-0 last:(border-b border-surface-border pb-12)">
+                          <a class="font-bold" href={shapeLink(menuLink)}>
+                            {menuLink.title}
+                          </a>
+                          <span
+                            class="inline-block transform -rotate-90 cursor-pointer"
+                            onClick={() => setActivePane(index())}
+                          >
+                            <ChevronDown />
+                          </span>
+                          <Show when={paneIsActive(index())}>
+                            <MobileNestedContainer>
+                              <MobileNestedLayerTitleBar
+                                text={menuLink.title}
+                                paneSetter={() => setActivePane(null)}
+                              />
+                              <Show when={menuLink.children?.featured}>
+                                <ul class="flex flex-col gap-2 w-full pb-8 border-b border-b-surface-border">
+                                  <For each={menuLink.children?.featured}>
+                                    {(featured) => (
+                                      <FeaturedMenuItem
+                                        featured={featured}
+                                        shapeLink={shapeLink}
+                                      />
+                                    )}
+                                  </For>
+                                </ul>
+                              </Show>
+                              <Show when={menuLink.children?.non_featured}>
+                                <ul class="flex flex-col gap-2 w-full">
+                                  <For each={menuLink.children?.non_featured}>
+                                    {(nonFeatured) => (
+                                      <li>
+                                        <a
+                                          class="w-full flex py-2 justify-between hover:(bg-surface-secondary) rounded-xl p-2"
+                                          href={shapeLink(nonFeatured)}
+                                        >
+                                          {nonFeatured.title}
+                                          <span class="block transform -rotate-90 color-onSurface-tertiary font-size-[var(--step--2)]">
+                                            <ChevronDown />
+                                          </span>
+                                        </a>
+                                      </li>
+                                    )}
+                                  </For>
+                                </ul>
+                              </Show>
+                            </MobileNestedContainer>
                           </Show>
-                          <Show when={props.menu.non_featured_items}>
-                            <ul class="flex flex-col gap-2 w-full">
-                              <For each={props.menu.non_featured_items}>
-                                {(nonFeatured) => (
-                                  <li>
-                                    <a
-                                      class="w-full flex py-2 justify-between hover:(bg-surface-secondary) rounded-xl p-2"
-                                      href={shapeLink(nonFeatured)}
-                                    >
-                                      {nonFeatured.title}
-                                      <span class="block transform -rotate-90 color-onSurface-tertiary font-size-[var(--step--2)]">
-                                        <ChevronDown />
-                                      </span>
-                                    </a>
-                                  </li>
-                                )}
-                              </For>
-                            </ul>
-                          </Show>
-                        </MobileNestedContainer>
+                        </li>
                       </Show>
-                    </li>
+                      <Show when={!isParent(menuLink)}>
+                        <li class="py-4 w-full flex justify-between content-center flex-shrink-0 last:(border-b border-surface-border pb-12)">
+                          <a class="font-bold" href={shapeLink(menuLink)}>
+                            {menuLink.title}
+                          </a>
+                        </li>
+                      </Show>
+                    </>
                   );
                 }}
               </For>

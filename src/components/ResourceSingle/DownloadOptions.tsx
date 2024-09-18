@@ -4,11 +4,12 @@ import type {
   zipSrcBodyReq,
 } from "@customTypes/types";
 import {DropdownMenu} from "@kobalte/core/dropdown-menu";
-import {Select} from "@kobalte/core/select";
+import {RadioGroup} from "@kobalte/core/radio-group";
 import {ToggleButton} from "@kobalte/core/toggle-button";
 import {Dialog} from "@kobalte/core/dialog";
-import {createSignal, Show, type Accessor, type Setter} from "solid-js";
+import {createSignal, For, Show, type Accessor, type Setter} from "solid-js";
 import {useResourceSingleContext} from "./ResourceSingleContext";
+import {type i18nDict} from "@src/i18n/strings";
 
 type DownloadOptionsProps = {};
 type DownloadArgs = {
@@ -26,8 +27,8 @@ export function DownloadOptions(props: DownloadOptionsProps) {
     isBig,
     zipSrc,
     fitsScripturalSchema,
+    i18nDict,
   } = useResourceSingleContext();
-  // todo: make env var
   const [isLoading, setIsLoading] = createSignal(false);
   const [abortPoll, setAbortPoll] = createSignal(false);
   const [dialogOpen, setDialogOpen] = createSignal(false);
@@ -70,7 +71,6 @@ export function DownloadOptions(props: DownloadOptionsProps) {
     });
   };
 
-  // todo: TW are special and I assume TM are so, probably will need that fits versifications schema or not param.
   const getDocRequestBody = () => {
     let optionsSelected = downloadOptions();
     const basePayload: docRequest = {
@@ -150,7 +150,7 @@ export function DownloadOptions(props: DownloadOptionsProps) {
     const optionsSelected = downloadOptions();
     if (optionsSelected.fileType === "SOURCE") {
       const srcForm = document.querySelector(
-        "[data-js='proxy-source-zips'"
+        "[data-js='proxy-source-zips']"
       ) as HTMLFormElement;
       if (srcForm) {
         srcForm.submit();
@@ -236,7 +236,7 @@ export function DownloadOptions(props: DownloadOptionsProps) {
       setAbortPoll(true);
     }
   }
-
+  // todo: not here only, but see about splitting some of these out as lazy for page laod speed?
   return (
     <div class="md:(min-w-20)">
       <Show when={isBig()}>
@@ -247,12 +247,11 @@ export function DownloadOptions(props: DownloadOptionsProps) {
           sameWidth={false}
         >
           <DropdownMenu.Trigger
-            class="px-2 py-2 aspect-square bg-brand-light text-brand-base rounded-lg focus:(bg-brand-base ring-4 ring-brand ring-offset-6) md:(aspect-auto bg-brand border-x-2 border-t-2 border-b-4 border-brand-darkest  bg-brand-base text-onSurface-invert! flex gap-2 items-center hover:(bg-brand-darkest) active:(bg-brand-darkest))"
+            class="p-1 aspect-square bg-brand-light text-brand-base rounded-lg focus:(bg-brand-base ring-4 ring-brand ring-offset-6) md:(aspect-auto bg-brand border-x-2 border-t-2 border-b-4 border-brand-darkest  bg-brand-base text-onSurface-invert! flex gap-2 items-center hover:(bg-brand-darkest) active:(bg-brand-darkest))"
             onClick={() => setDialogOpen(!dialogOpen())}
           >
-            {/* todo i18n */}
             <span class="i i-ic:baseline-download w-7 h-5"></span>
-            <span class="hidden md:inline">download</span>
+            <span class="hidden md:inline">{i18nDict.ls_DownloadButton}</span>
             <span class="i i-mdi:chevron-down hidden md:inline"></span>
           </DropdownMenu.Trigger>
           <DropDownPortal
@@ -267,6 +266,7 @@ export function DownloadOptions(props: DownloadOptionsProps) {
             isLoading={isLoading}
             abort={abort}
             docErred={docErred}
+            i18nDict={i18nDict}
           />
         </DropdownMenu>
       </Show>
@@ -284,6 +284,7 @@ export function DownloadOptions(props: DownloadOptionsProps) {
           abort={abort}
           docErred={docErred}
           langDirection={langDirection}
+          i18nDict={i18nDict}
         />
       </Show>
     </div>
@@ -305,6 +306,7 @@ type DropDownPortalProps = {
   isLoading: Accessor<boolean>;
   abort: () => void;
   docErred: Accessor<boolean>;
+  i18nDict: i18nDict;
 };
 function DropDownPortal(props: DropDownPortalProps) {
   return (
@@ -314,30 +316,36 @@ function DropDownPortal(props: DropDownPortalProps) {
         class="w-min! bg-surface-primary z-10 border border-solid relative p-2 rounded-lg shadow-lg  min-w-70 md:min-w-90  flex flex-col gap-6"
       >
         <div class="flex justify-between">
-          <DownloadOptionsTitle />
+          <DownloadOptionsTitle i18nDict={props.i18nDict} />
           <CloseButton onClick={props.setDialogOpen} />
         </div>
-        <FileTypePicker updateDownloadOptions={props.updateDownloadOptions} />
+        <FileTypePicker
+          updateDownloadOptions={props.updateDownloadOptions}
+          i18nDict={props.i18nDict}
+        />
         <Show when={props.canShowTn()}>
           <TranslationNotesToggle
+            i18nDict={props.i18nDict}
             updateDownloadOptions={props.updateDownloadOptions}
           />
         </Show>
         <Show when={props.doShowAllBooksToggle()}>
           <IncludeAllBooksToggle
+            i18nDict={props.i18nDict}
             updateDownloadOptions={props.updateDownloadOptions}
           />
         </Show>
 
         <DownloadButton
+          i18nDict={props.i18nDict}
           startDownload={props.startDownload}
           isLoading={props.isLoading}
           abort={props.abort}
           docErred={props.docErred}
         />
-        <OpenInDocButton />
+        <OpenInDocButton i18nDict={props.i18nDict} />
         <a data-js="proxy-sw-doc" class="hidden">
-          Doc it
+          {props.i18nDict.ls_StartDownlaod}
         </a>
         <HiddenZipSrcForm
           currentContent={props.currentContent}
@@ -372,30 +380,38 @@ function DownloadModal(
               } w-.75em h-.75em font-size-[var(--step-2)]`}
             />
             <Dialog.Title>
-              <h2 class="font-size-[var(--step-2)]">Download</h2>
+              <h2 class="font-size-[var(--step-2)]">
+                {props.i18nDict.ls_StartDownlaod}
+              </h2>
             </Dialog.Title>
           </div>
-          <FileTypePicker updateDownloadOptions={props.updateDownloadOptions} />
+          <FileTypePicker
+            updateDownloadOptions={props.updateDownloadOptions}
+            i18nDict={props.i18nDict}
+          />
           <Show when={props.canShowTn()}>
             <TranslationNotesToggle
+              i18nDict={props.i18nDict}
               updateDownloadOptions={props.updateDownloadOptions}
             />
           </Show>
           <Show when={props.doShowAllBooksToggle()}>
             <IncludeAllBooksToggle
+              i18nDict={props.i18nDict}
               updateDownloadOptions={props.updateDownloadOptions}
             />
           </Show>
 
           <DownloadButton
+            i18nDict={props.i18nDict}
             startDownload={props.startDownload}
             isLoading={props.isLoading}
             abort={props.abort}
             docErred={props.docErred}
           />
-          <OpenInDocButton />
+          <OpenInDocButton i18nDict={props.i18nDict} />
           <a data-js="proxy-sw-doc" class="hidden">
-            Doc it
+            {props.i18nDict.ls_StartDownlaod}
           </a>
           <HiddenZipSrcForm
             currentContent={props.currentContent}
@@ -407,8 +423,12 @@ function DownloadModal(
   );
 }
 
-function DownloadOptionsTitle() {
-  return <h2 class="color-onSurface-primary">Download options</h2>;
+function DownloadOptionsTitle(props: {i18nDict: i18nDict}) {
+  return (
+    <h2 class="color-onSurface-primary font-size-[var(--step-1)]">
+      {props.i18nDict.ls_DownloadOptionsTitle}
+    </h2>
+  );
 }
 function CloseButton(props: {onClick: Setter<boolean>}) {
   return (
@@ -424,6 +444,7 @@ type FileTypePickerProps = {
     key: keyof DownloadArgs,
     value: boolean | "PDF" | "EPUB" | "DOCX" | "SOURCE"
   ) => void;
+  i18nDict: i18nDict;
 };
 function FileTypePicker(props: FileTypePickerProps) {
   type OptionType = {value: string; label: string};
@@ -432,56 +453,39 @@ function FileTypePicker(props: FileTypePickerProps) {
       {value: "PDF", label: "PDF"},
       {value: "EPUB", label: "EPUB"},
       {value: "DOCX", label: "DOCX"},
-      {value: "SOURCE", label: "Source (zip)"},
+      {value: "SOURCE", label: props.i18nDict.ls_SourceZipOption},
     ];
   };
   return (
-    <Select
-      sameWidth={true}
-      gutter={0}
-      options={options()}
-      onChange={(e) => {
-        if (e) {
-          props.updateDownloadOptions(
-            "fileType",
-            e.value as DownloadArgs["fileType"]
-          );
-        }
+    <RadioGroup
+      class="radio-group"
+      defaultValue={"PDF"}
+      onChange={(v) => {
+        props.updateDownloadOptions("fileType", v as DownloadArgs["fileType"]);
       }}
-      defaultValue={{value: "PDF", label: "PDF"}}
-      optionValue={"value"}
-      optionTextValue={"label"}
-      placeholder="Select a format"
-      itemComponent={(props) => (
-        <Select.Item
-          item={props.item}
-          class="flex items-center justify-between hover:(bg-brand-light cursor-pointer text-brand-base)"
-        >
-          <Select.ItemLabel class="w-full data-[selected]:(bg-brand-base text-onSurface-invert) p-1">
-            {props.item.rawValue.label}
-          </Select.ItemLabel>
-        </Select.Item>
-      )}
-      class="flex justify-between w-full items-center gap-2"
     >
-      <Select.Label class="inline-block shrink-0">File Type</Select.Label>
-      <Select.Trigger
-        class="bg-surface-secondary border border-solid border-surface-border px-2 py-1 rounded-xl relative inline-flex justify-between items-center w-full"
-        aria-label="Fruit"
-      >
-        <Select.Value<OptionType> class="select__value">
-          {(state) => state.selectedOption().label}
-        </Select.Value>
-        <Select.Icon class="select__icon">
-          <span class="i i-material-symbols:arrow-forward h-6 w-6 " />
-        </Select.Icon>
-      </Select.Trigger>
-      <Select.Portal>
-        <Select.Content class="bg-surface-primary z-30 shadow-sm bg-surface-secondary rounded-md overflow-hidden">
-          <Select.Listbox class="" />
-        </Select.Content>
-      </Select.Portal>
-    </Select>
+      <RadioGroup.Label class="radio-group__label">
+        {props.i18nDict.ls_SelectFormat}
+      </RadioGroup.Label>
+      <div class="radio-group__items" role="presentation">
+        <For each={options()}>
+          {(opt) => (
+            <RadioGroup.Item
+              value={opt.value}
+              class="radio flex items-center gap-2 px-2 py-1 rounded-lg data-[checked]:(bg-brand-light)"
+            >
+              <RadioGroup.ItemInput class="radio__input" />
+              <RadioGroup.ItemControl class="h-4 w-4 rounded-full border-onSurface-secondary border-solid border-1 relative data-[checked]:(border-brand-base border-2)">
+                <RadioGroup.ItemIndicator class="h-2 w-2 absolute inset-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full  bg-brand-base" />
+              </RadioGroup.ItemControl>
+              <RadioGroup.ItemLabel class="radio__label">
+                {opt.label}
+              </RadioGroup.ItemLabel>
+            </RadioGroup.Item>
+          )}
+        </For>
+      </div>
+    </RadioGroup>
   );
 }
 
@@ -490,11 +494,12 @@ type ToggleButtonProps = {
     key: keyof DownloadArgs,
     value: boolean | "PDF" | "EPUB" | "DOCX" | "SOURCE"
   ) => void;
+  i18nDict: i18nDict;
 };
 function TranslationNotesToggle(props: ToggleButtonProps) {
   return (
     <div class="flex items-center justify-between">
-      <p>Inclue Translation Notes</p>
+      <p>{props.i18nDict.ls_IncludeTranslationNotes}</p>
       <ToggleButton
         class="relative"
         aria-label="Include tn"
@@ -511,7 +516,7 @@ function TranslationNotesToggle(props: ToggleButtonProps) {
 function IncludeAllBooksToggle(props: ToggleButtonProps) {
   return (
     <div class="flex items-center justify-between">
-      <p>Include All books</p>
+      <p>{props.i18nDict.ls_IncludeAllBooks}</p>
       <ToggleButton
         class="relative"
         aria-label="Include tn"
@@ -551,23 +556,21 @@ function DownloadButton(props: {
   isLoading: Accessor<boolean>;
   abort: () => void;
   docErred: Accessor<boolean>;
+  i18nDict: i18nDict;
 }) {
   return (
     <div class="w-full flex flex-col gap-4 ">
       <Show when={props.isLoading() && !props.docErred()}>
         <IndeterminateProgress />
         <p class="w-full flex gap-2 items-center text-sm justify-between">
-          <span>Generating your file, please wait</span>
+          <span>{props.i18nDict.ls_GeneratingDocMessage}</span>
           <button class="text-brand-base underline" onClick={props.abort}>
-            Cancel
+            {props.i18nDict.ls_Cancel}
           </button>
         </p>
       </Show>
       <Show when={props.docErred()}>
-        <p class="w-full">
-          Something went wrong. Your file couldn't be generated. You may try
-          again or contact us
-        </p>
+        <p class="w-full">{props.i18nDict.ls_DocErredMsg}</p>
       </Show>
       <Show when={!props.isLoading()}>
         <button
@@ -575,13 +578,13 @@ function DownloadButton(props: {
           class="px-2 py-1 md:aspect-auto bg-brand border-x-2 border-t-2 border-b-4 border-brand-darkest rounded-lg bg-brand-base text-onSurface-invert! flex gap-2 items-center hover:(bg-brand-darkest) active:(bg-brand-darkest) focus:(bg-brand-base ring-4 ring-brand ring-offset-6) justify-center items-center"
         >
           <span class={` i-mdi:download h-4 w-4`} />
-          Download
+          {props.i18nDict.ls_StartDownlaod}
         </button>
       </Show>
     </div>
   );
 }
-function OpenInDocButton() {
+function OpenInDocButton(props: {i18nDict: i18nDict}) {
   return (
     <a
       href="https://doc.bibleineverylanguage.org"
@@ -590,7 +593,7 @@ function OpenInDocButton() {
       target="_blank"
     >
       <span class="i-octicon:link-external-24 w-1em h-1em" />
-      open in doc
+      {props.i18nDict.ls_OpenInDoc}
     </a>
   );
 }
@@ -616,7 +619,8 @@ function HiddenZipSrcForm(props: {
           name: props.currentContent.name,
         })}
       />
-      <button>Proxy zip SW</button>
+      {/* submit btn for form. Using form bc we can go through sw for downlaod controls */}
+      <button tabIndex={-1}>Proxy zip SW</button>
     </form>
   );
 }

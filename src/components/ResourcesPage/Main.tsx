@@ -1,11 +1,4 @@
-import {
-  createSignal,
-  For,
-  onMount,
-  Show,
-  type Accessor,
-  type Setter,
-} from "solid-js";
+import {createSignal, For, Show, type Accessor, type Setter} from "solid-js";
 import {MangifyingGlass} from "@components/Icons";
 import {map, sort, flow, when, filter} from "ramda";
 import type {queryReturn, queryReturnLanguage} from "@src/data/pubDataApi";
@@ -19,14 +12,11 @@ type validSorts =
   | "ANGLICIZED_ZA";
 type ResourceIndexArgs = {
   languages: queryReturn["data"]["language"];
-  revalidate: {
-    reqUrl: string;
-    reqInit: RequestInit;
-    cacheKeyUrl: string;
-  } | null;
+  detailPrefix: string;
 };
 
 export function ResourceIndex(props: ResourceIndexArgs) {
+  // todo. just clal props direct
   const [languages, setLanguages] = createSignal(props.languages);
   const [searchTerm, setSearchTerm] = createSignal("");
   const filterableKeys = [
@@ -101,31 +91,6 @@ export function ResourceIndex(props: ResourceIndexArgs) {
       sortLangs,
     ]);
 
-  onMount(async () => {
-    if (props.revalidate) {
-      try {
-        debugger;
-        const res = await fetch(
-          props.revalidate.reqUrl,
-          props.revalidate.reqInit
-        );
-        // we could duplex but duplex doesn't work on the small number of clietns on http 1.x, and idk if cf even supports a reqeust body that is a stream, so just read it into a buffer.
-        const resBodyBuffer = await res.arrayBuffer();
-        if (res.ok) {
-          fetch(
-            `${globalThis.origin}/api/putInCfCache?routeToCache=resource-index&cacheKey=${props.revalidate.cacheKeyUrl}`,
-            {
-              method: "POST",
-              body: resBodyBuffer,
-            }
-          );
-          // call cf function to store in cach;
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  });
   return (
     <div class="contain py-8">
       <div class="flex flex-col gap-8 pbe-4 md:(flex-row justify-between w-full items-center) ">
@@ -138,7 +103,7 @@ export function ResourceIndex(props: ResourceIndexArgs) {
           <SortDetails setSetOrder={setSetOrder} sortOrder={sortOrder} />
         </div>
         <div class="w-full md:w-7/10 max-h-70vh min-h-300px overflow-y-auto">
-          <Listings languages={langToShow()} />
+          <Listings prefix={props.detailPrefix} languages={langToShow()} />
         </div>
       </section>
     </div>
@@ -147,6 +112,7 @@ export function ResourceIndex(props: ResourceIndexArgs) {
 
 type ListingsProps = {
   languages: queryReturn["data"]["language"];
+  prefix: string;
 };
 function Listings(props: ListingsProps) {
   return (
@@ -154,6 +120,7 @@ function Listings(props: ListingsProps) {
       <For each={props.languages}>
         {(language) => (
           <Listing
+            prefix={props.prefix}
             code={language.ietf_code}
             name={language.national_name}
             anglicized={language.english_name}
@@ -168,13 +135,14 @@ type ListingProps = {
   code: string;
   name: string;
   anglicized: string;
+  prefix: string;
 };
 function Listing(props: ListingProps) {
   return (
     <li class="">
       <a
         class="flex flex-row-reverse gap-4 md:(grid grid-cols-[1fr_4fr_2fr] w-full justify-between) hover:bg-brand-light"
-        href={`/debug/${props.code}`}
+        href={`${props.prefix}/${props.code}`}
       >
         <ListingCode value={props.code} />
         <div class="flex flex-col leading-tight w-full md:(flex-row justify-between)">

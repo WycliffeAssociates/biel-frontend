@@ -99,6 +99,7 @@ const {title} = page;
   langInfo={langInfo}
   langSwitcher={langSwitcherList}
   isContactPage={page.isContactPage}
+  langDirection="ltr"
 >
   <!-- <HeaderMenuOld menu={headerMenu} langInfo.language_code={langInfo.code} client:load /> -->
   <HeaderMenu
@@ -177,13 +178,13 @@ const {title} = page;
         </div>
       )
     }
-    {
+    <!-- {
       determineShowGlobal({page, global: contactSection}) && (
         <div class="headless-insertion py-40">
           <Blocks content={adjustCmsDomLinks(contactSection?.content!)} />
         </div>
       )
-    }
+    } -->
   </main>
 </LayoutServer>
 

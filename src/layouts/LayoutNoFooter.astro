@@ -2,7 +2,7 @@
 import "../styles/wordpress.scss";
 import "../styles/global.scss";
 import "../styles/vars.scss";
-import {getFooter} from "@src/data/wp";
+import "../styles/reader.css";
 import type {languageType} from "@customTypes/types";
 import Blocks from "@components/Blocks.astro";
 import {pwaInfo} from "virtual:pwa-info";
@@ -17,22 +17,9 @@ interface Props {
 }
 import {ViewTransitions} from "astro:transitions";
 import {adjustCmsDomLinks} from "@src/utils";
-import {cacheFooterForDev, getCachedFooter} from "@lib/caching";
-
 const {title, inlineCss, langInfo, langSwitcher, description, langDirection} =
   Astro.props;
-const forceRefresh = true;
-let cachedFooter =
-  import.meta.env.DEV && getCachedFooter(forceRefresh)
-    ? getCachedFooter()
-    : null;
-const footerData = cachedFooter ? cachedFooter : await getFooter(langInfo.code);
-import.meta.env.DEV && cacheFooterForDev(footerData);
-let {footerInlineStyles, footer} = footerData
-  ? footerData
-  : {footerInlineStyles: "", footer: {content: ""}};
-// const {footerInlineStyles, footer} = await
-let allStyles = [...inlineCss, ...footerInlineStyles];
+let allStyles = [...inlineCss];
 let deduped = new Set(allStyles);
 const dedupedInlineStyles = [...deduped].join("\n");
 
@@ -74,9 +61,6 @@ const dedupedInlineStyles = [...deduped].join("\n");
   <body>
     <div class="site bg-surface-primary">
       <slot />
-      <footer class="wp-blocks site-footer">
-        <Blocks content={adjustCmsDomLinks(footer.content)} />
-      </footer>
     </div>
   </body>
 </html>

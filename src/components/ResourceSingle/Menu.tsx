@@ -9,46 +9,30 @@ type MenuProps = {
   classes?: string;
 };
 export function Menu(props: MenuProps) {
-  const {
-    fitsScripturalSchema,
-    activeContent,
-    resourceTypes,
-    langDirection,
-    langCode,
-    setActiveContent,
-    isBig,
-    zipSrc,
-  } = useResourceSingleContext();
+  const {fitsScripturalSchema, isBig} = useResourceSingleContext();
   return (
     <Suspense>
-      <div class="max-w-prose">
-        <Show when={fitsScripturalSchema()}>
-          {/* <TwMenu /> */}
-          <MenuRow
-            zipSrc={zipSrc}
-            isBig={isBig}
-            content={activeContent}
-            resourceTypes={resourceTypes}
-            langDirection={langDirection}
-            langCode={langCode}
-            setActiveContent={setActiveContent}
-          />
-        </Show>
-        <Show when={!fitsScripturalSchema()}>
+      <Show when={fitsScripturalSchema() && isBig()}>
+        <MenuRow classes={props.classes} />
+      </Show>
+      <Show when={!fitsScripturalSchema() && isBig()}>
+        <div data-name="menu" class={`${props.classes || ""}`}>
           <PeripheralMenu />
-        </Show>
-      </div>
+        </div>
+      </Show>
     </Suspense>
   );
 }
 
-function PeripheralMenu() {
-  const {activeContent, twState} = useResourceSingleContext();
+export function PeripheralMenu() {
+  const {activeContent, i18nDict} = useResourceSingleContext();
   const resourceType = activeContent.resource_type;
+  console.log("peripheral menu", resourceType);
   return (
-    <Suspense fallback={"Loading"}>
+    // todo: make a nicer fallback
+    <Suspense fallback={i18nDict.ls_Loading}>
       <Show when={resourceType.toLowerCase() === "tw"}>
-        <TwMenu twState={twState} />
+        <TwMenu />
       </Show>
     </Suspense>
   );

@@ -2,24 +2,17 @@ import {DropdownMenu} from "@kobalte/core/dropdown-menu";
 import {createSignal, For, Show, type Accessor, createEffect} from "solid-js";
 import {createVirtualizer, Virtualizer} from "@tanstack/solid-virtual";
 import {DownloadOptions} from "../DownloadOptions";
+import {useResourceSingleContext} from "../ResourceSingleContext";
 
-type TwMenuProps = {
-  twState: Accessor<{
-    menuList:
-      | {
-          id: string;
-          oneWordSlug: string;
-        }[]
-      | null;
-    html: string | null;
-  }>;
-};
+type TwMenuProps = {};
 
 export default function TwMenu(props: TwMenuProps) {
+  const {twState, setTwState, isBig} = useResourceSingleContext();
+
   const [menuIsOpen, setMenuIsOpen] = createSignal(false);
   const [searchTerm, setSearchTerm] = createSignal("");
   const [currentWord, setCurrentWord] = createSignal(
-    props.twState().menuList ? props.twState().menuList![0] : null
+    twState().menuList ? twState().menuList![0] : null
   );
   const [virtualizer, setVirtualizer] =
     createSignal<Virtualizer<HTMLUListElement, Element>>();
@@ -27,15 +20,17 @@ export default function TwMenu(props: TwMenuProps) {
   let scrollRef: HTMLUListElement | undefined;
   let searchRef: HTMLInputElement | undefined;
   function setWordAndClose(id: string) {
-    const matchingWord = props.twState().menuList!.find((w) => w.id === id);
+    const matchingWord = twState().menuList!.find((w) => w.id === id);
     setCurrentWord(matchingWord);
+    if (matchingWord) {
+      setTwState((prev) => ({...prev, currentWord: matchingWord}));
+    }
     setMenuIsOpen(false);
   }
   const wordsToShow = () => {
     const lowered = searchTerm()?.toLowerCase();
-    if (lowered && props.twState().menuList) {
-      const filtered = props
-        .twState()
+    if (lowered && twState().menuList) {
+      const filtered = twState()
         .menuList!.filter((w) => {
           const fields = [w.oneWordSlug, w.id];
           return fields.some((f) => f.toLowerCase().includes(lowered));
@@ -54,7 +49,7 @@ export default function TwMenu(props: TwMenuProps) {
         });
 
       return filtered;
-    } else return props.twState().menuList;
+    } else return twState().menuList;
   };
   const getOverlappingBoundingRect = () => {
     if (menuRef) {
@@ -84,7 +79,7 @@ export default function TwMenu(props: TwMenuProps) {
   });
   console.log(wordsToShow()?.length);
   return (
-    <Show when={props.twState().menuList && currentWord()}>
+    <Show when={twState().menuList && currentWord()}>
       <div class="flex gap-4">
         <DropdownMenu
           open={menuIsOpen()}
@@ -166,7 +161,9 @@ export default function TwMenu(props: TwMenuProps) {
             </DropdownMenu.Content>
           </DropdownMenu.Portal>
         </DropdownMenu>
-        <DownloadOptions />
+        <Show when={isBig()}>
+          <DownloadOptions />
+        </Show>
       </div>
     </Show>
   );

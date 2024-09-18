@@ -12,11 +12,13 @@ interface Props {
   langSwitcher: languageType[];
   inlineCss: string[];
   isContactPage: boolean;
+  langDirection: "ltr" | "rtl";
 }
 import {ViewTransitions} from "astro:transitions";
 import {adjustCmsDomLinks} from "@src/utils";
 
-const {title, inlineCss, langInfo, langSwitcher, isContactPage} = Astro.props;
+const {title, inlineCss, langInfo, langSwitcher, isContactPage, langDirection} =
+  Astro.props;
 // const forceRefresh = false;
 const footerData = await getFooter(langInfo.code);
 let {footerInlineStyles, footer} = footerData
@@ -30,7 +32,7 @@ const dedupedInlineStyles = [...deduped].join("\n");
 //todo: link to BASE_URL FOR BASE CSS OF GEN PRESS ? maybe
 ---
 
-<html lang="en" lang={langInfo.code}>
+<html lang="en" lang={langInfo.code} dir={langDirection}>
   <head>
     <meta charset="UTF-8" />
     <meta name="description" content="Astro description" />

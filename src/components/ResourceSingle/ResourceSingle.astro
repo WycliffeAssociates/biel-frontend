@@ -1,0 +1,47 @@
+---
+import type {i18nDict} from "@src/i18n/strings";
+interface Props {
+  languageToFetch: string;
+  i18nDict: i18nDict;
+}
+import {ResourceWrapper} from "@components/ResourceSingle/ResourceWrapper";
+import {getLanguageContents} from "@src/data/pubDataApi";
+import {getTsFiles} from "@src/data/github";
+
+const {languageToFetch, i18nDict} = Astro.props;
+const startTime = performance.now();
+const tsFiles = await getTsFiles(languageToFetch);
+const cache = Astro.locals.runtime.caches.default;
+const ctx = Astro.locals.runtime.ctx;
+const pubDataApiUrl = Astro.locals.runtime.env.PUBLIC_DATA_API;
+const data = await getLanguageContents({
+  language: languageToFetch,
+  cache,
+  ctx,
+  pubDataApiUrl,
+});
+const {data: languageData, wasCached} = data;
+
+const {contents, language: lang} = languageData;
+const endTime = performance.now();
+const totalTime = endTime - startTime;
+console.log(
+  `Time for language ${languageToFetch} route on server ${totalTime} ms.  
+  Was cache match is ${wasCached}`
+);
+const project = Astro.url.searchParams.get("project") || "";
+console.log(`project: ${project}`);
+---
+
+<!-- todo: i18n title -->
+<section data-name="pubDataApi" class="contain">
+  <div>
+    <ResourceWrapper
+      client:load
+      language={lang}
+      contents={contents}
+      tsFiles={tsFiles}
+      i18nDict={i18nDict}
+    />
+  </div>
+</section>

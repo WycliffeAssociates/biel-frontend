@@ -13,8 +13,6 @@ self.__WB_DISABLE_DEV_LOGS = true;
 clientsClaim();
 cleanupOutdatedCaches();
 
-// todo: flesh out.. Probs need to be a fetch wall to wpml on build and write out to a a file. and import here.
-const resourcePageSlugs = ["resources", "ressources", "recursos"];
 const manifest = self.__WB_MANIFEST;
 console.log({manifest});
 import.meta.env.PROD && precacheAndRoute(manifest);
@@ -37,7 +35,6 @@ registerRoute(
       return fetch(`${asObj.payload.files[0]!.url}/archive/master.zip`);
     } else {
       try {
-        // todo: abort zip.js. Use client-zip.  Use a generator. Return the writable stream.
         const totalSize = String(
           asObj.payload.files.reduce((acc, curr) => (acc += curr.size || 0), 0)
         );
@@ -92,7 +89,6 @@ registerRoute(
           }
         }
         const stream = downloadZip(fetchExternal());
-        console.log(asObj.name);
         return new Response(stream.body, {
           headers: {
             "Content-Disposition": `attachment; filename="${encodeURI(
@@ -119,7 +115,6 @@ registerRoute(
     }
   },
   async ({url, request}) => {
-    console.log(request);
     const formData = await request.formData();
     let payload = formData.get("zipPayload");
     const asObj = JSON.parse(payload as string) as {
@@ -127,7 +122,6 @@ registerRoute(
       name: string;
     };
 
-    // todo: abort zip.js. Use client-zip.  Use a generator. Return the writable stream.
     const totalSize = String(
       asObj.payload.reduce((acc, curr) => (acc += curr.size || 0), 0)
     );
@@ -139,7 +133,9 @@ registerRoute(
     async function* fetchExternal() {
       for (const f of asObj.payload) {
         try {
-          const res = await fetch(url);
+          const res = await fetch(
+            `/api/fetchExternal?url=${f.url}&hash=${f.sha}`
+          );
           yield {
             name: `${f.path}`,
             input: res,
@@ -186,8 +182,6 @@ registerRoute(
   async ({url}) => {
     const docQueryParam = url.searchParams.get("doc-url");
     const name = url.searchParams.get("name") || "biel-download";
-    console.log("doc-url", docQueryParam);
-    console.log("name", name);
     if (!docQueryParam) return new Response(null, {status: 404});
     try {
       const res = await fetch(docQueryParam);
@@ -208,7 +202,6 @@ registerRoute(
   }
 );
 
-// todo... "localized" routes will probably need to come via wpml:
 registerRoute(
   ({url, request}) => {
     const urlObj = new URL(url);

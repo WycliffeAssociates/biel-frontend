@@ -17,13 +17,48 @@ const en = {
     "Something went wrong.  Please contact us through phone or email.",
   backToHome: "Go Home",
   submitForm: "Submit",
+  ls_ResourceType: "Resource Type",
+  ls_Loading: "Loading...",
+  ls_LoadingPercent: "Loading ",
+  ls_DownloadButton: "Download",
+  ls_StartDownlaod: "Start Download",
+  ls_OpenInDoc: "Open in DOC (external)",
+  ls_DownloadOptionsTitle: "Download Options",
+  ls_SourceZipOption: "Source (zip)",
+  ls_SelectFormat: "Select a format",
+  ls_FileType: "File Type",
+  ls_IncludeAllBooks: "Include all books",
+  ls_IncludeTranslationNotes: "Include Translation Notes",
+  ls_GeneratingDocMessage: "Generating your file, please wait",
+  ls_Cancel: "Cancel",
+  ls_DocErredMsg:
+    "Something went wrong. Your file couldn't be generated. You may try again or contact us",
+  ls_AvailableForDownload: "Available for download",
+  // todo: push a verison to prod that just maps resource type to a string here?
 } as const;
-type i18nKeysType = keyof typeof en;
+export type i18nKeysType = keyof typeof en;
 const ptbr: Record<i18nKeysType, string> = {
   ...en,
   notYetTranslated:
     "Isso ainda não foi traduzido. Estamos trabalhando para concluí-la em breve.",
   search: "Pesquisar...",
+  ls_ResourceType: "Tipo de recurso",
+  ls_Loading: "Carregando...",
+  ls_LoadingPercent: "Carregando ",
+  ls_DownloadButton: "Baixar",
+  ls_StartDownlaod: "Baixar",
+  ls_OpenInDoc: "Abrir em DOC (externo)",
+  ls_DownloadOptionsTitle: "Opções de baixar",
+  ls_SourceZipOption: "Fonte (zip)",
+  ls_SelectFormat: "Selecione um formato",
+  ls_FileType: "Tipo de arquivo",
+  ls_IncludeAllBooks: "Incluir todos os livros",
+  ls_IncludeTranslationNotes: "Incluir notas de tradução",
+  ls_GeneratingDocMessage: "Gerando seu arquivo, aguarde",
+  ls_Cancel: "Cancelar",
+  ls_DocErredMsg:
+    "Algo deu errado. Seu arquivo não pôde ser gerado. Você pode tentar novamente ou entrar em contato conosco",
+  ls_AvailableForDownload: "Disponível para Download",
 };
 const es: Record<i18nKeysType, string> = {
   ...en,

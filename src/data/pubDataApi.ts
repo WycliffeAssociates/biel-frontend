@@ -2,15 +2,26 @@ import {bibleBookSortOrder} from "@src/utils";
 const bielFilter = `show_on_biel: {_eq: true},status: {_eq: "Primary"}`;
 import {groupBy} from "ramda";
 const hasRenderings = `count: {predicate: {_gt: 0}}`;
-export async function getLanguagesWithContentForBiel(): Promise<{
+import type {
+  Cache,
+  ExecutionContext,
+  Request as WorkerRequest,
+  Response as WorkerResponse,
+  Headers as WorkerHeaders,
+} from "@cloudflare/workers-types";
+type getLanguagesWithContentForBielArgs = {
+  cache: Cache;
+  ctx: ExecutionContext;
+  pubDataApiUrl: string;
+};
+export async function getLanguagesWithContentForBiel({
+  cache,
+  ctx,
+  pubDataApiUrl,
+}: getLanguagesWithContentForBielArgs): Promise<{
   data: queryReturn | null;
-  revalidate: boolean | null;
   wasCached: boolean;
-  cacheKey: Request | null;
-  url: string;
-  query: string;
 }> {
-  // todo: think about swr and other caching headers for this
   const query = `
 query MyQuery {
   language(
@@ -40,36 +51,64 @@ query MyQuery {
   }
 }
 `;
+  console.log(query);
   // todo env var;  try/catch.
-  const url = "https://api.bibleineverylanguage.org/v1/graphql";
   const swrThresholdSeconds = 40;
+  const oneYearInSeconds = 60 * 60 * 24 * 365;
   try {
     // CF doesn't support SWR yet, but we cna implement it for one route.  Just use caches.default and put one in with a custom x-swr header. When this is called, do a caches.match()... if the max-age or s-max isn't expired, cf should just use that. Then,
     // todo: test all this tomorrow
     let json: any;
+    const requestToMake = () => {
+      return new Request(pubDataApiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({query}),
+        // no need to set ttl here since cf won't cache post reqest by default, so we don't have to try to bypass the cache;
+      });
+    };
+    const resCacheHeaders = new Headers({
+      "Access-Control-Allow-Origin": "*",
+      "Cache-Control": `public, max-age=30, s-maxage=${oneYearInSeconds}`,
+      "Content-Type": "application/json",
+    });
+
     const {match, revalidate, cacheKey} = await manageCfCachePostReq({
       query,
-      url,
+      url: pubDataApiUrl,
       swrThresholdSeconds,
+      cache,
     });
     console.log({didMatch: !!match, revalidate, hasCacheKey: !!cacheKey});
     if (match) {
+      if (revalidate) {
+        ctx.waitUntil(
+          refreshCfCache({
+            cache,
+            cacheKey,
+            newHeaders: resCacheHeaders,
+            requestToMake: requestToMake(),
+          })
+        );
+      }
       json = (await match.json()) as queryReturn;
-      return {data: json, revalidate, cacheKey, url, query, wasCached: !!match};
+      return {data: json, wasCached: !!match};
     } else {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({query}),
-      });
-      if (res) {
+      const res = await fetch(requestToMake());
+      if (res && res.ok) {
         json = (await res.json()) as queryReturn;
+        ctx.waitUntil(
+          refreshCfCache({
+            cache,
+            cacheKey,
+            newHeaders: resCacheHeaders,
+            requestToMake: requestToMake(),
+          })
+        );
         return {
           data: json,
-          revalidate,
-          cacheKey,
-          url,
-          query,
           wasCached: !!match,
         };
       } else {
@@ -80,10 +119,6 @@ query MyQuery {
     console.error(e);
     return {
       data: null,
-      revalidate: null,
-      cacheKey: null,
-      url,
-      query,
       wasCached: false,
     };
   }
@@ -118,7 +153,16 @@ export type queryReturnLanguage = {
   }[];
 };
 
-export async function getLanguageContents(language: string) {
+type getLanguageContentsArgs = getLanguagesWithContentForBielArgs & {
+  language: string;
+};
+
+export async function getLanguageContents({
+  cache,
+  ctx,
+  language,
+  pubDataApiUrl,
+}: getLanguageContentsArgs) {
   const query = `query LangContents {
   language(where: {ietf_code: {_eq: "${language}"}}) {
     national_name
@@ -133,6 +177,7 @@ export async function getLanguageContents(language: string) {
       name
       type
       domain
+      title
       resource_type
       gitRepo:git_repo {
       url:repo_url
@@ -152,38 +197,40 @@ export async function getLanguageContents(language: string) {
   }
 }
   `;
-  const url = "https://api.bibleineverylanguage.org/v1/graphql";
 
   // Have to write cf specific code for caching post requests. It think we'll skip SWR for this stuff and just set it to an s-maxage of a day.
-  let res: Response | null | undefined = null;
+  let res: Response | WorkerResponse | null | undefined = null;
   const {match, cacheKey} = await manageCfCachePostReq({
     query,
-    url,
+    url: pubDataApiUrl,
+    cache,
     // no swr for this route
   });
+  // No swr means we just return max if it's cache control header from CF hasn't expired, and otherwise, fetch and stick in cache
   if (match) {
-    console.log(`Using cached res for ${language} contents`);
     res = match;
   }
   if (!res) {
-    res = await fetch(url, {
+    res = await fetch(pubDataApiUrl, {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({query}),
     });
-    if (res.ok && globalThis.caches?.default && cacheKey) {
-      console.log(`setting cache for ${language} contents`);
+    if (res.ok && cacheKey) {
       const clone = res.clone();
       const headers = new Headers(clone.headers);
-      headers.set("Cache-Control", "public, max-age=60, s-maxage=86400");
-      await globalThis.caches.default.put(
-        cacheKey,
-        new Response(clone.body, {headers})
+      const oneDayInSeconds = 60 * 60 * 24;
+      headers.set(
+        "Cache-Control",
+        `public, max-age=60, s-maxage=${oneDayInSeconds}`
       );
+      // unknown casts for deal with some typescript / cloudflare type shenanigagns. Setting the types globally in tsconfig still doesn't result in no ts errors, and I don't want to abandon lib.dom typings so we're just casting in this file. Cf is mostly spec compliant, but they have a few addiitonal fetaures that I don't need on their request/response
+      const response = new Response(clone.body, {
+        headers,
+      }) as unknown as WorkerResponse;
+      ctx.waitUntil(cache.put(cacheKey as unknown as WorkerRequest, response));
     }
   }
-  const size = res.headers.get("content-length");
-  console.log(`getLanguageContents size is ${Number(size) / 1000} kb`);
   const json = (await res.json()) as langContentReturn;
   let lang = json.data.language[0];
   if (!lang) {
@@ -202,9 +249,7 @@ export async function getLanguageContents(language: string) {
     const bIndex = domainOrder.indexOf(b.domain);
     return aIndex - bIndex;
   });
-  // todo: if we just make this SSR, what's the best s-max or way to cache this call?
 
-  // todo: if the language gateway is false, for scripture domain, reduce where resource_type is same.  The name of that should be Language Name + resource Type; So
   // reduce on resource type: Each type, create a new "content" of name + type, then
   const content = lang.contents.map((content) => {
     // if (content.domain != "peripheral") {
@@ -219,13 +264,19 @@ export async function getLanguageContents(language: string) {
     };
   });
   return {
-    language: {
-      direction: lang.direction,
-      isGateway: lang.wa_language_metadata.is_gateway,
-      code: lang.ietf_code,
+    data: {
+      language: {
+        direction: lang.direction,
+        isGateway: lang.wa_language_metadata.is_gateway,
+        code: lang.ietf_code,
+      },
+      contents: content,
     },
-    contents: content,
-  } as langWithContent;
+    wasCached: !!match,
+  } as {
+    data: langWithContent;
+    wasCached: boolean;
+  };
 }
 
 type RenderedContentRowsByType = {
@@ -241,6 +292,7 @@ type ContentRow = {
   type: string;
   domain: string;
   resource_type: string;
+  title: string | undefined;
   gitRepo?: {
     url: string;
   };
@@ -277,6 +329,7 @@ type contentCommon = {
   name: string;
   type: string;
   resource_type: string;
+  title: string | undefined;
   gitRepo?: {
     url: string;
   };
@@ -341,6 +394,7 @@ function collateGatewayContent({
         // single vlaue to merge into
         const content: (typeof contents)[number] = {
           domain: contents[0]!.domain,
+          title: contents[0]!.title,
           type: contents[0]!.type,
           resource_type: contents[0]!.resource_type,
           name: `${langName} ${contents[0]!.resource_type}`,
@@ -418,21 +472,15 @@ type manageCfCacheArgs = {
   swrThresholdSeconds?: number;
   query: string;
   url: string;
+  cache: Cache;
 };
 
 async function manageCfCachePostReq({
   swrThresholdSeconds,
   query,
   url,
+  cache,
 }: manageCfCacheArgs) {
-  const returnVal = {
-    revalidate: true,
-    match: null,
-    cacheKey: null,
-  };
-  if (!globalThis.caches?.default) {
-    return returnVal;
-  }
   // see caching post reqeust here: Basically making a unique cache key based on the url + query
   // https://developers.cloudflare.com/workers/examples/cache-post-request
   const hashedQuery = new TextEncoder().encode(query);
@@ -445,7 +493,7 @@ async function manageCfCachePostReq({
     method: "GET",
     headers: {"Content-Type": "application/json"},
   });
-  const matched = await globalThis.caches.default.match(cacheKey);
+  const matched = await cache.match(cacheKey as unknown as WorkerRequest);
   if (!matched) {
     return {
       revalidate: true,
@@ -461,9 +509,6 @@ async function manageCfCachePostReq({
     };
   }
   const cacheControlHeader = matched.headers.get("Cache-Control");
-  if (cacheControlHeader) {
-    console.log({cacheControlHeader});
-  }
   const maxAge = cacheControlHeader?.match(/max-age=(\d+)/)?.[1];
   if (!maxAge) {
     return {
@@ -504,4 +549,33 @@ async function manageCfCachePostReq({
     match: null,
     cacheKey: cacheKey,
   };
+}
+
+type refreshCfCacheArgs = {
+  cache: Cache;
+  cacheKey: Request;
+  newHeaders: Headers;
+  requestToMake: Request;
+};
+async function refreshCfCache({
+  cache,
+  cacheKey,
+  requestToMake,
+  newHeaders,
+}: refreshCfCacheArgs) {
+  try {
+    // Get fresh
+    const res = await fetch(requestToMake);
+    const body = await res.arrayBuffer();
+    if (res.ok) {
+      await cache.put(
+        cacheKey as unknown as WorkerRequest,
+        new Response(body, {
+          headers: newHeaders,
+        }) as unknown as WorkerResponse
+      );
+    }
+  } catch (error) {
+    console.error(error);
+  }
 }

@@ -286,19 +286,7 @@ summary.webkit-hide-summary-arrow::-webkit-details-marker {
   display: none;
 }
 
-.fullscreen:fullscreen {
-  background: hsl(var(--clr-surface-primary));
-  color: hsl(var(--clr-on-surface-primary));
-  margin: 1rem auto;
-  max-width: 70ch !important;
-}
-.fullscreen:fullscreen * {
-  max-height: none !important;
-}
-.fullscreen:fullscreen [data-css] {
-  max-width: 75ch;
-  margin: 1rem auto;
-}
+//
 
 .accordion-anim-height {
   overflow: hidden;

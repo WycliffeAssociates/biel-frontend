@@ -12,12 +12,15 @@ Things to consider:
 
 <!-- todo -->
 check the checklist above
-Get contact form sorted out with Reuben
-deepL you i18n stuff to fill it out. 
-breadcrumbs?
-control deploy scripts via github actions
+- Get contact form sorted out with Reuben
+- deepL you i18n stuff to fill it out. 
+- breadcrumbs?
+- biome
+- Kill the "is translations Page and old Menu stuff"
+- Double check the sitemap
+- control deploy scripts via github actions
 set a cron to pnpm up outdated, run tests, open pull if pass (dependabot ish?. Maybe just do dependabot now that it supports pnpm)
-write some basic smoke tests that go -> build -> get url from build (pages action returns it) -> e2e that against real platform (and no need to doubly configure env, unless I want to pass a different env to it? Not sure)
+- write some basic smoke tests that go -> build -> get url from build (pages action returns it) -> e2e that against real platform (and no need to doubly configure env, unless I want to pass a different env to it? Not sure)
 https://developers.cloudflare.com/workers/testing/vitest-integration/get-started/ vitest integration testing with workers, 
 <!--
 Static index of resources page (For each language)

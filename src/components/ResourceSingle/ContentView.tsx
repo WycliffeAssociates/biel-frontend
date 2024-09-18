@@ -3,6 +3,7 @@ import {createSignal, onMount, Show, Suspense} from "solid-js";
 import type {domainScripture} from "@src/data/pubDataApi";
 import {ScripturalView} from "./ContentScriptural";
 import {useResourceSingleContext} from "./ResourceSingleContext";
+import {PeripheralMenu} from "./Menu";
 
 type ContentViewProps = {
   classes?: string;
@@ -30,6 +31,7 @@ export function ContentView(props: ContentViewProps) {
 
 // todo: this is gonna have to be a switch based on type:
 function PeripheralView(props: {content: ScriptureStoreState}) {
+  const {isBig, i18nDict} = useResourceSingleContext();
   const [fetchProgress, setFetchProgress] = createSignal(0);
   const [doShowProgress, setDoShowProgress] = createSignal(false);
   const {twState, setTwState} = useResourceSingleContext();
@@ -101,6 +103,7 @@ function PeripheralView(props: {content: ScriptureStoreState}) {
       setTwState({
         menuList: withMeta.map((w) => ({id: w.id, oneWordSlug: w.oneWordSlug})),
         html: sortedHtml,
+        currentWord: withMeta[0]!,
       });
     }
   });
@@ -108,8 +111,9 @@ function PeripheralView(props: {content: ScriptureStoreState}) {
   function TwFallback() {
     return (
       <Show when={doShowProgress()}>
-        <div class="col-start-2 row-start-2 max-w-prose">
-          Loading ...{fetchProgress()} %
+        <div class="md:(col-start-2 row-start-2) max-w-prose">
+          {i18nDict.ls_LoadingPercent}
+          {fetchProgress()}
         </div>
       </Show>
     );
@@ -119,12 +123,17 @@ function PeripheralView(props: {content: ScriptureStoreState}) {
     // <div class="row-start-1 col-start-2">
     <>
       <Show when={twState()?.html} fallback={<TwFallback />}>
-        <div class="col-start-2 row-start-2 max-w-prose">
+        <div class="md:(col-start-2 row-start-2) max-w-prose">
           <div
             class="theText theTextTw max-h-80vh overflow-auto"
             innerHTML={twState()?.html!}
           ></div>
         </div>
+        <Show when={!isBig()}>
+          <div class="sticky bottom-0 bg-pink-100/40">
+            <PeripheralMenu />
+          </div>
+        </Show>
       </Show>
     </>
     // </div>

@@ -10,6 +10,7 @@ import {
 import {isScriptural} from "./lib";
 import {createStore, type SetStoreFunction} from "solid-js/store";
 import type {ScriptureStoreState, zipSrcBodyReq} from "@customTypes/types";
+import type {i18nDict, i18nKeysType} from "@src/i18n/strings";
 
 const ResourceSingleContext = createContext<{
   isBig: () => boolean;
@@ -31,13 +32,17 @@ const ResourceSingleContext = createContext<{
         }[]
       | null;
     html: string | null;
+    currentWord: {id: string; oneWordSlug: string} | null;
   }>;
   setTwState: Setter<{
     menuList: {id: string; oneWordSlug: string}[] | null;
     html: string | null;
+    currentWord: {id: string; oneWordSlug: string} | null;
   }>;
   langDirection: "ltr" | "rtl";
   zipSrc: () => zipSrcBodyReq;
+  mobileResourceTitle: () => string;
+  i18nDict: i18nDict;
 }>();
 
 type ResourceSingleProviderProps = {
@@ -45,6 +50,7 @@ type ResourceSingleProviderProps = {
   allLangContents: contentsForLang[];
   langDirection: "ltr" | "rtl";
   langCode: string;
+  i18nDict: i18nDict;
 };
 export const ResourceSingleProvider = (props: ResourceSingleProviderProps) => {
   const isBig = createMediaQuery("(min-width: 768px)", true);
@@ -59,9 +65,11 @@ export const ResourceSingleProvider = (props: ResourceSingleProviderProps) => {
   const [twState, setTwState] = createSignal<{
     menuList: {id: string; oneWordSlug: string}[] | null;
     html: string | null;
+    currentWord: {id: string; oneWordSlug: string} | null;
   }>({
     menuList: null,
     html: null,
+    currentWord: null,
   });
   const zipSrc = (): zipSrcBodyReq => {
     // gateways
@@ -90,6 +98,25 @@ export const ResourceSingleProvider = (props: ResourceSingleProviderProps) => {
     }
   };
 
+  const mobileResourceTitle = () => {
+    if (fitsScripturalSchema()) {
+      const activeRow =
+        activeContent.rendered_contents.htmlChapters[
+          activeContent.activeRowIdx
+        ];
+      const bookName = activeRow?.scriptural_rendering_metadata.book_name;
+      const bookChapter = activeRow?.scriptural_rendering_metadata.chapter;
+      let title = `${bookName} ${bookChapter}`;
+      return title;
+    } else {
+      if (!!twState().currentWord) {
+        return twState().currentWord?.oneWordSlug || "Translation word";
+      } else {
+        return "No title";
+      }
+    }
+  };
+
   return (
     <ResourceSingleContext.Provider
       value={{
@@ -108,6 +135,8 @@ export const ResourceSingleProvider = (props: ResourceSingleProviderProps) => {
         twState,
         setTwState,
         zipSrc,
+        mobileResourceTitle,
+        i18nDict: props.i18nDict,
       }}
     >
       {props.children}
