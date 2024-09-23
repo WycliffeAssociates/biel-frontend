@@ -10,7 +10,7 @@ import {
 import {isScriptural} from "./lib";
 import {createStore, type SetStoreFunction} from "solid-js/store";
 import type {ScriptureStoreState, zipSrcBodyReq} from "@customTypes/types";
-import type {i18nDict, i18nKeysType} from "@src/i18n/strings";
+import type {i18nDict} from "@src/i18n/strings";
 
 const ResourceSingleContext = createContext<{
   isBig: () => boolean;

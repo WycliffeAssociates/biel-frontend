@@ -6,7 +6,6 @@ import type {ScriptureStoreState, tsFile} from "@customTypes/types";
 import {Dialog} from "@kobalte/core/dialog";
 import {useResourceSingleContext} from "./ResourceSingleContext";
 import {DownloadOptions} from "./DownloadOptions";
-import {when} from "ramda";
 
 type AvailableResourcesProps = {
   classes?: string;
@@ -198,7 +197,7 @@ export function AvailableResource(props: AvailableResourceProps) {
 
 function TsFileDownload(props: {tsFile: tsFile}) {
   // todo: Thomas change to think of only using url for whole repo and not each folder
-  const [category, {url, files}] = props.tsFile;
+  const [category, {files}] = props.tsFile;
   // https://raw.githubusercontent.com/wkelly17/biel-tk-example/master/en/docx.docx
   const formPayload = {
     payload: files,

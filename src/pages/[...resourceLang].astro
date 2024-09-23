@@ -8,30 +8,27 @@ import {getDict} from "@src/i18n/strings";
 import ResourceIndex from "@components/ResourcesPage/ResourcesPage.astro";
 const {resourceLang} = Astro.params;
 if (!resourceLang) return Astro.redirect("/404");
-
+const gqlUrl =
+  import.meta.env.WORDPRESS_GQL_URL ||
+  Astro.locals.runtime.env?.WORDPRESS_GQL_URL;
+const restUrl =
+  import.meta.env.WORDPRESS_REST_MENU_ENDPOINT ||
+  Astro.locals.runtime.env?.WORDPRESS_REST_MENU_ENDPOINT;
 // const wpmlLangDict = await getWpmlLanguages();
 // const menus = await getMenus();
 // const resourceSlugs = await getResourcePageSlugs();
 const [wpmlLangDict, menus, resourceSlugs] = await Promise.all([
-  getWpmlLanguages(),
-  getMenus(),
-  getResourcePageSlugs(),
+  getWpmlLanguages({gqlUrl}),
+  getMenus({restUrl}),
+  getResourcePageSlugs({gqlUrl}),
 ]);
 
 const parts = resourceLang.split("/");
-// if (parts.length < 2) return Astro.redirect("/404");
-console.log(parts);
+
 let isListingPageEn = parts[0] === "resources" && parts.length === 1;
 let isListingPageOther = parts.length == 2 && parts[0] != "resources";
 let isEnglishDetailPage = parts[0] === "resources" && parts.length === 2;
 let isDetailPageOther = parts.length == 3;
-console.log({
-  isListingPageEn,
-  isListingPageOther,
-  isEnglishDetailPage,
-  isDetailPageOther,
-});
-let isEnglish = parts[0] === "resources" && parts.length === 2;
 const thisLang = isListingPageEn || isEnglishDetailPage ? "en" : parts[0];
 if (!thisLang) return Astro.redirect("/404");
 const i18nDict = getDict(thisLang, true);
@@ -99,7 +96,7 @@ const langSwitcherList = Object.values(wpmlLangDict)
   />
   {
     (isListingPageEn || isListingPageOther) && (
-      <ResourceIndex detailPrefix={parts.join("/")} />
+      <ResourceIndex i18nDict={i18nDict!} detailPrefix={parts.join("/")} />
     )
   }
   {

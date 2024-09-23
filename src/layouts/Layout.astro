@@ -18,6 +18,9 @@ interface Props {
 import {ViewTransitions} from "astro:transitions";
 import {adjustCmsDomLinks} from "@src/utils";
 import {cacheFooterForDev, getCachedFooter} from "@lib/caching";
+const gqlUrl =
+  import.meta.env.WORDPRESS_GQL_URL ||
+  Astro.locals.runtime.env?.WORDPRESS_GQL_URL;
 
 const {title, inlineCss, langInfo, langSwitcher, description, langDirection} =
   Astro.props;
@@ -26,7 +29,9 @@ let cachedFooter =
   import.meta.env.DEV && getCachedFooter(forceRefresh)
     ? getCachedFooter()
     : null;
-const footerData = cachedFooter ? cachedFooter : await getFooter(langInfo.code);
+const footerData = cachedFooter
+  ? cachedFooter
+  : await getFooter({langCode: langInfo.code, gqlUrl});
 import.meta.env.DEV && cacheFooterForDev(footerData);
 let {footerInlineStyles, footer} = footerData
   ? footerData

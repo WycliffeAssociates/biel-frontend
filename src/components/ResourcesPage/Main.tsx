@@ -2,6 +2,7 @@ import {createSignal, For, Show, type Accessor, type Setter} from "solid-js";
 import {MangifyingGlass} from "@components/Icons";
 import {map, sort, flow, when, filter} from "ramda";
 import type {queryReturn, queryReturnLanguage} from "@src/data/pubDataApi";
+import type {i18nDict} from "@src/i18n/strings";
 
 type validSorts =
   | "CODE_AZ"
@@ -13,11 +14,11 @@ type validSorts =
 type ResourceIndexArgs = {
   languages: queryReturn["data"]["language"];
   detailPrefix: string;
+  i18nDict: i18nDict;
 };
 
 export function ResourceIndex(props: ResourceIndexArgs) {
-  // todo. just clal props direct
-  const [languages, setLanguages] = createSignal(props.languages);
+  // todo use dict to remove en stringhs
   const [searchTerm, setSearchTerm] = createSignal("");
   const filterableKeys = [
     "english_name",
@@ -85,7 +86,7 @@ export function ResourceIndex(props: ResourceIndexArgs) {
   }
 
   const langToShow = () =>
-    flow(languages(), [
+    flow(props.languages, [
       when(() => searchTerm().length >= 2, filter(includesSearch)),
       filter(filterByStatus),
       sortLangs,

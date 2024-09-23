@@ -1,8 +1,10 @@
 ---
 import {getLanguagesWithContentForBiel} from "@src/data/pubDataApi";
 import {ResourceIndex} from "./Main";
+import type {i18nDict} from "@src/i18n/strings";
 interface Props {
   detailPrefix: string;
+  i18nDict: i18nDict;
 }
 const startTime = performance.now();
 const runtime = Astro.locals.runtime;
@@ -10,7 +12,7 @@ const runtime = Astro.locals.runtime;
 const cache = runtime.caches.default;
 const ctx = runtime.ctx;
 const pubDataApiUrl = runtime.env.PUBLIC_DATA_API;
-const {detailPrefix} = Astro.props;
+const {detailPrefix, i18nDict} = Astro.props;
 const {data, wasCached} = await getLanguagesWithContentForBiel({
   cache,
   ctx,
@@ -27,6 +29,7 @@ console.log(
 
 <ResourceIndex
   client:load
+  i18nDict={i18nDict}
   languages={data.data.language}
   detailPrefix={detailPrefix}
 />

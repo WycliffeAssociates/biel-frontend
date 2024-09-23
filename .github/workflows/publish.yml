@@ -15,7 +15,17 @@ jobs:
       contents: read
       deployments: write
     steps: 
-      - name: set common vars
+      - name: Determine environment
+        id: determine_env
+        run: |
+          if [[ ${{ github.ref }} == 'refs/heads/prod' ]]; then
+            echo "ENV=prod" >> $GITHUB_OUTPUT
+          elif [[ ${{ github.ref }} == 'refs/heads/qa' ]]; then
+            echo "ENV=qa" >> $GITHUB_OUTPUT
+          else
+            echo "ENV=dev" >> $GITHUB_OUTPUT
+          fi
+      - name: Load env vars
         uses: 1password/load-secrets-action@v1
         with:
           # Export loaded secrets as environment variables
@@ -24,9 +34,13 @@ jobs:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           CF_ACCOUNT_ID: "op://DevOps/cloudflare-worker-deploy-token/CF_ACCOUNT_ID"
           CF_API_TOKEN: "op://DevOps/cloudflare-worker-deploy-token/CF_API_TOKEN"
-          WORDPRESS_REST_MENU_ENDPOINT: "op://DevOps/biel-env-vars/common/wordpress-rest-menu-endpoint"
           TRANSLATIONS_JSON_ENDPOINT: "op://DevOps/biel-env-vars/common/translations-json-endpoint"
           WORDPRESS_GQL_PATH: "op://DevOps/biel-env-vars/common/wordpress-gql-path"
+          WORDPRESS_REST_MENU_ENDPOINT: "op://DevOps/biel-env-vars/${{ steps.determine_env.outputs.ENV }}/${{ steps.determine_env.outputs.ENV }}-rest-menu-endpoint"
+          CMS_URL: "op://DevOps/biel-env-vars/${{ steps.determine_env.outputs.ENV }}/${{ steps.determine_env.outputs.ENV }}-cms-url"
+          SITE_URL: "op://DevOps/biel-env-vars/${{ steps.determine_env.outputs.ENV }}/${{ steps.determine_env.outputs.ENV }}-site-url"
+          WORDPRESS_GQL_URL: "op://DevOps/biel-env-vars/${{ steps.determine_env.outputs.ENV }}/${{ steps.determine_env.outputs.ENV }}-graphql-url"
+          PUBLIC_DATA_API_URL: "op://DevOps/biel-env-vars/common/${{ steps.determine_env.outputs.ENV }}-public-data-api-url"
       - name: set prod variables
         uses: 1password/load-secrets-action@v1
         with:
@@ -37,26 +51,8 @@ jobs:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           CMS_URL: "op://DevOps/biel-env-vars/prod/prod-cms-url"
           SITE_URL: "op://DevOps/biel-env-vars/prod/prod-site-url"
-      - name: set qa variables
-        uses: 1password/load-secrets-action@v1
-        with:
-          # Export loaded secrets as environment variables
-          export-env: true
-        if: github.ref == 'refs/heads/qa'
-        env: 
-         OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-         CMS_URL: "op://DevOps/biel-env-vars/qa/qa-cms-url"
-         SITE_URL: "op://DevOps/biel-env-vars/prod/qa-site-url"
-      - name: set dev (and preview) variables
-        uses: 1password/load-secrets-action@v1
-        with:
-          # Export loaded secrets as environment variables
-          export-env: true
-        if: github.ref != 'refs/heads/prod' && github.ref != 'refs/heads/qa'
-        env: 
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          CMS_URL: "op://DevOps/biel-env-vars/dev/dev-cms-url"
-          SITE_URL: "op://DevOps/biel-env-vars/prod/prod-site-url"
+          WORDPRESS_GQL_URL: "op://DevOps/biel-env-vars/prod/prod-graphql-url"
+
       - name: Checkout
         uses: actions/checkout@v3
       - name: get pnpm
@@ -90,6 +86,7 @@ jobs:
             SITE_URL:  ${{ env.SITE_URL }}
             WORDPRESS_GQL_PATH: ${{ env.WORDPRESS_GQL_PATH }}
             TRANSLATIONS_JSON_ENDPOINT: ${{ env.TRANSLATIONS_JSON_ENDPOINT }}
+            PUBLIC_DATA_API_URL: ${{ env.PUBLIC_DATA_API_URL }}
       - name: Publish
         uses: cloudflare/pages-action@1
         with:

@@ -1,10 +1,6 @@
 import type {ghFile} from "@src/data/github";
 import type {i18nDict} from "@src/i18n/strings";
-import type {
-  contentsForLang,
-  languageForClient,
-  langWithContent,
-} from "@src/data/pubDataApi";
+import type {contentsForLang, languageForClient} from "@src/data/pubDataApi";
 
 declare global {
   interface CacheStorage {

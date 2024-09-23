@@ -1,12 +1,10 @@
 import {DropdownMenu} from "@kobalte/core/dropdown-menu";
-import {createSignal, For, Show, type Accessor, createEffect} from "solid-js";
+import {createSignal, For, Show, createEffect} from "solid-js";
 import {createVirtualizer, Virtualizer} from "@tanstack/solid-virtual";
 import {DownloadOptions} from "../DownloadOptions";
 import {useResourceSingleContext} from "../ResourceSingleContext";
 
-type TwMenuProps = {};
-
-export default function TwMenu(props: TwMenuProps) {
+export default function TwMenu() {
   const {twState, setTwState, isBig} = useResourceSingleContext();
 
   const [menuIsOpen, setMenuIsOpen] = createSignal(false);

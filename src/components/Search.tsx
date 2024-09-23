@@ -1,8 +1,7 @@
 // Import necessary modules from SolidJS
-import {For, Show, createSignal, onCleanup, onMount} from "solid-js";
+import {For, Show, createSignal, onCleanup} from "solid-js";
 import {getDict} from "@src/i18n/strings.js";
 import {MangifyingGlass} from "@components/Icons";
-import {hydrate} from "solid-js/web";
 
 type SearchProps = {
   langCode: string;

@@ -183,63 +183,6 @@ export function HeaderMenu(props: HeaderMenuProps) {
   );
 }
 
-type leafNodeProps = {
-  menuItem: MenuItem;
-  href: string;
-};
-function LeafNode(props: leafNodeProps) {
-  return (
-    <a
-      class="flex flex-col p-2 rounded-lg block hover:(bg-blue-50 text-blue-700) focus:(bg-blue-50 text-blue-700)"
-      href={props.href}
-    >
-      <span class={"font-bold text-lg"}>{props.menuItem.title}</span>
-      <span>{props.menuItem.description || "Lorem text for leaf here"}</span>
-    </a>
-  );
-}
-// function ParentBranch()
-
-/* 
-  <ul class="p-4 grid grid-cols-[repeat(auto-fit,minmax(175px,1fr))] gap-4 w-full">
-                            <For each={menuLink.children}>
-                              {(nested) => {
-                                return (
-                                  <li class="flex flex-col gap-4">
-                                    <Switch>
-                                      <Match when={isAlsoParent(nested)}>
-                                        <span class={"text-sm font-[#66768B]"}>
-                                          {nested.title}
-                                        </span>
-                                      </Match>
-                                      <Match when={!isAlsoParent(nested)}>
-                                        <LeafNode
-                                          menuItem={nested}
-                                          href={shapeLink(nested)}
-                                        />
-                                      </Match>
-                                    </Switch>
-                                    <Show when={nested.children?.length}>
-                                      <ul class="flex flex-col gap-4">
-                                        <For each={nested.children}>
-                                          {(child) => {
-                                            return (
-                                              <LeafNode
-                                                menuItem={child}
-                                                href={shapeLink(child)}
-                                              />
-                                            );
-                                          }}
-                                        </For>
-                                      </ul>
-                                    </Show>
-                                  </li>
-                                );
-                              }}
-                            </For>
-                          </ul>
-*/
-
 type FeaturedMenuItemProps = {
   shapeLink: (link: MenuItem) => string;
   featured: MenuItem;

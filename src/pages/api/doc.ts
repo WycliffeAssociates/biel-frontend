@@ -2,7 +2,7 @@ export const prerender = false;
 import type {APIRoute} from "astro";
 import {type docRequest} from "@customTypes/types";
 
-export const POST: APIRoute = async ({request, url}) => {
+export const POST: APIRoute = async ({request}) => {
   const baseUrl = "https://doc-api.bibleineverylanguage.org";
   const body = (await request.json()) as docRequest;
   const docUrl = body.generate_docx

@@ -16,8 +16,6 @@ import {
   getOtherLanguagesPagesList,
   determineShowGlobal,
 } from "@src/utils";
-// import {HeaderMenu} from "@components/HeaderMenu";
-import {HeaderMenuOld} from "@components/HeaderMenuOld";
 import {HeaderMenu} from "@components/HeaderMenu";
 import {blocksAreEmpty} from "@lib/web";
 import type {WpPage} from "@customTypes/types";
@@ -47,17 +45,32 @@ export async function getStaticPaths() {
     const pages = getDevCachedPages(forceRefresh);
     if (pages) return pages;
   }
+  const gqlUrl =
+    import.meta.env.WORDPRESS_GQL_URL ||
+    Astro.locals.runtime.env?.WORDPRESS_GQL_URL;
+  const restUrl =
+    import.meta.env.WORDPRESS_REST_MENU_ENDPOINT ||
+    Astro.locals.runtime.env?.WORDPRESS_REST_MENU_ENDPOINT;
 
   try {
-    const {pagesByLangCode} = await getAllPages();
-    const menus = await getMenus();
+    const {pagesByLangCode} = await getAllPages({gqlUrl});
+    const menus = await getMenus({restUrl});
     // Due to fetching constraints, we can still the contact sections for all langs that are translated.
-    const contactGlobal = await getGlobal("contact", "en");
+    // todo: un hard code englihs. Only had here for previewing
+    const contactGlobal = await getGlobal({
+      slug: "contact",
+      langCode: "en",
+      gqlUrl,
+    });
     const contactGlobalAll = contactGlobal?.allLangsGlobal;
-    const ctaGlobal = await getGlobal("cta-interior-2", "en");
+    const ctaGlobal = await getGlobal({
+      slug: "cta-interior-2",
+      langCode: "en",
+      gqlUrl,
+    });
     const ctaGlobalAll = ctaGlobal?.allLangsGlobal;
     const nonHiddenLanguages = new Set(Object.keys(menus));
-    const wpmlLangDict = await getWpmlLanguages();
+    const wpmlLangDict = await getWpmlLanguages({gqlUrl});
 
     // each key is a lang.  If it's not hidden, keep it, if not, toss the whole object;
     const nonHiddenPages = getNonHiddenPages({

@@ -21,7 +21,7 @@ heroLinks {
   heroLinkIcon
 }
 `;
-export async function getHomePage() {
+export async function getHomePage({gqlUrl}: {gqlUrl: string}) {
   const query = `
     query homePage {
       page(id: "/", idType: URI) {
@@ -33,9 +33,7 @@ export async function getHomePage() {
       }
     }
   `;
-  const gqlUrl = `${import.meta.env.CMS_URL}/${
-    import.meta.env.WORDPRESS_GQL_PATH
-  }`;
+  // todo: see fi I cna fix url for prod by passing in env. everywehre there is a gql url. Gotta use the CF rutime and pass it in.
   const response = await fetch(gqlUrl, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
@@ -45,7 +43,7 @@ export async function getHomePage() {
 
   return json.data;
 }
-export async function getResourcePageSlugs() {
+export async function getResourcePageSlugs({gqlUrl}: {gqlUrl: string}) {
   const query = `
   query resourcesSlugsQuery {
   page(id: "resources", idType: URI) {
@@ -59,9 +57,6 @@ export async function getResourcePageSlugs() {
   }
 }
   `;
-  const gqlUrl = `${import.meta.env.CMS_URL}/${
-    import.meta.env.WORDPRESS_GQL_PATH
-  }`;
 
   const response = await fetch(gqlUrl, {
     method: "POST",
@@ -79,7 +74,16 @@ export async function getResourcePageSlugs() {
   };
   return json;
 }
-export async function getPage(uri: string, langCode: string) {
+
+export async function getPage({
+  uri,
+  langCode,
+  gqlUrl,
+}: {
+  uri: string;
+  langCode: string;
+  gqlUrl: string;
+}) {
   const allPagesOfThisLangReq = `
     query allPagesThisLang($lang: String!) {
       pages(where: {language: $lang}, first: 100) {
@@ -93,9 +97,6 @@ export async function getPage(uri: string, langCode: string) {
   if (uri.includes("home")) {
     uri = "/";
   }
-  const gqlUrl = `${import.meta.env.CMS_URL}/${
-    import.meta.env.WORDPRESS_GQL_PATH
-  }`;
 
   const response = await fetch(gqlUrl, {
     method: "POST",
@@ -217,7 +218,7 @@ export async function getPage(uri: string, langCode: string) {
 }
 
 // todo: tag the resourcesPage and then in stat /slug/whatever use server:defer to make it a server island, just cause I don't want to render the header (and maybe the footer) on the server.  Yeah, in fact, just use a server catch all route in the root of pages, import from build time a /ressources/x... typee thing. And then /ressources is the single and /x routes to view of that lang content
-export async function getAllPages() {
+export async function getAllPages({gqlUrl}: {gqlUrl: string}) {
   // todo: gql has an ancestors field, but it only seems to populate for english. But given that this fetches from english and has all pages, For each translation, I should be able to do an allPages.find(englishPage -> englishPage.slug == its ancestor slug) to populate across. Or rather, ancesotrs for each ancestor, allPages.find(ep => ep.slug == ancestor.slug) and then translations.find on that.
   const query = `
     query allPages {
@@ -274,9 +275,6 @@ export async function getAllPages() {
       }
     }
   `;
-  const gqlUrl = `${import.meta.env.CMS_URL}/${
-    import.meta.env.WORDPRESS_GQL_PATH
-  }`;
   const response = await fetch(gqlUrl, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
@@ -381,7 +379,7 @@ export async function getAllPages() {
 
   return {pagesByLangCode};
 }
-export async function getWpmlLanguages() {
+export async function getWpmlLanguages({gqlUrl}: {gqlUrl: string}) {
   const query = `
     query langs {
       languages {
@@ -393,9 +391,6 @@ export async function getWpmlLanguages() {
       }
     }
   `;
-  const gqlUrl = `${import.meta.env.CMS_URL}/${
-    import.meta.env.WORDPRESS_GQL_PATH
-  }`;
   const response = await fetch(gqlUrl, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
@@ -415,11 +410,8 @@ export async function getWpmlLanguages() {
 
   return asMap;
 }
-export async function getMenus() {
-  const restURl = `${import.meta.env.CMS_URL}/${
-    import.meta.env.WORDPRESS_REST_MENU_ENDPOINT
-  }`;
-  const result = await fetch(restURl, {
+export async function getMenus({restUrl}: {restUrl: string}) {
+  const result = await fetch(restUrl, {
     headers: {"Content-Type": "application/json"},
   });
   if (!result.ok) {
@@ -443,7 +435,15 @@ export async function getMenus() {
   return res;
 }
 
-export async function getGlobal(slug: string, langCode: string) {
+export async function getGlobal({
+  slug,
+  langCode,
+  gqlUrl,
+}: {
+  slug: string;
+  langCode: string;
+  gqlUrl: string;
+}) {
   const query = `
     query getGlobal {
       global(id: "${slug}", idType: SLUG) {
@@ -457,9 +457,6 @@ export async function getGlobal(slug: string, langCode: string) {
       }
     }
   `;
-  const gqlUrl = `${import.meta.env.CMS_URL}/${
-    import.meta.env.WORDPRESS_GQL_PATH
-  }`;
   try {
     const response = await fetch(gqlUrl, {
       method: "POST",
@@ -503,7 +500,13 @@ export async function getGlobal(slug: string, langCode: string) {
     console.error(error);
   }
 }
-export async function getFooter(langCode: string) {
+export async function getFooter({
+  langCode,
+  gqlUrl,
+}: {
+  langCode: string;
+  gqlUrl: string;
+}) {
   const footerSlug = "footer-new";
   const query = `
     query getFooter {
@@ -518,9 +521,6 @@ export async function getFooter(langCode: string) {
       }
     }
   `;
-  const gqlUrl = `${import.meta.env.CMS_URL}/${
-    import.meta.env.WORDPRESS_GQL_PATH
-  }`;
   try {
     const response = await fetch(gqlUrl, {
       method: "POST",

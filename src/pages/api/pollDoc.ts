@@ -1,7 +1,7 @@
 export const prerender = false;
 import type {APIRoute} from "astro";
 
-export const POST: APIRoute = async ({request, url}) => {
+export const POST: APIRoute = async ({request}) => {
   const baseUrl = "https://doc-api.bibleineverylanguage.org";
   console.log("hitting polling endpoint");
   try {
@@ -23,7 +23,8 @@ export const POST: APIRoute = async ({request, url}) => {
     console.log(json);
     if (state === "SUCCESS") {
       const downloadUrl = `https://doc-files.bibleineverylanguage.org/${result}.${suffix}`;
-      const finalRes = await fetch(downloadUrl);
+      // todo we could not proxy this through the sw and just return binary  stuff here and not in sw. check ohter end of route
+      // const finalRes = await fetch(downloadUrl);
       return new Response(JSON.stringify(json), {
         headers: {
           "Access-Control-Allow-Origin": "*",

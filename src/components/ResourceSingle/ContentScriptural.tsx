@@ -275,11 +275,6 @@ function MenuDialog(props: MenuDialogProps) {
     </div>
   );
 }
-type DownloadOptionsProps = {
-  // allContent: RenderedContentRow[];
-  zipSrc: () => zipSrcBodyReq;
-  currentContent: ScriptureStoreState;
-};
 
 type NavAdjacentButtonProps = {
   dir: "next" | "prev";

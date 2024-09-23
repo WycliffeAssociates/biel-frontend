@@ -30,7 +30,7 @@ export async function getBielFiles() {
             const name = nameParts[nameParts.length - 1]!;
             const url = current.url;
             const book = Object.entries(matchingMeta.books).find(
-              ([bookName, value]) => {
+              ([bookName]) => {
                 return current.path.includes(bookName);
               }
             );
@@ -183,19 +183,6 @@ export async function getTsFiles(language: string | undefined) {
   const asArr = Object.entries(formatted[language]);
   return asArr;
 }
-let filters = {
-  isBlob: (f: ghFile) => f.type === "blob",
-  isReviewerGuide: (
-    f: ghFile,
-    metaObj: (typeof reviewersGuideMeta)[keyof typeof reviewersGuideMeta]
-  ) => {
-    return f.path.includes(metaObj.dir_name);
-  },
-  isSupportedFormat: (f: ghFile) => {
-    const supportedFormats = ["zip", "pdf", "docx"];
-    return supportedFormats.some((format) => f.path.endsWith(`.${format}`));
-  },
-};
 
 type shaped = {
   [lang_code: string]: {

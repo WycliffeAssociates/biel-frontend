@@ -4,7 +4,6 @@ import "../styles/global.scss";
 import "../styles/vars.scss";
 import "../styles/reader.css";
 import type {languageType} from "@customTypes/types";
-import Blocks from "@components/Blocks.astro";
 import {pwaInfo} from "virtual:pwa-info";
 
 interface Props {
@@ -16,7 +15,6 @@ interface Props {
   langDirection: "ltr" | "rtl";
 }
 import {ViewTransitions} from "astro:transitions";
-import {adjustCmsDomLinks} from "@src/utils";
 const {title, inlineCss, langInfo, langSwitcher, description, langDirection} =
   Astro.props;
 let allStyles = [...inlineCss];

@@ -16,11 +16,13 @@ interface Props {
 }
 import {ViewTransitions} from "astro:transitions";
 import {adjustCmsDomLinks} from "@src/utils";
-
+const gqlUrl =
+  import.meta.env.WORDPRESS_GQL_URL ||
+  Astro.locals.runtime.env?.WORDPRESS_GQL_URL;
 const {title, inlineCss, langInfo, langSwitcher, isContactPage, langDirection} =
   Astro.props;
 // const forceRefresh = false;
-const footerData = await getFooter(langInfo.code);
+const footerData = await getFooter({langCode: langInfo.code, gqlUrl});
 let {footerInlineStyles, footer} = footerData
   ? footerData
   : {footerInlineStyles: "", footer: {content: ""}};
@@ -64,6 +66,7 @@ const dedupedInlineStyles = [...deduped].join("\n");
           src="https://challenges.cloudflare.com/turnstile/v0/api.js"
           async
           defer
+          is:inline
         />
       )
     }

@@ -114,7 +114,7 @@ registerRoute(
       return true;
     }
   },
-  async ({url, request}) => {
+  async ({request}) => {
     const formData = await request.formData();
     let payload = formData.get("zipPayload");
     const asObj = JSON.parse(payload as string) as {

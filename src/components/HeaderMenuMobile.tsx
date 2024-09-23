@@ -31,8 +31,6 @@ export function HeaderMenuMobile(props: HeaderMenuProps) {
   const [activePane, setActivePane] = createSignal<number | string | null>();
   const [scrollPos, setScrollPost] = createSignal<number | null>();
 
-  // todo: I think just opacity, or slide left/right tween between top menu and sub menu
-
   function closeMenu(e: KeyboardEvent) {
     if (e.key == "Escape" && isOpen()) {
       setIsOpen(false);
@@ -205,19 +203,6 @@ export function HeaderMenuMobile(props: HeaderMenuProps) {
         </Show>
       </nav>
     </div>
-  );
-}
-
-type leafNodeProps = {
-  menuItem: MenuItem;
-  href: string;
-};
-function LeafNode(props: leafNodeProps) {
-  return (
-    <a class="flex flex-col" href={props.href}>
-      <span class={"font-bold"}>{props.menuItem.title}</span>
-      <span>{props.menuItem.description || "Lorem text for leaf here"}</span>
-    </a>
   );
 }
 

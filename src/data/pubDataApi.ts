@@ -7,7 +7,6 @@ import type {
   ExecutionContext,
   Request as WorkerRequest,
   Response as WorkerResponse,
-  Headers as WorkerHeaders,
 } from "@cloudflare/workers-types";
 type getLanguagesWithContentForBielArgs = {
   cache: Cache;

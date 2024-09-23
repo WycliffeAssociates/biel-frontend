@@ -4,19 +4,23 @@ import {getGlobal, getMenus, getPage, getWpmlLanguages} from "@src/data/wp";
 import LayoutServer from "@layouts/LayoutServer.astro";
 import Blocks from "@components/Blocks.astro";
 import {DOMParser} from "linkedom/worker";
-// import {HeaderMenu} from "@components/HeaderMenu";
-import {HeaderMenuOld} from "@components/HeaderMenuOld";
 import {HeaderMenu} from "@components/HeaderMenu";
 import TranslationsPageOld from "@components/TranslationsPageOld/TranslationPageOld.astro";
 import {blocksAreEmpty} from "@lib/web";
 import {getDict} from "@src/i18n/strings";
 import {adjustCmsDomLinks, determineShowGlobal} from "@src/utils";
 import ContactPage from "@components/ContactPage.astro";
+const gqlUrl =
+  import.meta.env.WORDPRESS_GQL_URL ||
+  Astro.locals.runtime.env?.WORDPRESS_GQL_URL;
+const restUrl =
+  import.meta.env.WORDPRESS_REST_MENU_ENDPOINT ||
+  Astro.locals.runtime.env?.WORDPRESS_REST_MENU_ENDPOINT;
 // style id=generateblocks-inline-css
 // const res = await fetch("http://bible-in-every-language.local/headless/");
 const {slug} = Astro.params;
 if (!slug) return Astro.redirect("/404");
-const wpmlLangDict = await getWpmlLanguages();
+const wpmlLangDict = await getWpmlLanguages({gqlUrl});
 const parts = slug.split("/");
 const firstPart = parts[0] || "";
 const langInfo = !!wpmlLangDict[firstPart]
@@ -24,11 +28,23 @@ const langInfo = !!wpmlLangDict[firstPart]
   : wpmlLangDict.en;
 if (!langInfo) return Astro.redirect("/404");
 // const langInfo.language_code = !!wpmlLangDict[firstPart] ? firstPart : "en";
-const page = await getPage(slug, langInfo.language_code);
-const ctaSection = await getGlobal("cta-interior-2", langInfo.language_code);
-const contactSection = await getGlobal("contact", langInfo.language_code);
+const page = await getPage({
+  uri: slug,
+  langCode: langInfo.language_code,
+  gqlUrl,
+});
+const ctaSection = await getGlobal({
+  slug: "cta-interior-2",
+  langCode: langInfo.language_code,
+  gqlUrl,
+});
+const contactSection = await getGlobal({
+  slug: "contact",
+  langCode: langInfo.language_code,
+  gqlUrl,
+});
 if (!page) return Astro.redirect("/404");
-const menus = await getMenus();
+const menus = await getMenus({restUrl});
 const nonHiddenLanguages = new Set(Object.keys(menus));
 const enSrcResponse = await fetch(page.link);
 const pageRendered = await enSrcResponse.text();

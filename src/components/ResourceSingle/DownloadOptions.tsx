@@ -11,14 +11,13 @@ import {createSignal, For, Show, type Accessor, type Setter} from "solid-js";
 import {useResourceSingleContext} from "./ResourceSingleContext";
 import {type i18nDict} from "@src/i18n/strings";
 
-type DownloadOptionsProps = {};
 type DownloadArgs = {
   fileType: "PDF" | "EPUB" | "DOCX" | "SOURCE";
   includeTranslationsNotes: boolean;
   includeAllBooks: boolean;
 };
 
-export function DownloadOptions(props: DownloadOptionsProps) {
+export function DownloadOptions() {
   const {
     activeContent,
     resourceTypes,
