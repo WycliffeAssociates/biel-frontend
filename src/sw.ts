@@ -135,7 +135,6 @@ registerRoute(
     async function* fetchExternal() {
       for (const f of asObj.payload) {
         try {
-          encodeURI(f.url);
           const res = await fetch(
             `/api/fetchExternal?url=${encodeURIComponent(f.url)}&hash=${f.sha}`
           );
@@ -158,7 +157,7 @@ registerRoute(
       const stream = downloadZip(fetchExternal());
       return new Response(stream.body, {
         headers: {
-          "Content-Disposition": `attachment; filename="${encodeURI(
+          "Content-Disposition": `attachment; filename="${encodeURIComponent(
             asObj.name
           )}.zip"`,
           "Content-Length": totalSize,
