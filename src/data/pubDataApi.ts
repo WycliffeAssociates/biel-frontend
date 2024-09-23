@@ -51,7 +51,6 @@ query MyQuery {
 }
 `;
   console.log(query);
-  // todo env var;  try/catch.
   const swrThresholdSeconds = 40;
   const oneYearInSeconds = 60 * 60 * 24 * 365;
   try {

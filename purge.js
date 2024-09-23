@@ -67,8 +67,9 @@ await handleInlineStyleInGeneratedFiles();
 async function purgeAgainstAdditionalGlobals() {
   const purgeCss = new PurgeCSS();
 
+  // todo: default extractor doesn't consider @, :, and /, so it isn't picking up stuff like md:block in server routes.  Just ignore this add'l globals route for now and only purge inline styles
   const results = await purgeCss.purge({
-    content: ["./dist/**/*.html", "./dist/**/*js", "./dist/**/*.mjs"],
+    content: ["./dist/**/*.html", "./dist/**/*.js", "./dist/**/*.mjs"],
     css: ["./dist/**/*.css"],
     variables: true,
     rejected: true,
@@ -87,4 +88,4 @@ async function purgeAgainstAdditionalGlobals() {
       });
     });
 }
-await purgeAgainstAdditionalGlobals();
+// await purgeAgainstAdditionalGlobals();
