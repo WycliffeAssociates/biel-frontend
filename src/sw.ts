@@ -49,7 +49,9 @@ registerRoute(
         async function* fetchExternal() {
           for (const f of asObj.payload.files) {
             try {
-              const url = `/api/fetchExternal?url=${f.url}&hash=${f.hash}`;
+              const url = `/api/fetchExternal?url=${encodeURIComponent(
+                f.url
+              )}&hash=${f.hash}`;
               const splitOnSlashes = f.url.split("/");
               const nextToLast = splitOnSlashes[splitOnSlashes.length - 2];
               const cacheMatch = await caches.match(url, {
@@ -133,8 +135,9 @@ registerRoute(
     async function* fetchExternal() {
       for (const f of asObj.payload) {
         try {
+          encodeURI(f.url);
           const res = await fetch(
-            `/api/fetchExternal?url=${f.url}&hash=${f.sha}`
+            `/api/fetchExternal?url=${encodeURIComponent(f.url)}&hash=${f.sha}`
           );
           yield {
             name: `${f.path}`,
@@ -164,7 +167,8 @@ registerRoute(
       });
     } catch (error) {
       // todo: fix this error handling
-      return fetch("");
+      console.error(error);
+      // return fetch("");
     }
   },
   "POST"
