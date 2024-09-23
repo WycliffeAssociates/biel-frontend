@@ -35,12 +35,11 @@ jobs:
           CF_ACCOUNT_ID: "op://DevOps/cloudflare-worker-deploy-token/CF_ACCOUNT_ID"
           CF_API_TOKEN: "op://DevOps/cloudflare-worker-deploy-token/CF_API_TOKEN"
           TRANSLATIONS_JSON_ENDPOINT: "op://DevOps/biel-env-vars/common/translations-json-endpoint"
-          WORDPRESS_GQL_PATH: "op://DevOps/biel-env-vars/common/wordpress-gql-path"
           WORDPRESS_REST_MENU_ENDPOINT: "op://DevOps/biel-env-vars/${{ steps.determine_env.outputs.ENV }}/${{ steps.determine_env.outputs.ENV }}-rest-menu-endpoint"
           CMS_URL: "op://DevOps/biel-env-vars/${{ steps.determine_env.outputs.ENV }}/${{ steps.determine_env.outputs.ENV }}-cms-url"
           SITE_URL: "op://DevOps/biel-env-vars/${{ steps.determine_env.outputs.ENV }}/${{ steps.determine_env.outputs.ENV }}-site-url"
           WORDPRESS_GQL_URL: "op://DevOps/biel-env-vars/${{ steps.determine_env.outputs.ENV }}/${{ steps.determine_env.outputs.ENV }}-graphql-url"
-          PUBLIC_DATA_API_URL: "op://DevOps/biel-env-vars/common/${{ steps.determine_env.outputs.ENV }}-public-data-api-url"
+          PUBLIC_DATA_API_URL: "op://DevOps/biel-env-vars/${{ steps.determine_env.outputs.ENV }}/${{ steps.determine_env.outputs.ENV }}-public-data-api-url"
       - name: set prod variables
         uses: 1password/load-secrets-action@v1
         with:
@@ -84,7 +83,7 @@ jobs:
         env:
             CMS_URL:  ${{ env.CMS_URL }}
             SITE_URL:  ${{ env.SITE_URL }}
-            WORDPRESS_GQL_PATH: ${{ env.WORDPRESS_GQL_PATH }}
+            WORDPRESS_GQL_URL:  ${{ env.WORDPRESS_GQL_URL }}
             TRANSLATIONS_JSON_ENDPOINT: ${{ env.TRANSLATIONS_JSON_ENDPOINT }}
             PUBLIC_DATA_API_URL: ${{ env.PUBLIC_DATA_API_URL }}
       - name: Publish
