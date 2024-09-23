@@ -168,7 +168,7 @@ registerRoute(
     } catch (error) {
       // todo: fix this error handling
       console.error(error);
-      // return fetch("");
+      return fetch("");
     }
   },
   "POST"
