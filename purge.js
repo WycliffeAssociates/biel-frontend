@@ -68,7 +68,7 @@ async function purgeAgainstAdditionalGlobals() {
   const purgeCss = new PurgeCSS();
 
   const results = await purgeCss.purge({
-    content: ["./dist/**/*.html", "./dist/_astro/*.js"],
+    content: ["./dist/**/*.html", "./dist/**/*js", "./dist/**/*.mjs"],
     css: ["./dist/**/*.css"],
     variables: true,
     rejected: true,
@@ -77,7 +77,6 @@ async function purgeAgainstAdditionalGlobals() {
     },
     rejectedCss: true,
   });
-
   results
     .filter((r) => !!r.file)
     .forEach((res) => {

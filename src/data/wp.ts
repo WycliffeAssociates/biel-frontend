@@ -72,6 +72,18 @@ export async function getResourcePageSlugs({gqlUrl}: {gqlUrl: string}) {
       };
     };
   };
+  /* 
+ { languageCode: 'es', slug: 'recursos', title: 'Recursos' },
+    { languageCode: 'fa', slug: 'منابع', title: 'منابع' },
+    { languageCode: 'fr', slug: 'ressources', title: 'Les ressources' },
+    { languageCode: 'hi', slug: 'संसाधनों', title: 'संसाधनों' },
+    { languageCode: 'id', slug: 'sumber-daya', title: 'Sumber Daya' },
+    { languageCode: 'pt-br', slug: 'recursos', title: 'Recursos' },
+    { languageCode: 'ru', slug: 'ресурсы', title: 'Ресурсы' },
+    { languageCode: 'th', slug: 'ทรัพยากร', title: 'ทรัพยากร' },
+    { languageCode: 'ur', slug: 'وسائل', title: 'وسائل' },
+    { languageCode: 'zh-hans', slug: '资源', title: '资源' }
+*/
   return json;
 }
 

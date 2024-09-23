@@ -71,16 +71,6 @@ export default defineConfig({
       enabled: true,
       configPath: ".dev.vars",
     },
-    routes: {
-      extend: {
-        exclude: [
-          {pattern: "/fonts/**/*"},
-          {pattern: "/icon-*"},
-          {pattern: "/images/**/*"},
-          {pattern: "/pagefind/**/*"},
-        ],
-      },
-    },
   }),
   image: {
     domains: ["https://bieldev.wpengine.com"],

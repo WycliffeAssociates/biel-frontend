@@ -1,5 +1,5 @@
 // Import necessary modules from SolidJS
-import {For, Show, createSignal, onCleanup} from "solid-js";
+import {For, Show, createSignal, onCleanup, onMount} from "solid-js";
 import {getDict} from "@src/i18n/strings.js";
 import {MangifyingGlass} from "@components/Icons";
 
@@ -27,6 +27,9 @@ export function Search(props: SearchProps) {
   //     );
   //   }
   // });
+  onMount(async () => {
+    window.pagefind = await import("../pagefind/pagefind.js");
+  });
   const handleInput = async (e: KeyboardEvent) => {
     const target = e.target as HTMLInputElement;
     const inputValue = target?.value;
@@ -60,7 +63,6 @@ export function Search(props: SearchProps) {
     // @ts-ignore
     if (!import.meta.env.SSR && window.pagefind) {
       console.log("Cleaning up pagefind");
-      // @ts-ignore
       window.pagefind.destroy();
     }
     // }
