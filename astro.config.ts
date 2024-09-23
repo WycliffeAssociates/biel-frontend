@@ -50,7 +50,7 @@ export default defineConfig({
       filename: "sw.ts",
       registerType: "autoUpdate",
       injectManifest: {
-        globIgnores: ["**/*.html", "sw.js"],
+        globIgnores: ["**/*.html", "sw.js", "**/_worker.js/**"],
         globPatterns: ["**/*.{js,css}", "fonts/**/*", "images/**/*"],
       },
       /* your pwa options */
