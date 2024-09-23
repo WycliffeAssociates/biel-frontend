@@ -5,7 +5,8 @@ import type {Response as WorkerResponse} from "@cloudflare/workers-types";
 export const GET: APIRoute = async ({url, locals}) => {
   const queryParams = url.searchParams;
   const urlToFetch = queryParams.get("url");
-  const hashParam = queryParams.get("hash");
+  // const hashParam = queryParams.get("hash");
+  const hashParam = null;
   const runtime = locals.runtime;
 
   if (!urlToFetch) {

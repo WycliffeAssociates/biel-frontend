@@ -49,7 +49,7 @@ registerRoute(
         async function* fetchExternal() {
           for (const f of asObj.payload.files) {
             try {
-              const url = `/api/fetchExternal?url=${f.url}?hash=${f.hash}`;
+              const url = `/api/fetchExternal?url=${f.url}&hash=${f.hash}`;
               const splitOnSlashes = f.url.split("/");
               const nextToLast = splitOnSlashes[splitOnSlashes.length - 2];
               const cacheMatch = await caches.match(url, {
