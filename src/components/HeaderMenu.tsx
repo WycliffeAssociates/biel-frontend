@@ -75,7 +75,7 @@ export function HeaderMenu(props: HeaderMenuProps) {
       <Show when={canHover() && isBig()}>
         <div class="relative">
           <nav
-            class="relative p-4 flex items-center justify-between z-10 contain h-20"
+            class="relative p-4 flex items-center justify-between z-20 contain h-20"
             onBlur={() => setActiveIdx(null)}
             onMouseLeave={() => setActiveIdx(null)}
           >
@@ -108,7 +108,7 @@ export function HeaderMenu(props: HeaderMenuProps) {
                         <Show
                           when={isParent(menuLink) && paneIsActive(index())}
                         >
-                          <div class="bg-white  fixed top-20 left-0 w-full">
+                          <div class="bg-white  absolute top-20 left-0 w-full">
                             <div class="contain py-4 flex gap-10">
                               <div class="p-4 flex flex-col gap-2 w-1/4">
                                 <div class="flex gap-2 items-center">

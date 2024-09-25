@@ -24,6 +24,16 @@ registerRoute(
     }
   },
   async ({request}) => {
+    const text = "hello";
+    const blob = new Blob([text], {type: "application/octet-stream"});
+    console.log(`returning hello`);
+    return new Response(blob, {
+      headers: {
+        "Content-Disposition": 'attachment; filename="ex.txt"',
+        // "Content-Length": String(blob.length),
+        "Content-Type": "application/octet-stream",
+      },
+    });
     const formData = await request.formData();
     let payload = formData.get("zipPayload");
     const asObj = JSON.parse(payload as string) as {
@@ -112,11 +122,11 @@ registerRoute(
 // Proxy TS files from github
 registerRoute(
   ({request}) => {
-    if (request.url.includes("ts-zip-files")) {
+    if (request.url.includes("sw-proxy-ts")) {
       return true;
-    }
+    } else return false;
   },
-  async ({request}) => {
+  async ({request, event}) => {
     const formData = await request.formData();
     let payload = formData.get("zipPayload");
     const asObj = JSON.parse(payload as string) as {
@@ -157,7 +167,7 @@ registerRoute(
       const stream = downloadZip(fetchExternal());
       return new Response(stream.body, {
         headers: {
-          "Content-Disposition": `attachment; filename="${encodeURIComponent(
+          "Content-Disposition": `attachment; filename="${encodeURI(
             asObj.name
           )}.zip"`,
           "Content-Length": totalSize,

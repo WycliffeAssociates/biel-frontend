@@ -159,7 +159,7 @@ export async function getPage({
         }
         pageOptions {
           topBlurb
-
+          ${heroFields}
         }
         editorBlocks(flat:true) {
          ${editorBlocksFields}
@@ -388,8 +388,66 @@ export async function getAllPages({gqlUrl}: {gqlUrl: string}) {
       }
     });
   }
-
+  const englishUrisMap = Object.values(pagesByLangCode.en!).reduce(
+    (acc: Record<string, Record<string, string>>, curr) => {
+      acc[curr.uri] = curr.otherVersions;
+      return acc;
+    },
+    {}
+  );
   return {pagesByLangCode};
+}
+
+/**
+ * Get a map of English URIs to their translations. When wpml acts up, you can strings replace all /resources with /es/recursos on a page as needed.
+ * @returns A Promise that resolves to an object with an `englishUriMap` property. The `englishUriMap` property is an object where the keys are the translated URIs and the values are the URIs of the English version of the page.
+ */
+export async function getEnglishUriMap({gqlUrl}: {gqlUrl: string}) {
+  const query = `
+  query allPages {
+      pages(first: 1000, where: {language: "en"}) {
+        nodes {
+          slug
+          uri
+          translations {
+            languageCode
+            uri
+          }
+      }
+  }
+}
+  `;
+  const response = await fetch(gqlUrl, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({query}),
+  });
+  const result = (await response.json()) as {
+    data: {
+      pages: {
+        nodes: Array<{
+          slug: string;
+          uri: string;
+          translations: Array<{
+            languageCode: string;
+            uri: string;
+          }>;
+        }>;
+      };
+    };
+  };
+
+  const asMap = result.data.pages.nodes.reduce(
+    (acc: Record<string, Record<string, string>>, enPage) => {
+      acc[enPage.uri] = {};
+      enPage.translations.forEach((t) => {
+        acc[enPage.uri]![t.languageCode] = t.uri;
+      });
+      return acc;
+    },
+    {}
+  );
+  return {englishUriMap: asMap};
 }
 export async function getWpmlLanguages({gqlUrl}: {gqlUrl: string}) {
   const query = `

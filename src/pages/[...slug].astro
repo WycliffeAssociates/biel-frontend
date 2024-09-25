@@ -199,6 +199,7 @@ const {
   ctaSection,
 } = Astro.props;
 // Generate something for seo, even if not great
+// todo: inject search if this is a home page.
 const description = page.editorBlocks
   .filter((b) => b.parentClientId == null)
   .map((block) => {

@@ -34,7 +34,17 @@ export function flatMenuToHierachical(menu: Menu) {
   return menu;
 }
 
-export function adjustCmsDomLinks(stringToParse: string) {
+type adjustCmsDomLinksArgs = {
+  stringToParse: string;
+  englishUriMap?: Record<string, Record<string, string>>;
+  currentLangCode?: string;
+};
+
+export function adjustCmsDomLinks(
+  stringToParse: string,
+  englishUriMap?: Record<string, Record<string, string>>,
+  currentLangCode?: string
+) {
   const wrapped = `<div id="absolutizeWrapper">${stringToParse}</div>`;
   const dom = new DOMParser().parseFromString(wrapped, "text/html");
   const images: HTMLImageElement[] = Array.from(dom.querySelectorAll("img"));
@@ -58,23 +68,37 @@ export function adjustCmsDomLinks(stringToParse: string) {
     }
   });
 
-  replaceAllAbsoluteLinksToCms(dom);
+  replaceAllAbsoluteLinksToCms(dom, englishUriMap, currentLangCode);
   const wrappedEl: HTMLDivElement | null =
     dom.querySelector("#absolutizeWrapper");
   const contentString = wrappedEl?.innerHTML;
   return contentString || "";
 }
 
-function replaceAllAbsoluteLinksToCms(dom: any) {
+// todo: this works, but I'd liek to pass objects all the way down to fix wpml's jankiness with the links, so do that tomorrow.
+function replaceAllAbsoluteLinksToCms(
+  dom: any,
+  englishUriMap?: Record<string, Record<string, string>>,
+  currentLangCode?: string
+) {
   const baseUrl = import.meta.env.CMS_URL;
   // allATags.forEach((t) => console.log(t.href));
   const aTags: NodeListOf<HTMLAnchorElement> = dom.querySelectorAll(
     `a[href^="${baseUrl}"]`
   );
+
+  // todo: wpml is so jank. I may need to search for absolute, and if it goes to the cms url, then try to replace it with the equivalent in its language on front end
   aTags.forEach((tag) => {
     const newHref = tag.href.replace(baseUrl, "");
     // console.log(`old was ${tag.href}, and new is ${newHref}`);
     tag.setAttribute("href", newHref);
+    if (englishUriMap && currentLangCode) {
+      console.log(`trying to localized ${newHref} on front end`);
+      if (englishUriMap[newHref] && englishUriMap[newHref][currentLangCode]) {
+        const localizedHref = englishUriMap[newHref][currentLangCode];
+        tag.setAttribute("href", localizedHref);
+      }
+    }
   });
 }
 

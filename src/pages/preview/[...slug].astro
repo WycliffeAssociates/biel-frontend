@@ -1,6 +1,12 @@
 ---
 export const prerender = false;
-import {getGlobal, getMenus, getPage, getWpmlLanguages} from "@src/data/wp";
+import {
+  getEnglishUriMap,
+  getGlobal,
+  getMenus,
+  getPage,
+  getWpmlLanguages,
+} from "@src/data/wp";
 import LayoutServer from "@layouts/LayoutServer.astro";
 import Blocks from "@components/Blocks.astro";
 import {DOMParser} from "linkedom/worker";
@@ -29,21 +35,40 @@ const langInfo = !!wpmlLangDict[firstPart]
   : wpmlLangDict.en;
 if (!langInfo) return Astro.redirect("/404");
 // const langInfo.language_code = !!wpmlLangDict[firstPart] ? firstPart : "en";
-const page = await getPage({
-  uri: slug,
-  langCode: langInfo.language_code,
-  gqlUrl,
-});
-const ctaSection = await getGlobal({
-  slug: "cta-interior-2",
-  langCode: langInfo.language_code,
-  gqlUrl,
-});
-const contactSection = await getGlobal({
-  slug: "contact",
-  langCode: langInfo.language_code,
-  gqlUrl,
-});
+const [page, ctaSection, contactSection, {englishUriMap}] = await Promise.all([
+  getPage({
+    uri: slug,
+    langCode: langInfo.language_code,
+    gqlUrl,
+  }),
+  getGlobal({
+    slug: "cta-interior-2",
+    langCode: langInfo.language_code,
+    gqlUrl,
+  }),
+  getGlobal({
+    slug: "contact",
+    langCode: langInfo.language_code,
+    gqlUrl,
+  }),
+  getEnglishUriMap({gqlUrl}),
+]);
+
+// const page = await getPage({
+//   uri: slug,
+//   langCode: langInfo.language_code,
+//   gqlUrl,
+// });
+// const ctaSection = await getGlobal({
+//   slug: "cta-interior-2",
+//   langCode: langInfo.language_code,
+//   gqlUrl,
+// });
+// const contactSection = await getGlobal({
+//   slug: "contact",
+//   langCode: langInfo.language_code,
+//   gqlUrl,
+// });
 if (!page) return Astro.redirect("/404");
 const menus = await getMenus({restUrl});
 const nonHiddenLanguages = new Set(Object.keys(menus));
@@ -163,7 +188,15 @@ const {title} = page;
           {page.editorBlocks
             .filter((b) => b.parentClientId == null)
             .map((block) => {
-              return <Blocks content={adjustCmsDomLinks(block.renderedHtml)} />;
+              return (
+                <Blocks
+                  content={adjustCmsDomLinks(
+                    block.renderedHtml,
+                    englishUriMap,
+                    langInfo.code
+                  )}
+                />
+              );
             })}
           {blocksAreEmpty(page.editorBlocks) && (
             <h2 class="">{getDict(langInfo.code, true)?.notYetTranslated}</h2>
@@ -213,7 +246,7 @@ const {title} = page;
     console.log(tag.href);
   });
   aTags.forEach((tag) => {
-    if (tag.href.includes(origin)) {
+    if (tag.href.includes(origin) && !tag.href.includes("preview")) {
       // https://bieldev.wpengine.com/processes/
       const split = tag.href.split(origin);
       if (split[1] && split[1] == "/") {

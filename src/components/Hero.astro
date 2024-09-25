@@ -37,13 +37,13 @@ const {pageOptions, title, featuredImage} = Astro.props;
           {pageOptions.topBlurb}
         </p>
 
-        <div class="flex gap-4">
+        <div class="flex flex-col md:flex-row gap-4">
           {
             pageOptions.heroLinks?.map((link) => {
               return (
                 <a
                   href={link.heroLinkUrl}
-                  class={`inline-flex items-center gap-2 w-fit py-2 px-16 rounded-2xl decoration-none! ${link.linkStyle == "filled" ? "border-x-2 border-t border-b-2 border-solid border-brand-darkest bg-brand-dark text-onSurface-invert!" : "bg-brand-light"}`}
+                  class={`inline-flex items-center gap-2 w-max py-2 px-12 rounded-2xl decoration-none! ${link.linkStyle == "filled" ? "border-x-2 border-t border-b-2 border-solid border-brand-darkest bg-brand-dark text-onSurface-invert!" : "bg-brand-light"}`}
                 >
                   {link.heroLinkIcon && (
                     <span

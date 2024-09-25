@@ -206,16 +206,30 @@ function TsFileDownload(props: {tsFile: tsFile}) {
   return (
     <div class="flex justify-between w-full p-2">
       {category}
-      <form action="/ts-zip-files" method="post">
+      <form
+        action="/sw-proxy-ts"
+        method="post"
+        class=""
+        data-js={`proxy-ts-${category}`}
+      >
         <input
           type="hidden"
           value={JSON.stringify(formPayload)}
           name="zipPayload"
         />
-        <button class="hover:(text-brand-base)">
-          <span class="i-ic:round-file-download w-4 h-4" />
-        </button>
       </form>
+      <button
+        class="hover:(text-brand-base)"
+        onClick={(e) => {
+          // todo: why does progrmamatic submission of form trigger octect stream downloads but not just clicking the bnt.  Took me forever to chase down it even does this, much less why? Might have to waitUntil in sw, but this works so sticking with it even if clunky
+          const form = document.querySelector(
+            `[data-js="proxy-ts-${category}"]`
+          ) as HTMLFormElement;
+          if (form) form.submit();
+        }}
+      >
+        <span class="i-ic:round-file-download w-4 h-4" />
+      </button>
     </div>
   );
 }

@@ -222,6 +222,14 @@ main img {
     @apply w-screen mx--1rem;
   }
 }
+.reveal-md {
+  @apply block;
+}
+@screen lt-md {
+  .reveal-md {
+    @apply hidden;
+  }
+}
 
 @screen md {
   .cta-shadow {
