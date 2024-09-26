@@ -227,7 +227,7 @@ function TsFileDownload(props: {tsFile: TsFile}) {
         type="button"
         class="hover:(text-brand-base)"
         onClick={(e) => {
-          // note: I don't know why progrmamatic submission of form trigger octect stream downloads but not just clicking the bnt.  They are just different Took me forever to chase down it even does this, much less why? Might have to waitUntil in sw, but this works so sticking with it even if clunky
+          // note: I don't know why progrmamatic submission of form trigger octect stream downloads but not just clicking the bnt.  They are just slightl difference in how forms submit when a user clicks it.  I don't know why though.
           const form = document.querySelector(
             `[data-js="proxy-ts-${category}"]`
           ) as HTMLFormElement;
