@@ -160,7 +160,7 @@ function Listing(props: ListingProps) {
     <li class="">
       <a
         class="flex flex-row-reverse gap-4 md:(grid grid-cols-[1fr_4fr_2fr] w-full justify-between) hover:bg-brand-light"
-        href={`${props.prefix}/${props.code}`}
+        href={`/${props.prefix}/${props.code}`}
       >
         <ListingCode value={props.code} />
         <div class="flex flex-col leading-tight w-full md:(flex-row justify-between)">
