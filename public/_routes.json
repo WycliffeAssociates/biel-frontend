@@ -5,14 +5,14 @@
     "/api/*",
     "/preview/*",
     "/resources/*",
-    "fa/منابع/*",
-    "fr/ressources/*",
-    "hi/संसाधनों/*",
-    "es/recursos/*",
-    "pt-br/recursos/*",
-    "ru/ресурсы/*",
-    "th/ทรัพยากร/*",
-    "ur/وسائل/*",
-    "zh-hans/资源/*"
+    "/fa/منابع/*",
+    "/fr/ressources/*",
+    "/hi/संसाधनों/*",
+    "/es/recursos/*",
+    "/pt-br/recursos/*",
+    "/ru/ресурсы/*",
+    "/th/ทรัพยากร/*",
+    "/ur/وسائل/*",
+    "/zh-hans/资源/*"
   ]
 }
