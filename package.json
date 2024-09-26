@@ -12,7 +12,7 @@
     "astro": "astro",
     "purgecss": "node ./purge.js",
     "dbcfdeploy": "wrangler pages deployment tail",
-    "pagefind": "node ./makePageFindIndex.js",
+    "pagefind": "tsx ./makePageFindIndex.js",
     "pflocal": "WORDPRESS_GQL_URL=https://bieldev.wpengine.com/index.php?graphql    TRANSLATIONS_JSON_ENDPOINT=https://bieldev.wpengine.com/wp-content/themes/bb-theme-child/data/translations.json tsx ./makePageFindIndex.js"
   },
   "dependencies": {
