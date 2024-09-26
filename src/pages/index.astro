@@ -1,85 +1,92 @@
 ---
+import { HeaderMenu } from "@components/HeaderMenu";
+import { injectSearch } from "@components/SearchInjectClientSide";
+import type { WpPage } from "@customTypes/types";
+import { cacheHomePageDev, getDevHomePage } from "@lib/caching";
+import {
+	getEnglishUriMap,
+	getHomePage,
+	getMenus,
+	getWpmlLanguages,
+} from "@src/data/wp";
+import { adjustCmsDomLinks } from "@src/utils";
+import { DOMParser } from "linkedom/worker";
+import Blocks from "../components/Blocks.astro";
 // export const prerender = false;
 import Layout from "../layouts/Layout.astro";
-import Blocks from "../components/Blocks.astro";
-import {getMenus, getWpmlLanguages, getHomePage} from "@src/data/wp";
-import {cacheHomePageDev, getDevHomePage} from "@lib/caching";
-import {adjustCmsDomLinks} from "@src/utils";
-import {DOMParser} from "linkedom/worker";
-import type {WpPage} from "@customTypes/types";
-import {HeaderMenu} from "@components/HeaderMenu";
-import {injectSearch} from "@components/Inject";
-// !NOTE: THIS IS ONLY THE ENGLISH PAGE, HECNE THE COERCCIONES AND HARDCODES TO .EN. THIS IS DUE TO WANTING TO ROUTE THE HOME PAGE TO /, BUT THE OTHER HOME PAGES ARE /ES FOR EXAMPLE
+// !NOTE: THIS IS ONLY THE ENGLISH PAGE, HECNE THE COERCCIONES AND HARDCODES TO .EN. THIS IS DUE TO WANTING TO ROUTE THE HOME PAGE TO /, BUT THE OTHER HOME PAGES ARE LOCALE PREFIXED /ES FOR EXAMPLE
 const forceRefresh = true;
 const gqlUrl =
-  import.meta.env.WORDPRESS_GQL_URL ||
-  Astro.locals.runtime.env?.WORDPRESS_GQL_URL;
+	import.meta.env.WORDPRESS_GQL_URL ||
+	Astro.locals.runtime.env?.WORDPRESS_GQL_URL;
 const resMenuUrl =
-  import.meta.env.WORDPRESS_REST_MENU_ENDPOINT ||
-  Astro.locals.runtime.env?.WORDPRESS_REST_MENU_ENDPOINT;
+	import.meta.env.WORDPRESS_REST_MENU_ENDPOINT ||
+	Astro.locals.runtime.env?.WORDPRESS_REST_MENU_ENDPOINT;
 
 const data =
-  import.meta.env.DEV && getDevHomePage(forceRefresh)
-    ? (getDevHomePage() as {page: WpPage})
-    : ((await getHomePage({gqlUrl})) as {page: WpPage});
+	import.meta.env.DEV && getDevHomePage(forceRefresh)
+		? (getDevHomePage() as { page: WpPage })
+		: ((await getHomePage({ gqlUrl })) as { page: WpPage });
 if (import.meta.env.DEV) cacheHomePageDev(data);
-const {title, editorBlocks, link} = data.page;
+const { title, editorBlocks, link } = data.page;
 let inlineStyles: string[] = [];
 
 try {
-  const enSrcResponse = await fetch(link);
-  const pageRendered = await enSrcResponse.text();
+	const enSrcResponse = await fetch(link);
+	const pageRendered = await enSrcResponse.text();
 
-  const dom = new DOMParser().parseFromString(pageRendered, "text/html");
-  const inlineStyleIds = [
-    "generateblocks-inline-css",
-    "global-styles-inline-css",
-    "generate-style-inline-css",
-  ];
+	const dom = new DOMParser().parseFromString(pageRendered, "text/html");
+	const inlineStyleIds = [
+		"generateblocks-inline-css",
+		"global-styles-inline-css",
+		"generate-style-inline-css",
+	];
 
-  inlineStyles = inlineStyleIds.map((id) => {
-    const styleTag: HTMLStyleElement | undefined = dom.querySelector(`#${id}`);
-    if (styleTag) {
-      return styleTag.innerText;
-    } else return "";
-  });
+	inlineStyles = inlineStyleIds.map((id) => {
+		const styleTag: HTMLStyleElement | undefined = dom.querySelector(`#${id}`);
+		if (styleTag) {
+			return styleTag.innerText;
+		}
+		return "";
+	});
 } catch (e) {
-  console.log("home page fetch for inline styles failed");
-  console.log({e});
+	console.error("home page fetch for inline styles failed");
 }
 
-const menus = await getMenus({restUrl: resMenuUrl});
+const menus = await getMenus({ restUrl: resMenuUrl });
 const nonHiddenLanguages = new Set(Object.keys(menus));
-const wpmlLangDict = await getWpmlLanguages({gqlUrl});
-const headerMenu = menus["en"]?.["header-menu"] || menus.en?.["header-menu"]!;
+const wpmlLangDict = await getWpmlLanguages({ gqlUrl });
+const headerMenu = menus.en?.["header-menu"] || menus.en?.["header-menu"]!;
 
 const langSwitcherList = Object.values(wpmlLangDict)
-  .filter((lang) => {
-    return nonHiddenLanguages.has(lang.code);
-  })
-  .map((lang) => {
-    // Mutate the langMenu while in this loop. For each of these languages, find the equivalent given its lang code
-    lang.localizedUrl = lang.code == "en" ? "/" : `/${lang.code}`;
-    return lang;
-  });
-const langInfo = wpmlLangDict["en"]!;
+	.filter((lang) => {
+		return nonHiddenLanguages.has(lang.code);
+	})
+	.map((lang) => {
+		// Mutate the langMenu while in this loop. For each of these languages, find the equivalent given its lang code
+		lang.localizedUrl = lang.code === "en" ? "/" : `/${lang.code}`;
+		return lang;
+	});
+const langInfo = wpmlLangDict.en!;
 const injectRegex = /<div[^>]*\bid="injectStaticSearch"[^>]*>.*?<\/div>/gim;
 // todo: have to do for the other home pages as well
 let doHydrateInjectedSearch = false;
 // todo: split out the search inejction from derivation of description
 const description = editorBlocks
-  .filter((b) => b.parentClientId == null)
-  .map((block) => {
-    if (block.renderedHtml.includes(`id="injectStaticSearch"`)) {
-      const searchComponent = injectSearch({langCode: langInfo.code});
-      const wrapped = `<div class="relative p-0!"> ${searchComponent} </div>`;
-      block.renderedHtml = block.renderedHtml.replace(injectRegex, wrapped);
-      doHydrateInjectedSearch = true;
-    }
-    return block.renderedHtml;
-  })
-  .join(" ")
-  .slice(0, 100);
+	.filter((b) => b.parentClientId == null)
+	.map((block) => {
+		if (block.renderedHtml.includes(`id="injectStaticSearch"`)) {
+			const searchComponent = injectSearch({ langCode: langInfo.code });
+			const wrapped = `<div class="relative p-0!"> ${searchComponent} </div>`;
+			block.renderedHtml = block.renderedHtml.replace(injectRegex, wrapped);
+			doHydrateInjectedSearch = true;
+		}
+		return block.renderedHtml;
+	})
+	.join(" ")
+	.slice(0, 100);
+
+const { englishUriMap } = await getEnglishUriMap({ gqlUrl });
 ---
 
 <Layout
@@ -102,7 +109,15 @@ const description = editorBlocks
       editorBlocks
         ?.filter((b) => b.parentClientId == null)
         .map((block: any) => {
-          return <Blocks content={adjustCmsDomLinks(block.renderedHtml)} />;
+          return (
+            <Blocks
+              content={adjustCmsDomLinks({
+                stringToParse: block.renderedHtml,
+                currentLangCode: langInfo.code,
+                englishUriMap,
+              })}
+            />
+          );
         })
     }
   </main>

@@ -25,7 +25,7 @@ pnpm-debug.log*
 
 # macOS-specific files
 .DS_Store
-src/dev/
+src/cachedDevData/
 
 /public/pagefind
 src/pagefind/*

@@ -1,13 +1,13 @@
 ---
-import type {WpPage} from "@customTypes/types";
-import {Image} from "astro:assets";
+import { Image } from "astro:assets";
+import type { WpPage } from "@customTypes/types";
 
 interface Props {
-  pageOptions: WpPage["pageOptions"];
-  title: string;
-  featuredImage: WpPage["featuredImage"];
+	pageOptions: WpPage["pageOptions"];
+	title: string;
+	featuredImage: WpPage["featuredImage"];
 }
-const {pageOptions, title, featuredImage} = Astro.props;
+const { pageOptions, title, featuredImage } = Astro.props;
 ---
 
 <header class="mb-16 full-bleed hero-inner-shadow pr-0! pl-0!">

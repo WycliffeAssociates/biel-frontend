@@ -1,13 +1,5 @@
 ---
-const {content} = Astro.props;
-// import {renderToString} from "solid-js/web";
-// import {Search} from "@components/Search";
-// import {injectSearch} from "./Inject";
-// const isInjectedSearch = content.includes(`id="injectStaticSearch"`);
-// if (isInjectedSearch) {
-//   const renderedSearch = injectSearch();
-//   console.log(renderedSearch);
-// }
+const { content } = Astro.props;
 ---
 
 <Fragment set:html={content} />

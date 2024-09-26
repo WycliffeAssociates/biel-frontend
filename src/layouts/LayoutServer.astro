@@ -2,35 +2,41 @@
 import "../styles/wordpress.scss";
 import "../styles/global.scss";
 import "../styles/vars.scss";
-import {getFooter} from "@src/data/wp";
-import type {languageType} from "@customTypes/types";
 import Blocks from "@components/Blocks.astro";
+import type { languageType } from "@customTypes/types";
+import { getEnglishUriMap, getFooter } from "@src/data/wp";
 // todo: change inline css to array (might fetch some dupes.  Dedupe the strings (just take the innerhtml of all style tags as needed)) and then concat and join.
 interface Props {
-  title: string;
-  langInfo: languageType;
-  langSwitcher: languageType[];
-  inlineCss: string[];
-  isContactPage: boolean;
-  langDirection: "ltr" | "rtl";
+	title: string;
+	langInfo: languageType;
+	langSwitcher: languageType[];
+	inlineCss: string[];
+	isContactPage: boolean;
+	langDirection: "ltr" | "rtl";
 }
-import {ViewTransitions} from "astro:transitions";
-import {adjustCmsDomLinks} from "@src/utils";
+import { ViewTransitions } from "astro:transitions";
+import { adjustCmsDomLinks } from "@src/utils";
 const gqlUrl =
-  import.meta.env.WORDPRESS_GQL_URL ||
-  Astro.locals.runtime.env?.WORDPRESS_GQL_URL;
-const {title, inlineCss, langInfo, langSwitcher, isContactPage, langDirection} =
-  Astro.props;
+	import.meta.env.WORDPRESS_GQL_URL ||
+	Astro.locals.runtime.env?.WORDPRESS_GQL_URL;
+const {
+	title,
+	inlineCss,
+	langInfo,
+	langSwitcher,
+	isContactPage,
+	langDirection,
+} = Astro.props;
 // const forceRefresh = false;
-const footerData = await getFooter({langCode: langInfo.code, gqlUrl});
-let {footerInlineStyles, footer} = footerData
-  ? footerData
-  : {footerInlineStyles: "", footer: {content: ""}};
+const footerData = await getFooter({ langCode: langInfo.code, gqlUrl });
+const { footerInlineStyles, footer } = footerData
+	? footerData
+	: { footerInlineStyles: "", footer: { content: "" } };
 // const {footerInlineStyles, footer} = await
-let allStyles = [...inlineCss, ...footerInlineStyles];
-let deduped = new Set(allStyles);
+const allStyles = [...inlineCss, ...footerInlineStyles];
+const deduped = new Set(allStyles);
 const dedupedInlineStyles = [...deduped].join("\n");
-
+const { englishUriMap } = await getEnglishUriMap({ gqlUrl });
 //todo: link to BASE_URL FOR BASE CSS OF GEN PRESS ? maybe
 ---
 
@@ -74,7 +80,13 @@ const dedupedInlineStyles = [...deduped].join("\n");
   <body class="bg-surface-primary">
     <slot />
     <footer class="wp-blocks site-footer">
-      <Blocks content={adjustCmsDomLinks(footer.content)} />
+      <Blocks
+        content={adjustCmsDomLinks({
+          stringToParse: footer.content,
+          englishUriMap,
+          currentLangCode: langInfo.code,
+        })}
+      />
     </footer>
   </body>
 </html>

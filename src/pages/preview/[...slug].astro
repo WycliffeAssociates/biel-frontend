@@ -1,5 +1,12 @@
 ---
 export const prerender = false;
+import Blocks from "@components/Blocks.astro";
+import {BreadCrumbs} from "@components/BreadCrumbs";
+import ContactPage from "@components/ContactPage.astro";
+import {HeaderMenu} from "@components/HeaderMenu";
+import Hero from "@components/Hero.astro";
+import LayoutServer from "@layouts/LayoutServer.astro";
+import {blocksAreEmpty} from "@lib/web";
 import {
   getEnglishUriMap,
   getGlobal,
@@ -7,16 +14,9 @@ import {
   getPage,
   getWpmlLanguages,
 } from "@src/data/wp";
-import LayoutServer from "@layouts/LayoutServer.astro";
-import Blocks from "@components/Blocks.astro";
-import {DOMParser} from "linkedom/worker";
-import {HeaderMenu} from "@components/HeaderMenu";
-import TranslationsPageOld from "@components/TranslationsPageOld/TranslationPageOld.astro";
-import {blocksAreEmpty} from "@lib/web";
 import {getDict} from "@src/i18n/strings";
 import {adjustCmsDomLinks, determineShowGlobal} from "@src/utils";
-import ContactPage from "@components/ContactPage.astro";
-import Hero from "@components/Hero.astro";
+import {DOMParser} from "linkedom/worker";
 const gqlUrl =
   import.meta.env.WORDPRESS_GQL_URL ||
   Astro.locals.runtime.env?.WORDPRESS_GQL_URL;
@@ -30,7 +30,7 @@ if (!slug) return Astro.redirect("/404");
 const wpmlLangDict = await getWpmlLanguages({gqlUrl});
 const parts = slug.split("/");
 const firstPart = parts[0] || "";
-const langInfo = !!wpmlLangDict[firstPart]
+const langInfo = wpmlLangDict[firstPart]
   ? wpmlLangDict[firstPart]
   : wpmlLangDict.en;
 if (!langInfo) return Astro.redirect("/404");
@@ -84,7 +84,8 @@ const inlineStyles = inlineStyleIds.map((id) => {
   const styleTag = dom.querySelector(`#${id}`);
   if (styleTag) {
     return styleTag.innerHTML;
-  } else return "";
+  }
+  return "";
 });
 if (ctaSection?.inlineStyles) {
   inlineStyles.push(ctaSection.inlineStyles);
@@ -96,7 +97,6 @@ page.inlineStyles = inlineStyles;
 // todo: reduce hardcode here
 const headerMenu =
   menus[langInfo.language_code]?.["header-menu"] || menus.en?.["header-menu"]!;
-// console.dir(headerMenu);
 
 const langSwitcherList = Object.values(wpmlLangDict)
   .filter((lang) => {
@@ -108,13 +108,13 @@ const langSwitcherList = Object.values(wpmlLangDict)
     // Mutate the langMenu while in this loop. For each of these languages, find the equivalent given its lang code
     // todo: fix the ts-ignore;
     let translatedUri = page.otherVersions?.[copy.code] || "";
-    if (page.uri == "/") {
-      translatedUri = copy.code == "en" ? "/home" : `/${copy.code}/home`;
+    if (page.uri === "/") {
+      translatedUri = copy.code === "en" ? "/home" : `/${copy.code}/home`;
     }
 
     if (translatedUri) {
       // @ts-ignore
-      if (translatedUri == "/" && lang.code == "en") {
+      if (translatedUri === "/" && lang.code === "en") {
         copy.localizedUrl = "/";
       } else {
         // @ts-ignore
@@ -143,7 +143,6 @@ const {title} = page;
   isContactPage={page.isContactPage}
   langDirection="ltr"
 >
-  <!-- <HeaderMenuOld menu={headerMenu} langInfo.language_code={langInfo.code} client:load /> -->
   <HeaderMenu
     allLangs={langSwitcherList}
     currentLang={langInfo}
@@ -151,35 +150,22 @@ const {title} = page;
     client:load
   />
   <main class={`${!page.isHomePage && "interior-page"} `}>
+    {!page.isHomePage && <BreadCrumbs crumbs={page.ancestors} />}
     {
-      !page.isHomePage &&
-        page.pageOptions?.topBlurb &&
-        !page.isHomePage &&
-        page.pageOptions?.topBlurb && (
-          <div class="headless-insertion wp-blocks site-container">
-            <Hero
-              pageOptions={page.pageOptions}
-              title={page.title}
-              featuredImage={page.featuredImage}
-            />
-          </div>
-        )
-    }
-    <!-- The old  header for interio pages. Kill later -->
-    <!-- {
-      !page.isHomePage && !page.pageOptions?.topBlurb && (
-        <h1
-          class="text-center text-6xl mb-12 bg-[rgba(0,0,0,0.7)] bg-blend-overlay text-white py-20 bg-no-repeat bg-cover"
-          style="background-image: url('/images/page_bg.jpg')"
-        >
-          {page.title}
-        </h1>
+      !page.isHomePage && page.pageOptions?.topBlurb && (
+        <div class="headless-insertion wp-blocks site-container">
+          <Hero
+            pageOptions={page.pageOptions}
+            title={page.title}
+            featuredImage={page.featuredImage}
+          />
+        </div>
       )
-    } -->
-
+    }
+    <!-- todo: I"d love to move this to RegularPage vs Special page astro components to clean up this bit of template. -->
     {
       // handle all but hardcoded pages of translations/contact
-      !page.isTranslationPage && !page.isContactPage && (
+      !page.isContactPage && (
         <div
           class={`headless-insertion wp-blocks ${
             !page.isHomePage && "site-container"
@@ -190,11 +176,11 @@ const {title} = page;
             .map((block) => {
               return (
                 <Blocks
-                  content={adjustCmsDomLinks(
-                    block.renderedHtml,
+                  content={adjustCmsDomLinks({
+                    stringToParse: block.renderedHtml,
                     englishUriMap,
-                    langInfo.code
-                  )}
+                    currentLangCode: langInfo.code,
+                  })}
                 />
               );
             })}
@@ -202,11 +188,6 @@ const {title} = page;
             <h2 class="">{getDict(langInfo.code, true)?.notYetTranslated}</h2>
           )}
         </div>
-      )
-    }
-    {
-      page.isTranslationPage && (
-        <TranslationsPageOld languageCode={langInfo.language_code} />
       )
     }
     {
@@ -224,17 +205,16 @@ const {title} = page;
     {
       determineShowGlobal({page, global: ctaSection}) && (
         <div class="headless-insertion overflow-hidden">
-          <Blocks content={adjustCmsDomLinks(ctaSection?.content!)} />
+          <Blocks
+            content={adjustCmsDomLinks({
+              stringToParse: ctaSection?.content!,
+              currentLangCode: langInfo.code,
+              englishUriMap,
+            })}
+          />
         </div>
       )
     }
-    <!-- {
-      determineShowGlobal({page, global: contactSection}) && (
-        <div class="headless-insertion py-40">
-          <Blocks content={adjustCmsDomLinks(contactSection?.content!)} />
-        </div>
-      )
-    } -->
   </main>
 </LayoutServer>
 
@@ -243,11 +223,7 @@ const {title} = page;
   const aTags = document.querySelectorAll("a");
   const origin = window.location.origin;
   aTags.forEach((tag) => {
-    console.log(tag.href);
-  });
-  aTags.forEach((tag) => {
     if (tag.href.includes(origin) && !tag.href.includes("preview")) {
-      // https://bieldev.wpengine.com/processes/
       const split = tag.href.split(origin);
       if (split[1] && split[1] == "/") {
         const prefaced = `${origin}/preview/home`;
@@ -271,8 +247,6 @@ const {title} = page;
       const isLinux = ua.includes("linux");
       const isAndroid = ua.includes("android");
       const isIOS = ua.includes("iphone") || ua.includes("ipad");
-      console.log(userAgent);
-      console.log({isMac, isWindows, isLinux, isAndroid, isIOS});
       const macClass = "platform-detect-mac";
       const linuxClass = "platform-detect-linux";
       const androidClass = "platform-detect-android";

@@ -1,7 +1,7 @@
 import type {
+  FooterType,
   WPMLMenu,
   WpPage,
-  footerType,
   languageType,
 } from "@customTypes/types";
 import {flatMenuToHierachical} from "@src/utils";
@@ -129,7 +129,7 @@ export async function getPage({
   };
 
   const pageWithMatchingUri = allLangPages.data.pages.nodes.find(
-    (page) => page.uri == (uri == "/" ? "/" : `/${uri}/`)
+    (page) => page.uri === (uri === "/" ? "/" : `/${uri}/`)
   );
 
   if (!pageWithMatchingUri) return;
@@ -155,6 +155,9 @@ export async function getPage({
           nodes {
             slug
             uri
+						... on Page {
+							title
+						}
           }
         }
         pageOptions {
@@ -198,14 +201,29 @@ export async function getPage({
 
   const {page} = thatPageData.data;
 
-  page.isHomePage = page.uri == "/";
-  page.isTranslationPage =
-    page.title.toLowerCase() == "translations" ||
-    page.translations.some((t) => t.title.toLowerCase() == "translations");
+  page.isHomePage = page.uri === "/";
+  if (!page.isHomePage) {
+    // Ancestors are actually treated like crumbs, and we want to always give a clear link back to home, and then indicate the current as well
+    if (!page.ancestors?.nodes) {
+      page.ancestors = {nodes: []};
+    }
+    page.ancestors.nodes.unshift({
+      uri: "/",
+      slug: "/",
+      title: "Home",
+    });
+    page.ancestors.nodes.push({
+      uri: page.uri,
+      slug: page.slug,
+      title: page.title,
+      databaseId: page.databaseId,
+    });
+  }
+
   // Contact page has its own layout
   page.isContactPage =
-    page.title.toLowerCase() == "contact us" ||
-    page.translations.some((t) => t.title.toLowerCase() == "contact us");
+    page.title.toLowerCase() === "contact us" ||
+    page.translations.some((t) => t.title.toLowerCase() === "contact us");
   const otherVersions: Record<string, string> = {};
   page.translations.forEach((t) => {
     otherVersions[t.languageCode] = t.uri;
@@ -218,20 +236,17 @@ export async function getPage({
       otherVersions[trans.languageCode] = trans.uri;
       // otherVersions.set(trans.languageCode, trans.databaseId);
     });
-    otherVersions["en"] = page.uri;
+    otherVersions.en = page.uri;
     t.translationOfId = page.databaseId;
     t.otherVersions = otherVersions;
-    t.isHomePage = page.uri == "/";
-    t.isTranslationPage = page.isTranslationPage;
+    t.isHomePage = page.uri === "/";
     t.isContactPage = page.isContactPage;
   });
 
   return page;
 }
 
-// todo: tag the resourcesPage and then in stat /slug/whatever use server:defer to make it a server island, just cause I don't want to render the header (and maybe the footer) on the server.  Yeah, in fact, just use a server catch all route in the root of pages, import from build time a /ressources/x... typee thing. And then /ressources is the single and /x routes to view of that lang content
 export async function getAllPages({gqlUrl}: {gqlUrl: string}) {
-  // todo: gql has an ancestors field, but it only seems to populate for english. But given that this fetches from english and has all pages, For each translation, I should be able to do an allPages.find(englishPage -> englishPage.slug == its ancestor slug) to populate across. Or rather, ancesotrs for each ancestor, allPages.find(ep => ep.slug == ancestor.slug) and then translations.find on that.
   const query = `
     query allPages {
       pages(first: 100, where: {language: "en"}) {
@@ -255,6 +270,9 @@ export async function getAllPages({gqlUrl}: {gqlUrl: string}) {
               slug
               uri
               databaseId
+							... on Page {
+							title
+							}
             }
           }
           pageOptions {
@@ -303,14 +321,15 @@ export async function getAllPages({gqlUrl}: {gqlUrl: string}) {
 
   type langCode = string;
   type withoutTranslation = Omit<WpPage, "translations">;
-  let pagesByLangCode: Record<
+  const pagesByLangCode: Record<
     langCode,
     Record<langCode, withoutTranslation>
   > = {
     en: {},
   };
+  // resources is ssr, not static.
   const filteredNodes = pages.nodes.filter((p) => {
-    return p.title.toLowerCase() != "resources";
+    return p.title.toLowerCase() !== "resources";
   });
 
   for (let i = 0; i < filteredNodes.length; i++) {
@@ -319,11 +338,29 @@ export async function getAllPages({gqlUrl}: {gqlUrl: string}) {
     // if (page.slug?.toLowerCase() != "home") {
 
     // Set soem flags for special pages that get handled differently;
-    page.isHomePage = page.uri == "/";
-    page.isTranslationPage = page.title.toLowerCase() == "translations";
+    page.isHomePage = page.uri === "/";
+    if (!page.isHomePage) {
+      // Ancestors are actually treated like crumbs, and we want to always give a clear link back to home, and then indicate the current as well
+      if (!page.ancestors?.nodes) {
+        page.ancestors = {nodes: []};
+      }
+      const homePage = pages.nodes.find((p) => p.uri === "/");
+      page.ancestors.nodes.unshift({
+        uri: "/",
+        slug: "/",
+        title: "Home",
+        databaseId: homePage?.databaseId,
+      });
+      page.ancestors.nodes.push({
+        uri: page.uri,
+        slug: page.slug,
+        title: page.title,
+        databaseId: page.databaseId,
+      });
+    }
     page.isContactPage =
-      page.title.toLowerCase() == "contact us" ||
-      page.translations.some((t) => t.title.toLowerCase() == "contact us");
+      page.title.toLowerCase() === "contact us" ||
+      page.translations.some((t) => t.title.toLowerCase() === "contact us");
     // Every page needs an otherVersions to all others in the form of langCode -> databaseId of the localized version: This is populating it for english, and we'll do same below;
     const otherVersions: Record<string, string> = {};
     page.translations.forEach((t) => {
@@ -342,7 +379,7 @@ export async function getAllPages({gqlUrl}: {gqlUrl: string}) {
         trans.featuredImage = page.featuredImage;
       });
       // manually poipulat the en one
-      otherVersions["en"] = String(enPage.databaseId);
+      otherVersions.en = String(enPage.databaseId);
       translation.translationOfId = enPage.databaseId;
       translation.otherVersions = otherVersions;
       // NOTE we don't need to know if other langauges use Genesis blocks, bc we are assuming that we want all pages to be synced in content.  I.e. We are not going to have different layouts for different languages, and we'll change if explicitly told to.  If we want to just disable a page for a language, can probably reach for acf
@@ -351,10 +388,9 @@ export async function getAllPages({gqlUrl}: {gqlUrl: string}) {
       }
 
       // flags for special
-      translation.isHomePage = enPage.uri == "/";
-      translation.isTranslationPage = enPage.isTranslationPage;
+      translation.isHomePage = enPage.uri === "/";
       translation.isContactPage = enPage.isContactPage;
-      if (enPage.uri == "/") {
+      if (enPage.uri === "/") {
         // Wpml / WP also have these uri's as /, but they are really /langCode cause we aren't ssr rendering / to whatever lang you want.  It's got to be at a different uri
         translation.uri = `/${translation.languageCode}`;
       }
@@ -362,7 +398,7 @@ export async function getAllPages({gqlUrl}: {gqlUrl: string}) {
       // Sort out the breadcrumbs;
       enPage.ancestors?.nodes.forEach((ancestor) => {
         const matching = filteredNodes.find(
-          (page) => page.databaseId == ancestor.databaseId
+          (page) => page.databaseId === ancestor.databaseId
         );
         if (!translation.ancestors) {
           translation.ancestors = {
@@ -371,18 +407,19 @@ export async function getAllPages({gqlUrl}: {gqlUrl: string}) {
         }
         if (!matching) return;
         const thatLangTranslation = matching.translations.find(
-          (t) => t.languageCode == translation.languageCode
+          (t) => t.languageCode === translation.languageCode
         );
         if (!thatLangTranslation) return;
-        // todo: verify if this works;
+
         translation.ancestors.nodes.push({
           uri: `${thatLangTranslation.uri}`,
           slug: thatLangTranslation.slug,
           databaseId: thatLangTranslation.databaseId,
+          title: thatLangTranslation.title,
         });
       });
 
-      let byLang = pagesByLangCode[translation.languageCode];
+      const byLang = pagesByLangCode[translation.languageCode];
       if (byLang) {
         byLang[translation.databaseId] = translation;
       }
@@ -534,9 +571,9 @@ export async function getGlobal({
       body: JSON.stringify({query}),
     });
     // todo: this isn't a footer type, but shape is same
-    const result = (await response.json()) as {data: footerType};
+    const result = (await response.json()) as {data: FooterType};
 
-    let fetchLink = result.data.global.link;
+    const fetchLink = result.data.global.link;
     const fetchGlobal = await fetch(fetchLink);
     const domText = await fetchGlobal.text();
     const globalDom = new DOMParser().parseFromString(domText, "text/html");
@@ -551,13 +588,14 @@ export async function getGlobal({
       );
       if (styleTag) {
         return styleTag.innerHTML;
-      } else return "";
+      }
+      return "";
     });
     const globalToUse =
-      langCode == "en"
+      langCode === "en"
         ? result.data.global
         : result.data.global.translations.find(
-            (t) => t.languageCode == langCode
+            (t) => t.languageCode === langCode
           ) || result.data.global; //fallback to english if not translation with this langcode;
     return {
       inlineStyles: inlineStyles,
@@ -597,9 +635,9 @@ export async function getFooter({
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({query}),
     });
-    const result = (await response.json()) as {data: footerType};
+    const result = (await response.json()) as {data: FooterType};
 
-    let fetchLink = result.data.global.link;
+    const fetchLink = result.data.global.link;
     const fetchFooter = await fetch(fetchLink);
     const domText = await fetchFooter.text();
     const footerDom = new DOMParser().parseFromString(domText, "text/html");
@@ -614,13 +652,14 @@ export async function getFooter({
       );
       if (styleTag) {
         return styleTag.innerHTML;
-      } else return "";
+      }
+      return "";
     });
     const footerToUse =
-      langCode == "en"
+      langCode === "en"
         ? result.data.global
         : result.data.global.translations.find(
-            (t) => t.languageCode == langCode
+            (t) => t.languageCode === langCode
           ) || result.data.global; //fallback to english if not translation with this langcode;
 
     return {footerInlineStyles: inlineStyles, footer: footerToUse};

@@ -1,12 +1,12 @@
 ---
-import type {i18nDict} from "@src/i18n/strings";
+import type {i18nDictType} from "@src/i18n/strings";
 interface Props {
   languageToFetch: string;
-  i18nDict: i18nDict;
+  i18nDict: i18nDictType;
 }
 import {ResourceWrapper} from "@components/ResourceSingle/ResourceWrapper";
-import {getLanguageContents} from "@src/data/pubDataApi";
 import {getTsFiles} from "@src/data/github";
+import {getLanguageContents} from "@src/data/pubDataApi";
 
 const {languageToFetch, i18nDict} = Astro.props;
 const startTime = performance.now();
@@ -29,8 +29,10 @@ console.log(
   `Time for language ${languageToFetch} route on server ${totalTime} ms.  
   Was cache match is ${wasCached}`
 );
-const project = Astro.url.searchParams.get("project") || "";
-console.log(`project: ${project}`);
+const resource = Astro.url.searchParams.get("resource") || null;
+const book = Astro.url.searchParams.get("book") || null;
+const chapter = Astro.url.searchParams.get("chapter") || null;
+const queryParams = {resource, book, chapter};
 ---
 
 <!-- todo: i18n title -->
@@ -38,6 +40,7 @@ console.log(`project: ${project}`);
   <div>
     <ResourceWrapper
       client:load
+      queryParams={queryParams}
       language={lang}
       contents={contents}
       tsFiles={tsFiles}

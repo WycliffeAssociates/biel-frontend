@@ -1,29 +1,36 @@
 ---
-// export const prerender = false;
-import type {languageType} from "@customTypes/types";
-import {cachePageForDevSpeed, getDevCachedPages} from "@lib/caching";
-import TranslationsPageOld from "@components/TranslationsPageOld/TranslationPageOld.astro";
-import {getDict} from "@src/i18n/strings";
-import {getAllPages, getGlobal, getMenus, getWpmlLanguages} from "@src/data/wp";
-import Layout from "@layouts/Layout.astro";
 import Blocks from "@components/Blocks.astro";
-import {DOMParser} from "linkedom/worker";
+import {BreadCrumbs} from "@components/BreadCrumbs";
+import {HeaderMenu} from "@components/HeaderMenu";
+import Hero from "@components/Hero.astro";
+// export const prerender = false;
+import type {Menu, languageType} from "@customTypes/types";
+import type {WpPage} from "@customTypes/types";
+import Layout from "@layouts/Layout.astro";
+import {cachePageForDevSpeed, getDevCachedPages} from "@lib/caching";
+import {blocksAreEmpty} from "@lib/web";
+import {
+  getAllPages,
+  getEnglishUriMap,
+  getGlobal,
+  getMenus,
+  getWpmlLanguages,
+} from "@src/data/wp";
+import {getDict} from "@src/i18n/strings";
 import {
   addOptionalSectionsToCmsPages,
   adjustCmsDomLinks,
   collectInlineStyles,
+  determineShowGlobal,
   getNonHiddenPages,
   getOtherLanguagesPagesList,
-  determineShowGlobal,
 } from "@src/utils";
-import {HeaderMenu} from "@components/HeaderMenu";
-import {blocksAreEmpty} from "@lib/web";
-import type {WpPage} from "@customTypes/types";
-import Hero from "@components/Hero.astro";
+import {DOMParser} from "linkedom/worker";
 
 interface Props {
   page: WpPage;
-  headerMenu: any;
+  // todo: can I get a more speicific type?
+  headerMenu: Menu;
   langInfo: languageType;
   contactSection: {
     content: string;
@@ -31,9 +38,10 @@ interface Props {
   ctaSection: {
     content: string;
   } | null;
-  // pagesByLangCode: Record<string, Record<number, languageType>>;
-  langSwitcherList: any;
+
+  langSwitcherList: languageType[];
   inlineStyles: string[];
+  englishUriMap: Record<string, Record<string, string>>;
 }
 
 // style id=generateblocks-inline-css
@@ -41,7 +49,7 @@ interface Props {
 export async function getStaticPaths() {
   if (import.meta.env.DEV) {
     // set to true to regenerate a local fs based cache of these pages to dev against / preview faster instead of fetchign each. Alteratively, just use the server rendered route.
-    const forceRefresh = false;
+    const forceRefresh = true;
     const pages = getDevCachedPages(forceRefresh);
     if (pages) return pages;
   }
@@ -53,24 +61,32 @@ export async function getStaticPaths() {
     Astro.locals.runtime.env?.WORDPRESS_REST_MENU_ENDPOINT;
 
   try {
-    const {pagesByLangCode} = await getAllPages({gqlUrl});
-    const menus = await getMenus({restUrl});
-    // Due to fetching constraints, we can still the contact sections for all langs that are translated.
-    // todo: un hard code englihs. Only had here for previewing
-    const contactGlobal = await getGlobal({
-      slug: "contact",
-      langCode: "en",
-      gqlUrl,
-    });
+    const [
+      {pagesByLangCode},
+      menus,
+      contactGlobal,
+      ctaGlobal,
+      wpmlLangDict,
+      {englishUriMap},
+    ] = await Promise.all([
+      getAllPages({gqlUrl}),
+      getMenus({restUrl}),
+      getGlobal({
+        slug: "contact",
+        langCode: "en",
+        gqlUrl,
+      }),
+      getGlobal({
+        slug: "cta-interior-2",
+        langCode: "en",
+        gqlUrl,
+      }),
+      getWpmlLanguages({gqlUrl}),
+      getEnglishUriMap({gqlUrl}),
+    ]);
     const contactGlobalAll = contactGlobal?.allLangsGlobal;
-    const ctaGlobal = await getGlobal({
-      slug: "cta-interior-2",
-      langCode: "en",
-      gqlUrl,
-    });
     const ctaGlobalAll = ctaGlobal?.allLangsGlobal;
     const nonHiddenLanguages = new Set(Object.keys(menus));
-    const wpmlLangDict = await getWpmlLanguages({gqlUrl});
 
     // each key is a lang.  If it's not hidden, keep it, if not, toss the whole object;
     const nonHiddenPages = getNonHiddenPages({
@@ -115,17 +131,17 @@ export async function getStaticPaths() {
       ...otherLanguagesPagesList,
     ];
 
-    const pagesData: any = allPagesToPublish.map((pageTuple) => {
+    const pagesData: unknown = allPagesToPublish.map((pageTuple) => {
       const {page} = pageTuple;
 
       const curLang = page.languageCode;
       const headerMenu =
         menus[curLang]?.["header-menu"] || menus.en?.["header-menu"]!;
-      let contactSection = addOptionalSectionsToCmsPages({
+      const contactSection = addOptionalSectionsToCmsPages({
         targetLang: curLang,
         sectionToAdd: contactGlobalAll,
       });
-      let ctaSection = addOptionalSectionsToCmsPages({
+      const ctaSection = addOptionalSectionsToCmsPages({
         targetLang: curLang,
         sectionToAdd: ctaGlobalAll,
       });
@@ -142,12 +158,12 @@ export async function getStaticPaths() {
           const matchingVersionId = page.otherVersions?.[copy.code] || "";
           if (matchingVersionId) {
             const matchingVersionPage = allPagesToPublish.find(
-              ({page}) => String(page?.databaseId) == matchingVersionId
+              ({page}) => String(page?.databaseId) === matchingVersionId
             );
             if (matchingVersionPage) {
               if (
-                matchingVersionPage?.page?.uri == "/" &&
-                matchingVersionPage?.page?.languageCode == "en"
+                matchingVersionPage?.page?.uri === "/" &&
+                matchingVersionPage?.page?.languageCode === "en"
               ) {
                 copy.localizedUrl = "/";
               } else {
@@ -157,8 +173,7 @@ export async function getStaticPaths() {
           }
           return copy;
         });
-      console.log(`Generating slug of ${page.uri}`);
-      let payload = {
+      const payload = {
         params: {
           slug: page.uri,
         },
@@ -170,14 +185,14 @@ export async function getStaticPaths() {
           ctaSection,
           langSwitcherList,
           inlineStyles: page.inlineStyles,
+          englishUriMap: englishUriMap,
         },
       };
 
       if (import.meta.env.DEV) {
-        console.log(`dev caching`);
         cachePageForDevSpeed(
           payload,
-          `./src/dev/pages/${page.databaseId}.json`
+          `./src/cachedDevData/pages/${page.databaseId}.json`
         );
       }
       return payload;
@@ -196,6 +211,7 @@ const {
   langSwitcherList,
   inlineStyles,
   contactSection,
+  englishUriMap,
   ctaSection,
 } = Astro.props;
 // Generate something for seo, even if not great
@@ -225,19 +241,12 @@ const description = page.editorBlocks
       client:load
     />
   </div>
-  <main class={`${!page.isHomePage && "interior-page"} `}>
-    <!-- todo: clean up these breadcrump -->
-    <ul class="list-none flex">
-      {
-        page.ancestors?.nodes.map((a) => {
-          return (
-            <li>
-              <a href={`${a.uri}`}>{a.slug} todo breadcrumbs</a>
-            </li>
-          );
-        })
-      }
-    </ul>
+  <main
+    data-pagefind-meta="type:page"
+    class={`${!page.isHomePage && "interior-page"} `}
+  >
+    {!page.isHomePage && <BreadCrumbs crumbs={page.ancestors} />}
+
     {
       !page.isHomePage && page.pageOptions?.topBlurb && (
         <div class="headless-insertion wp-blocks site-container">
@@ -256,7 +265,7 @@ const description = page.editorBlocks
     }
 
     {
-      !page.isTranslationPage && (
+      (
         <div
           class={`headless-insertion wp-blocks ${
             !page.isHomePage && "site-container"
@@ -265,7 +274,15 @@ const description = page.editorBlocks
           {page.editorBlocks
             .filter((b) => b.parentClientId == null)
             .map((block) => {
-              return <Blocks content={adjustCmsDomLinks(block.renderedHtml)} />;
+              return (
+                <Blocks
+                  content={adjustCmsDomLinks({
+                    stringToParse: block.renderedHtml,
+                    englishUriMap,
+                    currentLangCode: langInfo.code,
+                  })}
+                />
+              );
             })}
           {blocksAreEmpty(page.editorBlocks) && (
             <h2 class="">{getDict(langInfo.code, true)!.notYetTranslated}</h2>
@@ -274,14 +291,15 @@ const description = page.editorBlocks
       )
     }
     {
-      page.isTranslationPage && (
-        <TranslationsPageOld languageCode={langInfo.language_code} />
-      )
-    }
-    {
       determineShowGlobal({page, global: ctaSection}) && (
         <div class="headless-insertion overflow-hidden">
-          <Blocks content={adjustCmsDomLinks(ctaSection?.content!)} />
+          <Blocks
+            content={adjustCmsDomLinks({
+              stringToParse: ctaSection?.content!,
+              englishUriMap,
+              currentLangCode: langInfo.code,
+            })}
+          />
         </div>
       )
     }
@@ -326,8 +344,6 @@ const description = page.editorBlocks
       const isLinux = ua.includes("linux");
       const isAndroid = ua.includes("android");
       const isIOS = ua.includes("iphone") || ua.includes("ipad");
-      console.log(userAgent);
-      console.log({isMac, isWindows, isLinux, isAndroid, isIOS});
       const macClass = "platform-detect-mac";
       const linuxClass = "platform-detect-linux";
       const androidClass = "platform-detect-android";

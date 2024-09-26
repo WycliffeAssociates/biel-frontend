@@ -3,22 +3,22 @@ import "../styles/wordpress.scss";
 import "../styles/global.scss";
 import "../styles/vars.scss";
 import "../styles/reader.css";
-import type {languageType} from "@customTypes/types";
-import {pwaInfo} from "virtual:pwa-info";
+import { pwaInfo } from "virtual:pwa-info";
+import type { languageType } from "@customTypes/types";
 
 interface Props {
-  title: string;
-  langInfo: languageType;
-  langSwitcher: languageType[];
-  inlineCss: string[];
-  description: string;
-  langDirection: "ltr" | "rtl";
+	title: string;
+	langInfo: languageType;
+	langSwitcher: languageType[];
+	inlineCss: string[];
+	description: string;
+	langDirection: "ltr" | "rtl";
 }
-import {ViewTransitions} from "astro:transitions";
-const {title, inlineCss, langInfo, langSwitcher, description, langDirection} =
-  Astro.props;
-let allStyles = [...inlineCss];
-let deduped = new Set(allStyles);
+import { ViewTransitions } from "astro:transitions";
+const { title, inlineCss, langInfo, langSwitcher, description, langDirection } =
+	Astro.props;
+const allStyles = [...inlineCss];
+const deduped = new Set(allStyles);
 const dedupedInlineStyles = [...deduped].join("\n");
 
 //todo: link to BASE_URL FOR BASE CSS OF GEN PRESS ? maybe

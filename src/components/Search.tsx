@@ -1,110 +1,96 @@
+import { MangifyingGlass } from "@components/Icons";
+import { getDict } from "@src/i18n/strings.js";
 // Import necessary modules from SolidJS
-import {For, Show, createSignal, onCleanup, onMount} from "solid-js";
-import {getDict} from "@src/i18n/strings.js";
-import {MangifyingGlass} from "@components/Icons";
+import { For, Show, createSignal, onCleanup, onMount } from "solid-js";
 
 type SearchProps = {
-  langCode: string;
-  isBig?: boolean;
-  injected?: boolean;
-  addlClasses?: string;
+	langCode: string;
+	isBig?: boolean;
+	injected?: boolean;
+	addlClasses?: string;
 };
 // Define the Search component
 export function Search(props: SearchProps) {
-  const [query, setQuery] = createSignal("");
-  const [results, setResults] = createSignal<any[]>([]);
-  const mobileClassNames = `mobile`;
-  const bigClassNames = `absolute top-full  z-10 bg-white p-3 max-h-500px overflow-auto w-[clamp(min(99vw,270px),50vw,500px)] right-0 border border-#aaa`;
-  // onMount(() => {
-  //   debugger;
-  //   if (props.hydrate) {
-  //     hydrate(
-  //       () => <Search isBig={props.isBig} langCode={props.langCode} />,
-  //       thisRef!,
-  //       {
-  //         renderId: "injectStaticSearch",
-  //       }
-  //     );
-  //   }
-  // });
-  onMount(async () => {
-    window.pagefind = await import("../pagefind/pagefind.js");
-  });
-  const handleInput = async (e: KeyboardEvent) => {
-    const target = e.target as HTMLInputElement;
-    const inputValue = target?.value;
-    if (!inputValue) setResults([]);
-    if (!import.meta.env.SSR) {
-      //@ts-ignore
-      // Load the pagefind script only once
-      if (!window.pagefind) {
-        //@ts-ignore
-        window.pagefind = await import("../pagefind/pagefind.js");
-      }
-      // Search the index using the input value
-      // @ts-ignore
-      const search = await window.pagefind.search(inputValue);
+	const [query, setQuery] = createSignal("");
+	// biome-ignore lint/suspicious/noExplicitAny: <not sure on pagefind type>
+	const [results, setResults] = createSignal<any[]>([]);
+	const mobileClassNames = "mobile";
+	const bigClassNames =
+		"absolute top-full  z-10 bg-white p-3 max-h-500px overflow-auto w-[clamp(min(99vw,270px),50vw,500px)] right-0 border border-#aaa";
 
-      // Add the new results
-      let res: any[] = [];
-      for (const result of search.results) {
-        const data = await result.data();
-        if (!!data?.meta?.isTranslationsPage) {
-          data.url = `/${data.raw_url}`;
-        }
-        res.push(data);
-      }
+	onMount(async () => {
+		// eagerly fetch this
+		window.pagefind = await import("../pagefind/pagefind.js");
+	});
+	const handleInput = async (e: KeyboardEvent) => {
+		const target = e.target as HTMLInputElement;
+		const inputValue = target?.value;
+		if (!inputValue) setResults([]);
+		if (!import.meta.env.SSR) {
+			//@ts-ignore
+			// Load the pagefind script only once
+			if (!window.pagefind) {
+				//@ts-ignore
+				window.pagefind = await import("../pagefind/pagefind.js");
+			}
+			// Search the index using the input value
+			// @ts-ignore
+			const search = await window.pagefind.search(inputValue);
 
-      setResults(res);
-    }
-  };
-  onCleanup(() => {
-    // if (typeof window != "undefined") {
-    // @ts-ignore
-    if (!import.meta.env.SSR && window.pagefind) {
-      console.log("Cleaning up pagefind");
-      window.pagefind.destroy();
-    }
-    // }
-  });
+			// Add the new results
+			// biome-ignore lint/suspicious/noExplicitAny: <not sure on pagefind type>
+			const res: any[] = [];
+			for (const result of search.results) {
+				const data = await result.data();
+				res.push(data);
+			}
 
-  return (
-    <>
-      {/* Input element for search */}
-      <div class="relative" data-injected-search={props.injected}>
-        <input
-          class="border border-gray-200 px-2 py-2 rounded-lg bg-white! pis-10 placeholder:(text-#777 font-bold) w-full"
-          id="search"
-          type="search"
-          placeholder={getDict(props.langCode, true)!.search}
-          value={query()}
-          onInput={(e) => setQuery(e.target.value)}
-          onKeyUp={handleInput}
-          // @ts-ignore chrome only
-          onSearch={handleInput}
-        />
-        <MangifyingGlass class="absolute start-2 top-2" />
-      </div>
+			setResults(res);
+		}
+	};
+	onCleanup(() => {
+		if (!import.meta.env.SSR && window.pagefind) {
+			window.pagefind.destroy();
+		}
+	});
 
-      {/* Container for search results */}
-      <Show when={results()?.length}>
-        <ul
-          class={`${props.isBig ? bigClassNames : mobileClassNames} ${
-            props.addlClasses
-          } list-none!`}
-        >
-          <For each={results()}>
-            {(item) => (
-              <li class="border-y-solid border-y-1 border-gray-400 py-4">
-                <h3 class="font-bold text-lg cursor-pointer text-[var(--color-accent)]">
-                  <a href={item.url}>{item.meta.title}</a>
-                </h3>
-                <p innerHTML={item.excerpt} />
-              </li>
-            )}
-          </For>
-        </ul>
-      </Show>
-    </>
-  );
+	return (
+		<>
+			{/* Input element for search */}
+			<div class="relative" data-injected-search={props.injected}>
+				<input
+					class="border border-gray-200 px-2 py-2 rounded-lg bg-white! pis-10 placeholder:(text-#777 font-bold) w-full"
+					id="search"
+					type="search"
+					placeholder={getDict(props.langCode, true)!.search}
+					value={query()}
+					onInput={(e) => setQuery(e.target.value)}
+					onKeyUp={handleInput}
+					// @ts-ignore chrome only
+					onSearch={handleInput}
+				/>
+				<MangifyingGlass class="absolute start-2 top-2" />
+			</div>
+
+			{/* Container for search results */}
+			<Show when={results()?.length}>
+				<ul
+					class={`${props.isBig ? bigClassNames : mobileClassNames} ${
+						props.addlClasses
+					} list-none!`}
+				>
+					<For each={results()}>
+						{(item) => (
+							<li class="border-y-solid border-y-1 border-gray-400 py-4">
+								<h3 class="font-bold text-lg cursor-pointer text-[var(--color-accent)]">
+									<a href={item.url}>{item.meta.title}</a>
+								</h3>
+								<p innerHTML={item.excerpt} />
+							</li>
+						)}
+					</For>
+				</ul>
+			</Show>
+		</>
+	);
 }

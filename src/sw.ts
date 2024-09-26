@@ -1,10 +1,9 @@
-/// <reference lib="webworker" />
-import {precacheAndRoute, cleanupOutdatedCaches} from "workbox-precaching";
-import {registerRoute} from "workbox-routing";
-import {clientsClaim} from "workbox-core";
-import {CacheFirst} from "workbox-strategies";
-import type {zipSrcBodyReq} from "@customTypes/types";
+import type {ZipSrcBodyReq} from "@customTypes/types";
 import {downloadZip} from "client-zip";
+import {clientsClaim} from "workbox-core";
+import {cleanupOutdatedCaches, precacheAndRoute} from "workbox-precaching";
+import {registerRoute} from "workbox-routing";
+import {CacheFirst} from "workbox-strategies";
 import type {ghFile} from "./data/github";
 declare const self: ServiceWorkerGlobalScope;
 
@@ -24,96 +23,81 @@ registerRoute(
     }
   },
   async ({request}) => {
-    const text = "hello";
-    const blob = new Blob([text], {type: "application/octet-stream"});
-    console.log(`returning hello`);
-    return new Response(blob, {
-      headers: {
-        "Content-Disposition": 'attachment; filename="ex.txt"',
-        // "Content-Length": String(blob.length),
-        "Content-Type": "application/octet-stream",
-      },
-    });
     const formData = await request.formData();
-    let payload = formData.get("zipPayload");
+    const payload = formData.get("zipPayload");
     const asObj = JSON.parse(payload as string) as {
-      payload: zipSrcBodyReq;
+      payload: ZipSrcBodyReq;
       redirectTo: string;
       name: string;
     };
-    if (asObj.payload.type == "gateway") {
+    if (asObj.payload.type === "gateway") {
       return fetch(`${asObj.payload.files[0]!.url}/archive/master.zip`);
-    } else {
-      try {
-        const totalSize = String(
-          asObj.payload.files.reduce((acc, curr) => (acc += curr.size || 0), 0)
-        );
+    }
+    try {
+      const totalSize = String(
+        // biome-ignore lint/suspicious/noAssignInExpressions: <easy to see how this reduce works>
+        // biome-ignore lint/style/noParameterAssign: <easy to see how this reduce works>
+        asObj.payload.files.reduce((acc, curr) => (acc += curr.size || 0), 0)
+      );
 
-        async function storeCloneInSwCache(
-          response: Response,
-          cacheKey: string
-        ) {
-          const cache = await caches.open(bielExternalCacheName);
-          await cache.put(cacheKey, response.clone());
-        }
-        async function* fetchExternal() {
-          for (const f of asObj.payload.files) {
-            try {
-              const url = `/api/fetchExternal?url=${encodeURIComponent(
-                f.url
-              )}&hash=${f.hash}`;
-              const splitOnSlashes = f.url.split("/");
-              const nextToLast = splitOnSlashes[splitOnSlashes.length - 2];
-              const cacheMatch = await caches.match(url, {
-                cacheName: bielExternalCacheName,
-              });
-              if (cacheMatch) {
-                console.log("cacheMatch", cacheMatch);
-                yield {
-                  name:
-                    `${nextToLast}.usfm` ||
-                    `biel-download-${Math.random()}.usfm`,
-                  input: cacheMatch,
-                };
-              } else {
-                const res = await fetch(url);
-                const clone = res.clone();
-                if (res.ok) {
-                  // store a local copy with the hash
-                  storeCloneInSwCache(clone, url);
-                }
-                yield {
-                  name:
-                    `${nextToLast}.usfm` ||
-                    `biel-download-${Math.random()}.usfm`,
-                  input: res,
-                };
-              }
-            } catch (error) {
-              console.error(error);
+      async function storeCloneInSwCache(response: Response, cacheKey: string) {
+        const cache = await caches.open(bielExternalCacheName);
+        await cache.put(cacheKey, response.clone());
+      }
+      async function* fetchExternal() {
+        for (const f of asObj.payload.files) {
+          try {
+            const url = `/api/fetchExternal?url=${encodeURIComponent(
+              f.url
+            )}&hash=${f.hash}`;
+            const splitOnSlashes = f.url.split("/");
+            const nextToLast = splitOnSlashes[splitOnSlashes.length - 2];
+            const cacheMatch = await caches.match(url, {
+              cacheName: bielExternalCacheName,
+            });
+            if (cacheMatch) {
               yield {
-                name: `${f.url}.usfm` || `biel-download-${Math.random()}.usfm`,
-                input: new Response(null, {
-                  status: 404,
-                }),
+                name:
+                  `${nextToLast}.usfm` || `biel-download-${Math.random()}.usfm`,
+                input: cacheMatch,
+              };
+            } else {
+              const res = await fetch(url);
+              const clone = res.clone();
+              if (res.ok) {
+                // store a local copy with the hash
+                storeCloneInSwCache(clone, url);
+              }
+              yield {
+                name:
+                  `${nextToLast}.usfm` || `biel-download-${Math.random()}.usfm`,
+                input: res,
               };
             }
+          } catch (error) {
+            console.error(error);
+            yield {
+              name: `${f.url}.usfm` || `biel-download-${Math.random()}.usfm`,
+              input: new Response(null, {
+                status: 404,
+              }),
+            };
           }
         }
-        const stream = downloadZip(fetchExternal());
-        return new Response(stream.body, {
-          headers: {
-            "Content-Disposition": `attachment; filename="${encodeURI(
-              asObj.name
-            )}.zip"`,
-            "Content-Length": totalSize,
-            "Content-Type": "application/octet-stream",
-          },
-        });
-      } catch (e) {
-        console.error(e);
-        return fetch(asObj.redirectTo);
       }
+      const stream = downloadZip(fetchExternal());
+      return new Response(stream.body, {
+        headers: {
+          "Content-Disposition": `attachment; filename="${encodeURI(
+            asObj.name
+          )}.zip"`,
+          "Content-Length": totalSize,
+          "Content-Type": "application/octet-stream",
+        },
+      });
+    } catch (e) {
+      console.error(e);
+      return fetch(asObj.redirectTo);
     }
   },
   "POST"
@@ -124,24 +108,23 @@ registerRoute(
   ({request}) => {
     if (request.url.includes("sw-proxy-ts")) {
       return true;
-    } else return false;
+    }
+    return false;
   },
   async ({request, event}) => {
     const formData = await request.formData();
-    let payload = formData.get("zipPayload");
+    const payload = formData.get("zipPayload");
     const asObj = JSON.parse(payload as string) as {
       payload: ghFile[];
       name: string;
     };
 
     const totalSize = String(
+      // biome-ignore lint/suspicious/noAssignInExpressions: <easy to see how this reduce works>
+      // biome-ignore lint/style/noParameterAssign: <easy to see how this reduce works>
       asObj.payload.reduce((acc, curr) => (acc += curr.size || 0), 0)
     );
 
-    // async function storeCloneInSwCache(response: Response, cacheKey: string) {
-    //   const cache = await caches.open(bielExternalCacheName);
-    //   await cache.put(cacheKey, response.clone());
-    // }
     async function* fetchExternal() {
       for (const f of asObj.payload) {
         try {
@@ -175,9 +158,9 @@ registerRoute(
         },
       });
     } catch (error) {
-      // todo: fix this error handling
       console.error(error);
-      return fetch("");
+      // Just kick it back to the referrer
+      return fetch(request.referrer);
     }
   },
   "POST"
@@ -198,16 +181,15 @@ registerRoute(
     if (!docQueryParam) return new Response(null, {status: 404});
     try {
       const res = await fetch(docQueryParam);
-      if (res && res.ok) {
+      if (res?.ok) {
         return new Response(res.body, {
           headers: {
             "Content-Disposition": `attachment; filename='${name}'`,
             "Content-Type": "application/octet-stream",
           },
         });
-      } else {
-        throw new Error(res.statusText);
       }
+      throw new Error(res.statusText);
     } catch (e) {
       console.error(e);
       return new Response(null, {status: 404});
@@ -221,7 +203,7 @@ registerRoute(
     const hashParam = urlObj.searchParams.get("hash");
     return request.url.includes("/api/fetchExternal") && hashParam;
   },
-  // Hash should guarantee strong caching that doesn't need expiring
+  // Hashes should guarantee strong caching that doesn't need expiring, so go cache first on those, but route through CF as well
   new CacheFirst({
     cacheName: bielExternalCacheName,
     fetchOptions: {},

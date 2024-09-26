@@ -1,5 +1,6 @@
 import * as pagefind from "pagefind";
-
+import {getWpmlLanguages, getResourcePageSlugs} from "./src/data/wp";
+import getLanguagesWithContentForBiel from "./src/data/pubDataApi";
 // Create a Pagefind search index to work with
 const {index} = await pagefind.createIndex();
 
@@ -15,7 +16,6 @@ const td = await fetch(loc);
 const translationsDataBlob = await td.blob();
 const translationsDataText = await translationsDataBlob.text();
 const translationsData = await JSON.parse(translationsDataText);
-console.log(`fetched ${translationsData.length} lang data`);
 
 const wpInstanceUrl = `${process.env.WORDPRESS_GQL_URL}`;
 const query = `query getTranslationsPage {
@@ -38,7 +38,7 @@ const langsRes = await fetch(wpInstanceUrl, {
   }),
 });
 const translationPages = await langsRes.json();
-// So we don't have to do anything extra for english and can just go through the translations array;
+// So we don't have to do anything extra for english and can just go through the translations array for single loop logic;
 translationPages.data.page.translations.push({
   languageCode: "en",
   title: "English",
@@ -47,7 +47,7 @@ translationPages.data.page.translations.push({
 for await (const lang of translationsData) {
   for await (const translationPage of translationPages.data.page.translations) {
     const baseUrl =
-      translationPage.languageCode == "en"
+      translationPage.languageCode === "en"
         ? "translations"
         : `${translationPage.languageCode}/${translationPage.slug}`;
 
@@ -69,14 +69,13 @@ for await (const lang of translationsData) {
         title: lang.name,
         isTranslationsPage: "true",
         sort:
-          lang.code.toLowerCase() == translationPage.languageCode.toLowerCase()
+          lang.code.toLowerCase() === translationPage.languageCode.toLowerCase()
             ? "20"
             : "10",
       },
     });
   }
 }
-console.log("writing out files");
 // for dev
 await index.writeFiles({
   outputPath: "./src/pagefind",
@@ -85,6 +84,5 @@ await index.writeFiles({
 const prodWrite = await index.writeFiles({
   outputPath: "./dist/pagefind",
 });
-console.log({prodWrite});
 // clean up once complete
 await pagefind.close();

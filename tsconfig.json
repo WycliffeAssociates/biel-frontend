@@ -1,27 +1,28 @@
 {
-  "extends": "astro/tsconfigs/strict",
-  "compilerOptions": {
-    "baseUrl": ".",
-    "noUncheckedIndexedAccess": true,
-    "target": "es2021",
-    "paths": {
-      "@components": ["src/components"],
-      "@components/*": ["src/components/*"],
-      "@layouts/*": ["src/layouts/*"],
-      "@assets/*": ["src/assets/*"],
-      "@images/*": ["src/assets/images/*"],
-      "@lib/*": ["src/lib/*"],
-      "@customTypes/*": ["src/customTypes/*"],
-      "@src/*": ["src/*"]
-    },
-    "types": ["vite-plugin-pwa/client", "vite-plugin-pwa/info"],
-    "jsx": "preserve",
-    "jsxImportSource": "solid-js"
-  },
-  "exclude": [
-    "src/pagefind/*",
-    "dist/**/*",
-    "functions/[[path]].js",
-    "dev-dist/**/*"
-  ]
+	"extends": "astro/tsconfigs/strict",
+	"compilerOptions": {
+		"baseUrl": ".",
+		"noUncheckedIndexedAccess": true,
+		"target": "es2021",
+		"lib": ["webworker", "ES2021.String"],
+		"paths": {
+			"@components": ["src/components"],
+			"@components/*": ["src/components/*"],
+			"@layouts/*": ["src/layouts/*"],
+			"@assets/*": ["src/assets/*"],
+			"@images/*": ["src/assets/images/*"],
+			"@lib/*": ["src/lib/*"],
+			"@customTypes/*": ["src/customTypes/*"],
+			"@src/*": ["src/*"]
+		},
+		"types": ["vite-plugin-pwa/client", "vite-plugin-pwa/info"],
+		"jsx": "preserve",
+		"jsxImportSource": "solid-js"
+	},
+	"exclude": [
+		"src/pagefind/*",
+		"dist/**/*",
+		"functions/[[path]].js",
+		"dev-dist/**/*"
+	]
 }

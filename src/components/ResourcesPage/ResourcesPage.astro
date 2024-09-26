@@ -1,10 +1,10 @@
 ---
-import {getLanguagesWithContentForBiel} from "@src/data/pubDataApi";
-import {ResourceIndex} from "./Main";
-import type {i18nDict} from "@src/i18n/strings";
+import { getLanguagesWithContentForBiel } from "@src/data/pubDataApi";
+import type { i18nDictType } from "@src/i18n/strings";
+import { ResourceIndex } from "./Main";
 interface Props {
-  detailPrefix: string;
-  i18nDict: i18nDict;
+	detailPrefix: string;
+	i18nDict: i18nDictType;
 }
 const startTime = performance.now();
 const runtime = Astro.locals.runtime;
@@ -12,18 +12,18 @@ const runtime = Astro.locals.runtime;
 const cache = runtime.caches.default;
 const ctx = runtime.ctx;
 const pubDataApiUrl = runtime.env.PUBLIC_DATA_API;
-const {detailPrefix, i18nDict} = Astro.props;
-const {data, wasCached} = await getLanguagesWithContentForBiel({
-  cache,
-  ctx,
-  pubDataApiUrl,
+const { detailPrefix, i18nDict } = Astro.props;
+const { data, wasCached } = await getLanguagesWithContentForBiel({
+	cache,
+	ctx,
+	pubDataApiUrl,
 });
 if (!data) return Astro.redirect("/404");
 const endTime = performance.now();
 const totalTime = endTime - startTime;
 console.log(
-  `time for resources index route on server ${totalTime} ms.
-  Was cached: ${wasCached}. `
+	`time for resources index route on server ${totalTime} ms.
+  Was cached: ${wasCached}. `,
 );
 ---
 

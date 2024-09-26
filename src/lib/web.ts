@@ -1,7 +1,7 @@
 export function isAbsoluteUrl(str: string) {
-  const isAbsoluteRegex = new RegExp("^(?:[a-z+]+:)?//", "i");
-  return isAbsoluteRegex.test(str);
+	const isAbsoluteRegex = /^(?:[a-z+]+:)?\/\//i;
+	return isAbsoluteRegex.test(str);
 }
-export function blocksAreEmpty(blocks: any[]) {
-  return blocks.length === 0;
+export function blocksAreEmpty<T>(blocks: T[]) {
+	return blocks.length === 0;
 }

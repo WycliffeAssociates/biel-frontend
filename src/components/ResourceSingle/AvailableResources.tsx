@@ -1,15 +1,15 @@
-import type {contentsForLang} from "@src/data/pubDataApi";
-import {createSignal, For, Show} from "solid-js";
-import {contentContainsSearch, isScriptural} from "./lib";
-import type {SetStoreFunction} from "solid-js/store";
-import type {ScriptureStoreState, tsFile} from "@customTypes/types";
+import type {ScriptureStoreState, TsFile} from "@customTypes/types";
 import {Dialog} from "@kobalte/core/dialog";
-import {useResourceSingleContext} from "./ResourceSingleContext";
+import type {contentsForLang} from "@src/data/pubDataApi";
+import {For, Show, createSignal} from "solid-js";
+import type {SetStoreFunction} from "solid-js/store";
 import {DownloadOptions} from "./DownloadOptions";
+import {useResourceSingleContext} from "./ResourceSingleContext";
+import {contentContainsSearch, isScriptural} from "./lib";
 
 type AvailableResourcesProps = {
   classes?: string;
-  tsFiles: tsFile[] | undefined;
+  tsFiles: TsFile[] | undefined;
 };
 // todo: this is likely just gonna be "big", and have a separate export for small
 export function AvailableResources(props: AvailableResourcesProps) {
@@ -80,7 +80,9 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
         <Dialog.Trigger
           data-name="mobile-resource-changer"
           // todo: fix this to match figma
-          class={`underline uppercase relative inline-flex justify-between items-center  ps-2 text-start font-size-[var(--step-0)]`}
+          class={
+            "underline uppercase relative inline-flex justify-between items-center  ps-2 text-start font-size-[var(--step-0)]"
+          }
         >
           {activeContent.resource_type}
           <span class="i-ic:round-arrow-drop-down" />
@@ -90,6 +92,7 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
             <div class="flex w-full justify-between items-center">
               <Dialog.Title class="text-3xl inline-flex items-center gap-4">
                 <button
+                  type="button"
                   class="i-ic:round-arrow-back rtl:rotate-180 w-.75em h-.75em bg-onSurface-secondary!"
                   onClick={() => setOpen(false)}
                 />
@@ -135,7 +138,7 @@ export function SearchBar(props: SearchBarProps) {
         onInput={(e) => setMenuSearchTerm(e.currentTarget.value)}
       />
       {/* todo: maybeexternalize icons into other file for consistency */}
-      <span class="absolute ltr:right-4 rtl:left-4 top-1/2 -translate-y-1/2 i-ph:magnifying-glass"></span>
+      <span class="absolute ltr:right-4 rtl:left-4 top-1/2 -translate-y-1/2 i-ph:magnifying-glass" />
     </div>
   );
 }
@@ -151,7 +154,6 @@ export function AvailableResource(props: AvailableResourceProps) {
     return props.content.name === props.activeContent.name;
   };
   function setContent() {
-    // props.setActiveContent(props.content);
     props.setActiveContent((prev) => {
       const newState = {
         ...props.content,
@@ -164,21 +166,24 @@ export function AvailableResource(props: AvailableResourceProps) {
         const equivalent =
           props.content.rendered_contents.htmlChapters.findIndex(
             (row) =>
-              row.scriptural_rendering_metadata.book_slug ===
-                currentRow.scriptural_rendering_metadata.book_slug &&
-              row.scriptural_rendering_metadata.chapter ===
-                currentRow.scriptural_rendering_metadata.chapter
+              row.scriptural_rendering_metadata?.book_slug ===
+                currentRow.scriptural_rendering_metadata?.book_slug &&
+              row.scriptural_rendering_metadata?.chapter ===
+                currentRow.scriptural_rendering_metadata?.chapter
           );
         if (equivalent > -1) {
           newState.activeRowIdx = equivalent;
           return newState;
-        } else return newState;
-      } else return newState;
+        }
+        return newState;
+      }
+      return newState;
     });
   }
   return (
     <li>
       <button
+        type="button"
         data-name={props.content.name}
         onClick={() => {
           setContent();
@@ -195,7 +200,7 @@ export function AvailableResource(props: AvailableResourceProps) {
   );
 }
 
-function TsFileDownload(props: {tsFile: tsFile}) {
+function TsFileDownload(props: {tsFile: TsFile}) {
   // todo: Thomas change to think of only using url for whole repo and not each folder
   const [category, {files}] = props.tsFile;
   // https://raw.githubusercontent.com/wkelly17/biel-tk-example/master/en/docx.docx
@@ -219,9 +224,10 @@ function TsFileDownload(props: {tsFile: tsFile}) {
         />
       </form>
       <button
+        type="button"
         class="hover:(text-brand-base)"
         onClick={(e) => {
-          // todo: why does progrmamatic submission of form trigger octect stream downloads but not just clicking the bnt.  Took me forever to chase down it even does this, much less why? Might have to waitUntil in sw, but this works so sticking with it even if clunky
+          // note: I don't know why progrmamatic submission of form trigger octect stream downloads but not just clicking the bnt.  They are just different Took me forever to chase down it even does this, much less why? Might have to waitUntil in sw, but this works so sticking with it even if clunky
           const form = document.querySelector(
             `[data-js="proxy-ts-${category}"]`
           ) as HTMLFormElement;

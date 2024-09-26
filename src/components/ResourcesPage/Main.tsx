@@ -1,8 +1,8 @@
-import {createSignal, For, Show, type Accessor, type Setter} from "solid-js";
 import {MangifyingGlass} from "@components/Icons";
-import {map, sort, flow, when, filter} from "ramda";
 import type {queryReturn, queryReturnLanguage} from "@src/data/pubDataApi";
-import type {i18nDict} from "@src/i18n/strings";
+import type {i18nDictType} from "@src/i18n/strings";
+import {filter, flow, map, sort, when} from "ramda";
+import {type Accessor, For, type Setter, Show, createSignal} from "solid-js";
 
 type validSorts =
   | "CODE_AZ"
@@ -14,11 +14,10 @@ type validSorts =
 type ResourceIndexArgs = {
   languages: queryReturn["data"]["language"];
   detailPrefix: string;
-  i18nDict: i18nDict;
+  i18nDict: i18nDictType;
 };
 
 export function ResourceIndex(props: ResourceIndexArgs) {
-  // todo use dict to remove en stringhs
   const [searchTerm, setSearchTerm] = createSignal("");
   const filterableKeys = [
     "english_name",
@@ -36,10 +35,12 @@ export function ResourceIndex(props: ResourceIndexArgs) {
 
   const [sortOrder, setSetOrder] = createSignal<validSorts>("NAME_AZ");
   const adjustForCompare = (val: string) =>
+    // todo: biome-ignore lint/suspicious/noMisleadingCharacterClass: <Not sure how to fix this today>
     val
       .normalize("NFD")
       .toLowerCase()
-      .replace(/[\u0300-\u036f]/g, "");
+      // biome-ignore lint/suspicious/noMisleadingCharacterClass: <Not sure now to fix or if is really a problem. >
+      .replace(/[\u0300-\u036f]/gu, "");
 
   const includesSearch = (lang: queryReturnLanguage) => {
     // const normalizedValues = R.pipe(m)
@@ -74,14 +75,18 @@ export function ResourceIndex(props: ResourceIndexArgs) {
       keyof ReturnType<typeof filters>,
       (lang: queryReturnLanguage) => boolean
     > = {
-      gateway: (lang: queryReturnLanguage) =>
-        lang.wa_language_metadata.is_gateway,
-      heart: (lang: queryReturnLanguage) =>
-        !lang.wa_language_metadata.is_gateway,
+      gateway: (lang: queryReturnLanguage) => {
+        if (!lang.wa_language_metadata) return true; //default inclusive
+        return lang.wa_language_metadata.is_gateway;
+      },
+      heart: (lang: queryReturnLanguage) => {
+        if (!lang.wa_language_metadata) return true; //default inclusive
+        return !lang.wa_language_metadata.is_gateway;
+      },
     };
     return Object.entries(filterFns).some(
       // onlly apply the filters that are true from ui in filters().
-      ([k, fn]) => filters()[k] == true && fn(lang)
+      ([k, fn]) => filters()[k] === true && fn(lang)
     );
   }
 
@@ -95,13 +100,25 @@ export function ResourceIndex(props: ResourceIndexArgs) {
   return (
     <div class="contain py-8">
       <div class="flex flex-col gap-8 pbe-4 md:(flex-row justify-between w-full items-center) ">
-        <HeaderTitle />
-        <HeaderSearch setSearchTerm={setSearchTerm} searchTerm={searchTerm} />
+        <HeaderTitle i18nDict={props.i18nDict} />
+        <HeaderSearch
+          i18nDict={props.i18nDict}
+          setSearchTerm={setSearchTerm}
+          searchTerm={searchTerm}
+        />
       </div>
       <section class="flex gap-16 min-h-70vh">
         <div class="hidden md:(w-3/10 flex flex-col gap-8)">
-          <FilterDetails filters={filters} setFilters={setFilter} />
-          <SortDetails setSetOrder={setSetOrder} sortOrder={sortOrder} />
+          <FilterDetails
+            i18nDict={props.i18nDict}
+            filters={filters}
+            setFilters={setFilter}
+          />
+          <SortDetails
+            i18nDict={props.i18nDict}
+            setSetOrder={setSetOrder}
+            sortOrder={sortOrder}
+          />
         </div>
         <div class="w-full md:w-7/10 max-h-70vh min-h-300px overflow-y-auto">
           <Listings prefix={props.detailPrefix} languages={langToShow()} />
@@ -159,6 +176,9 @@ function Listing(props: ListingProps) {
 type ListingUnitProps = {
   value: string;
 };
+type DictProp = {
+  i18nDict: i18nDictType;
+};
 function ListingCode(props: ListingUnitProps) {
   return <span class="color-onSurface-tertiary shrink-0">{props.value}</span>;
 }
@@ -178,13 +198,18 @@ function ListingArrow() {
   );
 }
 
-function HeaderTitle() {
+function HeaderTitle(props: DictProp) {
   // todo: localize?
-  return <h1 class="text-size-[var(--step-3)]">Choose a language</h1>;
+  return (
+    <h1 class="text-size-[var(--step-3)]">
+      {props.i18nDict.rl_ChooseALanguage}
+    </h1>
+  );
 }
 type HeaderSearchProps = {
   searchTerm: Accessor<string>;
   setSearchTerm: Setter<string>;
+  i18nDict: i18nDictType;
 };
 function HeaderSearch(props: HeaderSearchProps) {
   return (
@@ -193,8 +218,7 @@ function HeaderSearch(props: HeaderSearchProps) {
       <input
         type="search"
         class="rounded-xl bg-surface-secondary pis-8 w-full py-2 text-onSurface-tertiary placeholder:text-onSurface-tertiary/80"
-        // todo: localize
-        placeholder="Search by Name, Code, etc..."
+        placeholder={props.i18nDict.rl_SearchPlaceholder}
         value={props.searchTerm()}
         onInput={(e) => {
           props.setSearchTerm(e.currentTarget.value);
@@ -213,17 +237,20 @@ type FilterProps = {
     gateway: boolean;
     heart: boolean;
   }>;
+  i18nDict: i18nDictType;
 };
 function FilterDetails(props: FilterProps) {
   return (
     <div>
-      <div class=""></div>
       <details open class="group">
         <summary class="cursor-pointer  webkit-hide-summary-arrow list-none ">
           <p class="flex rtl:flex-row-reverse justify-between">
             <span class="inline-flex gap-2">
               <span class="i-material-symbols:filter-alt-outline w-1.5em h-1.5em" />
-              <span class="font-bold text-size-[var(--step-0)]">Filter </span>
+              <span class="font-bold text-size-[var(--step-0)]">
+                {" "}
+                {props.i18nDict.rl_Filter}{" "}
+              </span>
             </span>
             <span class="i-ic:round-chevron-left w-1.5em h-1.5em rotate-90 group-open:-rotate-90 transition-transform duration-150 " />
           </p>
@@ -240,7 +267,7 @@ function FilterDetails(props: FilterProps) {
                 }))
               }
             />
-            Gateway Language
+            {props.i18nDict.rl_GatewayLanguage}
           </label>
           <label class="flex gap-2  text-brand-base accent-[hsla(var(--clr-brand-base))] font-bold">
             <input
@@ -253,7 +280,7 @@ function FilterDetails(props: FilterProps) {
                 }))
               }
             />
-            Heart Language
+            {props.i18nDict.rl_HeartLanguage}
           </label>
         </div>
       </details>
@@ -264,8 +291,9 @@ function FilterDetails(props: FilterProps) {
 type SortProps = {
   sortOrder: Accessor<validSorts>;
   setSetOrder: Setter<validSorts>;
+  i18nDict: i18nDictType;
 };
-function SortDetails(params: SortProps) {
+function SortDetails(props: SortProps) {
   const [radioSorts, setRadioSorts] = createSignal({
     category: "NAME",
     order: "AZ",
@@ -277,25 +305,24 @@ function SortDetails(params: SortProps) {
     category: string;
     direction: string;
   }) {
-    let cat = category ? category : radioSorts().category;
-    let dir = direction ? direction : radioSorts().order;
+    const cat = category ? category : radioSorts().category;
+    const dir = direction ? direction : radioSorts().order;
     setRadioSorts({category: cat, order: dir});
     const joined = `${cat}_${dir}` as validSorts;
-    params.setSetOrder(joined);
-    // const joined =
+    props.setSetOrder(joined);
   }
   const sortLabels = [
     {
       cat: "CODE",
-      label: "Code",
+      label: props.i18nDict.rl_IeftCode,
     },
     {
       cat: "NAME",
-      label: "Language Name",
+      label: props.i18nDict.rl_LangName,
     },
     {
       cat: "ANGLICIZED",
-      label: "Anglicized Name",
+      label: props.i18nDict.rl_Anglicized,
     },
   ];
   return (
@@ -305,7 +332,9 @@ function SortDetails(params: SortProps) {
           <p class="flex rtl:flex-row-reverse justify-between">
             <span class="inline-flex gap-2">
               <span class="i-material-symbols:sort-rounded w-1.5em h-1.5em" />
-              <span class="font-bold text-size-[var(--step-0)]">Sort </span>
+              <span class="font-bold text-size-[var(--step-0)]">
+                {props.i18nDict.rl_Sort}{" "}
+              </span>
             </span>
             <span class="i-ic:round-chevron-left w-1.5em h-1.5em rotate-90 group-open:-rotate-90 transition-transform duration-150 " />
           </p>
@@ -334,29 +363,31 @@ function SortDetails(params: SortProps) {
                   </label>
                   <Show when={radioSorts().category === sort.cat}>
                     <button
+                      type="button"
                       data-sort={radioSorts().category}
                       class="bg-surface-secondary flex rtl:flex-row-reverse rounded-lg px-2 py-1 border border-solid border-surface-border"
                       onClick={() => {
                         const current = radioSorts();
-                        let newOrder = current.order === "AZ" ? "ZA" : "AZ";
+                        const newOrder = current.order === "AZ" ? "ZA" : "AZ";
                         setRadio({category: sort.cat, direction: newOrder});
                       }}
                     >
-                      {/* <Show when={}> */}
                       <span
                         class={`inline-block transition-transform px-1   ${
-                          radioSorts().order == "AZ" ? "rotate-0" : "rotate-180"
+                          radioSorts().order === "AZ"
+                            ? "rotate-0"
+                            : "rotate-180"
                         }`}
                       >
                         <span
-                          class={`i-ic:baseline-arrow-downward w-1em h-1em `}
+                          class={"i-ic:baseline-arrow-downward w-1em h-1em "}
                         />
-                        {/* <SmallArrowDown /> */}
                       </span>
                       <span>
-                        {radioSorts().order == "AZ" ? "A to Z" : "Z to A"}
+                        {radioSorts().order === "AZ"
+                          ? props.i18nDict.rl_A_Z
+                          : props.i18nDict.rl_Z_A}
                       </span>
-                      {/* </Show> */}
                     </button>
                   </Show>
                 </div>

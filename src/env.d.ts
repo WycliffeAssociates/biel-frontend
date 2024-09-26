@@ -5,9 +5,10 @@
 type Runtime = import("@astrojs/cloudflare").Runtime<Env>;
 
 declare namespace App {
-  interface Locals extends Runtime {}
+	interface Locals extends Runtime {}
 }
 
 interface Window {
-  pagefind: any;
+	// biome-ignore lint/suspicious/noExplicitAny: <no client types for this>
+	pagefind: any;
 }

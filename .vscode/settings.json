@@ -1,32 +1,32 @@
 {
-  "iconify.annotations": true,
-  "iconify.inplace": false,
-  "iconify.languageIds": [
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact",
-    "vue",
-    "html",
-    "json",
-    "yaml",
-    "markdown",
-    "astro"
-  ],
-  "unocss.autocomplete.maxItems": 100,
-  "unocss.disable": false,
-  "unocss.languageIds": [
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact",
-    "vue",
-    "html",
-    "json",
-    "yaml",
-    "markdown",
-    "astro"
-  ],
-  "unocss.root": ["./"],
-  "unocss.include": ["./src/**/*"]
+	"iconify.annotations": true,
+	"iconify.inplace": false,
+	"iconify.languageIds": [
+		"javascript",
+		"javascriptreact",
+		"typescript",
+		"typescriptreact",
+		"vue",
+		"html",
+		"json",
+		"yaml",
+		"markdown",
+		"astro"
+	],
+	"unocss.autocomplete.maxItems": 100,
+	"unocss.disable": false,
+	"unocss.languageIds": [
+		"javascript",
+		"javascriptreact",
+		"typescript",
+		"typescriptreact",
+		"vue",
+		"html",
+		"json",
+		"yaml",
+		"markdown",
+		"astro"
+	],
+	"unocss.root": ["./"],
+	"unocss.include": ["./src/**/*"]
 }

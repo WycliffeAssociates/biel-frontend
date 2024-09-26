@@ -1,7 +1,7 @@
 import {bibleBookSortOrder} from "@src/utils";
 const bielFilter = `show_on_biel: {_eq: true},status: {_eq: "Primary"}`;
 import {groupBy} from "ramda";
-const hasRenderings = `count: {predicate: {_gt: 0}}`;
+const hasRenderings = "count: {predicate: {_gt: 0}}";
 import type {
   Cache,
   ExecutionContext,
@@ -50,13 +50,12 @@ query MyQuery {
   }
 }
 `;
-  console.log(query);
   const swrThresholdSeconds = 40;
   const oneYearInSeconds = 60 * 60 * 24 * 365;
   try {
     // CF doesn't support SWR yet, but we cna implement it for one route.  Just use caches.default and put one in with a custom x-swr header. When this is called, do a caches.match()... if the max-age or s-max isn't expired, cf should just use that. Then,
     // todo: test all this tomorrow
-    let json: any;
+    let json: queryReturn;
     const requestToMake = () => {
       return new Request(pubDataApiUrl, {
         method: "POST",
@@ -79,7 +78,6 @@ query MyQuery {
       swrThresholdSeconds,
       cache,
     });
-    console.log({didMatch: !!match, revalidate, hasCacheKey: !!cacheKey});
     if (match) {
       if (revalidate) {
         ctx.waitUntil(
@@ -93,26 +91,24 @@ query MyQuery {
       }
       json = (await match.json()) as queryReturn;
       return {data: json, wasCached: !!match};
-    } else {
-      const res = await fetch(requestToMake());
-      if (res && res.ok) {
-        json = (await res.json()) as queryReturn;
-        ctx.waitUntil(
-          refreshCfCache({
-            cache,
-            cacheKey,
-            newHeaders: resCacheHeaders,
-            requestToMake: requestToMake(),
-          })
-        );
-        return {
-          data: json,
-          wasCached: !!match,
-        };
-      } else {
-        throw new Error("No response");
-      }
     }
+    const res = await fetch(requestToMake());
+    if (res?.ok) {
+      json = (await res.json()) as queryReturn;
+      ctx.waitUntil(
+        refreshCfCache({
+          cache,
+          cacheKey,
+          newHeaders: resCacheHeaders,
+          requestToMake: requestToMake(),
+        })
+      );
+      return {
+        data: json,
+        wasCached: !!match,
+      };
+    }
+    throw new Error("No response");
   } catch (e) {
     console.error(e);
     return {
@@ -134,7 +130,7 @@ export type queryReturnLanguage = {
   national_name: string;
   wa_language_metadata: {
     is_gateway: boolean;
-  };
+  } | null;
   contents: {
     resource_type: string;
     name: string;
@@ -195,6 +191,7 @@ export async function getLanguageContents({
   }
 }
   `;
+  console.log(query);
 
   // Have to write cf specific code for caching post requests. It think we'll skip SWR for this stuff and just set it to an s-maxage of a day.
   let res: Response | WorkerResponse | null | undefined = null;
@@ -230,11 +227,11 @@ export async function getLanguageContents({
     }
   }
   const json = (await res.json()) as langContentReturn;
-  let lang = json.data.language[0];
+  const lang = json.data.language[0];
   if (!lang) {
     throw new Error(`no language found for ${language}`);
   }
-  if (!lang.wa_language_metadata.is_gateway) {
+  if (lang.wa_language_metadata && !lang.wa_language_metadata?.is_gateway) {
     //
     lang.contents = collateGatewayContent({
       contents: lang.contents,
@@ -265,7 +262,7 @@ export async function getLanguageContents({
     data: {
       language: {
         direction: lang.direction,
-        isGateway: lang.wa_language_metadata.is_gateway,
+        isGateway: lang.wa_language_metadata?.is_gateway,
         code: lang.ietf_code,
       },
       contents: content,
@@ -318,7 +315,7 @@ export type RenderedContentRow = {
     chapter: string;
     book_slug: string;
     book_name: string;
-  };
+  } | null;
   file_type: string;
   file_size_bytes: number;
 };
@@ -407,7 +404,8 @@ function collateGatewayContent({
         }
         return content;
         // merge in each values rendered contents:
-      } else return value;
+      }
+      return value;
     })
     .filter((x) => !!x)
     .flat();
@@ -423,7 +421,10 @@ function shapeRenderedContentsByType(rows: RenderedContentRow[]) {
     otherFiles: [],
   };
   return rows.reduce((acc, row) => {
-    if (row.url.includes("whole.json")) {
+    if (
+      row.url.includes("whole.json") &&
+      row.scriptural_rendering_metadata?.book_slug
+    ) {
       acc.wholeChapterUrls[row.scriptural_rendering_metadata.book_slug] = row;
     } else if (row.url.includes("download.json")) {
       acc.wholeResourceRow = row;
@@ -445,19 +446,20 @@ function sortHtmlChaptersCanonically(htmlChapters: RenderedContentRow[]) {
       return 0;
     }
     const bookSortOrder = bibleBookSortOrder;
-    const aBookOrder = bookSortOrder[aBookSlug] || Infinity;
-    const bBookOrder = bookSortOrder[bBookSlug] || Infinity;
+    const aBookOrder = bookSortOrder[aBookSlug] || Number.POSITIVE_INFINITY;
+    const bBookOrder = bookSortOrder[bBookSlug] || Number.POSITIVE_INFINITY;
     const bookCompare = aBookOrder - bBookOrder;
     let chapterCompare = 0;
     if (bookCompare === 0) {
       chapterCompare =
-        Number(a.scriptural_rendering_metadata.chapter) -
-        Number(b.scriptural_rendering_metadata.chapter);
+        Number(a.scriptural_rendering_metadata?.chapter) -
+        Number(b.scriptural_rendering_metadata?.chapter);
     }
     return bookCompare || chapterCompare;
   });
   htmlChapters?.forEach((c) => {
     if (
+      c.scriptural_rendering_metadata &&
       !c.scriptural_rendering_metadata?.chapter &&
       c.url.includes("front.html")
     ) {
@@ -521,7 +523,6 @@ async function manageCfCachePostReq({
   const now = Date.now();
   const diff = now - storedSeconds;
   const diffSeconds = diff / 1000;
-  console.log({maxAge, diffSeconds});
   if (maxAge && diffSeconds < Number(maxAge)) {
     // fresh, don't revalidate.
     return {

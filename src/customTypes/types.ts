@@ -1,6 +1,9 @@
 import type {ghFile} from "@src/data/github";
-import type {i18nDict} from "@src/i18n/strings";
-import type {contentsForLang, languageForClient} from "@src/data/pubDataApi";
+import type {
+  contentsForLang as ContentsForLang,
+  languageForClient,
+} from "@src/data/pubDataApi";
+import type {i18nDictType} from "@src/i18n/strings";
 
 declare global {
   interface CacheStorage {
@@ -116,7 +119,8 @@ export type WpPage = {
     nodes: {
       uri: string;
       slug: string;
-      databaseId: number;
+      databaseId?: number;
+      title: string;
     }[];
   } | null;
   pageOptions: {
@@ -139,7 +143,6 @@ export type WpPage = {
   inlineStyles?: string[];
   translationOfId: number;
   isHomePage: boolean;
-  isTranslationPage: boolean;
   isContactPage: boolean;
 };
 export type EditorBlock = {
@@ -160,7 +163,6 @@ type Translation = {
   otherVersions: Record<string, string>;
   modified: string;
   parentDatabaseId: number | null;
-  isTranslationPage: boolean;
   isContactPage: boolean;
   isHomePage: boolean;
   editorBlocks: EditorBlock[];
@@ -173,7 +175,8 @@ type Translation = {
     nodes: {
       uri: string;
       slug: string;
-      databaseId: number;
+      databaseId?: number;
+      title: string;
     }[];
   };
   pageOptions: {
@@ -190,7 +193,7 @@ type Translation = {
   };
 };
 
-export type footerType = {
+export type FooterType = {
   global: {
     content: string;
     link: string;
@@ -198,54 +201,22 @@ export type footerType = {
   };
 };
 
-export type ScriptureLink = {
-  format: string;
-  url: string;
-};
-
-export type Subcontent = {
-  category: string;
-  code: string;
-  sort: number;
-  name: string;
-  links: ScriptureLink[];
-};
-
-export type Content = {
-  subcontents: Subcontent[];
-  code: string;
-  subject: string;
-  name: string;
-  links: any[];
-  checkingLevel: number;
-};
-
-export type Language = {
-  name: string;
-  code: string;
-  direction: string;
-  contents: Content[];
-  englishName: string;
-};
-export type translationPageOldEntry = {
-  code: string;
-  name: string;
-  englishName: string;
-  direction: string | null;
-  contents: Content[];
-};
-
 export type ContentListingProps = {
-  contents: contentsForLang[];
+  contents: ContentsForLang[];
   language: languageForClient;
-  tsFiles: tsFile[] | undefined;
-  i18nDict: i18nDict;
+  tsFiles: TsFile[] | undefined;
+  i18nDict: i18nDictType;
+  queryParams: {
+    resource: string | null;
+    book: string | null;
+    chapter: string | null;
+  };
 };
-export type tsFile = [string, {url: string; files: ghFile[]}];
-export type ScriptureStoreState = contentsForLang & {
+export type TsFile = [string, {url: string; files: ghFile[]}];
+export type ScriptureStoreState = ContentsForLang & {
   activeRowIdx: number;
 };
-export type zipSrcBodyReq = {
+export type ZipSrcBodyReq = {
   type: "gateway" | "heart";
   files: {
     url: string;
@@ -254,7 +225,7 @@ export type zipSrcBodyReq = {
   }[];
 };
 
-export type docRequest = {
+export type DocRequest = {
   email_address: null;
   assembly_strategy_kind: "lbo";
   layout_for_print: boolean;

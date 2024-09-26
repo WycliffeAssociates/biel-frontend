@@ -1,15 +1,15 @@
 ---
 interface Props {
-  editorBlocks: EditorBlock[];
-  notTranslatedYet: boolean;
-  dict: i18nDict;
-  languageCode: string;
+	editorBlocks: EditorBlock[];
+	notTranslatedYet: boolean;
+	dict: i18nDictType;
+	languageCode: string;
 }
-const {editorBlocks, notTranslatedYet, dict, languageCode} = Astro.props;
-import {adjustCmsDomLinks} from "@src/utils";
-import type {EditorBlock} from "@customTypes/types";
-import type {i18nDict} from "@src/i18n/strings";
-import {ContactForm} from "@components/ContactForm";
+const { editorBlocks, notTranslatedYet, dict, languageCode } = Astro.props;
+import { ContactForm } from "@components/ContactForm";
+import type { EditorBlock } from "@customTypes/types";
+import type { i18nDictType } from "@src/i18n/strings";
+import { adjustCmsDomLinks } from "@src/utils";
 import Blocks from "./Blocks.astro";
 // const redirectUrl = Astro.request.url;
 ---
@@ -24,7 +24,11 @@ import Blocks from "./Blocks.astro";
         editorBlocks
           .filter((b) => b.parentClientId == null)
           .map((block) => {
-            return <Blocks content={adjustCmsDomLinks(block.renderedHtml)} />;
+            return (
+              <Blocks
+                content={adjustCmsDomLinks({stringToParse: block.renderedHtml})}
+              />
+            );
           })
       }
       {notTranslatedYet && <h2 class="">{dict.notYetTranslated}</h2>}
