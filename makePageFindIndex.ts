@@ -7,7 +7,10 @@ import {DOMParser} from "linkedom/worker";
 // Create a Pagefind search index to work with
 
 const {index} = await pagefind.createIndex({});
-if (!index) process.exit("no index");
+if (!index) {
+  console.error("Could not create Pagefind index");
+  process.exit(1);
+}
 
 // Index all HTML files in a directory
 const res = await index.addDirectory({
