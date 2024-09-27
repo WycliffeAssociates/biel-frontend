@@ -5,6 +5,7 @@ import {BreadCrumbs} from "@components/BreadCrumbs";
 import ContactPage from "@components/ContactPage.astro";
 import {HeaderMenu} from "@components/HeaderMenu";
 import Hero from "@components/Hero.astro";
+import {injectSearch} from "@components/SearchInjectClientSide";
 import LayoutServer from "@layouts/LayoutServer.astro";
 import {blocksAreEmpty} from "@lib/web";
 import {
@@ -73,6 +74,7 @@ if (!page) return Astro.redirect("/404");
 const menus = await getMenus({restUrl});
 const nonHiddenLanguages = new Set(Object.keys(menus));
 const enSrcResponse = await fetch(page.link);
+// for styles
 const pageRendered = await enSrcResponse.text();
 const dom = new DOMParser().parseFromString(pageRendered, "text/html");
 const inlineStyleIds = [
@@ -132,7 +134,19 @@ const langSwitcherList = Object.values(wpmlLangDict)
 // @ts-ignore
 const {title} = page;
 
-//  todo: would need an acfx block that takes a gravity form ID, that we
+const injectRegex = /<div[^>]*\bid="injectStaticSearch"[^>]*>.*?<\/div>/gim;
+let doHydrateInjectedSearch = false;
+page.editorBlocks
+  .filter((b) => b.parentClientId == null)
+  .map((block) => {
+    if (block.renderedHtml.includes(`id="injectStaticSearch"`)) {
+      const searchComponent = injectSearch({langCode: langInfo.code});
+      const wrapped = `<div class="relative p-0!"> ${searchComponent} </div>`;
+      block.renderedHtml = block.renderedHtml.replace(injectRegex, wrapped);
+      doHydrateInjectedSearch = true;
+    }
+    return block.renderedHtml;
+  });
 ---
 
 <LayoutServer
@@ -147,6 +161,7 @@ const {title} = page;
     allLangs={langSwitcherList}
     currentLang={langInfo}
     menu={headerMenu}
+    doHydrateInjectedSearch={doHydrateInjectedSearch}
     client:load
   />
   <main class={`${!page.isHomePage && "interior-page"} `}>

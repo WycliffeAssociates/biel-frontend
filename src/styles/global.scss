@@ -283,6 +283,9 @@ main img {
 .platform-detect.active {
   background: hsl(var(--clr-brand-base)) !important;
 }
+.platform-detect.active a svg * {
+  fill: hsl(var(--clr-brand-base)) !important;
+}
 .platform-detect.active .gb-button {
   background: hsl(var(--clr-surface-primary)) !important;
   color: hsl(var(--clr-brand-base)) !important;
@@ -383,6 +386,12 @@ summary.webkit-hide-summary-arrow::-webkit-details-marker {
 .theText p + h1,
 .theText p + h2 {
   margin-top: 1.25rem;
+}
+
+.searchResults mark {
+  background: none;
+  color: var(--clr-on-surface-secondary);
+  font-weight: 900;
 }
 /* 
 dot-new: 

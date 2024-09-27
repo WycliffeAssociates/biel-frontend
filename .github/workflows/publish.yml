@@ -83,7 +83,6 @@ jobs:
             CMS_URL:  ${{ env.CMS_URL }}
             SITE_URL:  ${{ env.SITE_URL }}
             WORDPRESS_GQL_URL:  ${{ env.WORDPRESS_GQL_URL }}
-            TRANSLATIONS_JSON_ENDPOINT: ${{ env.TRANSLATIONS_JSON_ENDPOINT }}
             PUBLIC_DATA_API_URL: ${{ env.PUBLIC_DATA_API_URL }}
       - name: Publish
         uses: cloudflare/pages-action@1

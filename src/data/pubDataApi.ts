@@ -191,7 +191,6 @@ export async function getLanguageContents({
   }
 }
   `;
-  console.log(query);
 
   // Have to write cf specific code for caching post requests. It think we'll skip SWR for this stuff and just set it to an s-maxage of a day.
   let res: Response | WorkerResponse | null | undefined = null;
@@ -232,7 +231,6 @@ export async function getLanguageContents({
     throw new Error(`no language found for ${language}`);
   }
   if (lang.wa_language_metadata && !lang.wa_language_metadata?.is_gateway) {
-    //
     lang.contents = collateGatewayContent({
       contents: lang.contents,
       langName: lang.national_name,
@@ -269,10 +267,92 @@ export async function getLanguageContents({
     },
     wasCached: !!match,
   } as {
-    data: langWithContent;
+    data: LangWithContent;
     wasCached: boolean;
   };
 }
+
+export async function getLangsWithContentNames({
+  pubDataUrl,
+}: {
+  pubDataUrl: string;
+}) {
+  const query = `
+		query MyQuery {
+			language(
+				where: {
+					contents_aggregate: {
+					count: {
+					predicate: {_gt: 0},
+					filter: {
+						wa_content_metadata: {
+						${bielFilter}
+						},
+						rendered_contents_aggregate: {
+						${hasRenderings}
+						}
+					}
+				}
+			}
+		}
+				order_by: {english_name: asc}
+			) {
+				english_name
+				ietf_code
+				national_name
+				wa_language_metadata {
+					is_gateway
+				}
+				contents ( where: {wa_content_metadata: {status: {_eq: "Primary"}, show_on_biel: {_eq: true}}, rendered_contents_aggregate: {count: {predicate: {_gt: 0}}}}) {
+					name
+					type
+					domain
+					title
+					resource_type
+				}
+			}
+		}
+		`;
+
+  const res = await fetch(pubDataUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({query}),
+  });
+  const json = (await res.json()) as getLangsWithContentNamesReturn;
+  json.data.language.forEach((lang) => {
+    if (!lang.wa_language_metadata?.is_gateway) {
+      lang.contents = collateGatewayContent({
+        contents: lang.contents,
+        langName: lang.national_name,
+      });
+    }
+  });
+  return json;
+}
+
+type getLangsWithContentNamesReturn = {
+  data: {
+    language: {
+      english_name: string;
+      ietf_code: string;
+      national_name: string;
+      wa_language_metadata: {
+        is_gateway: boolean;
+      };
+      contents: {
+        title: string | undefined;
+        name: string;
+        resource_type: string;
+        type: string;
+        domain: string;
+        rendered_contents: RenderedContentRow[];
+      }[];
+    }[];
+  };
+};
 
 type RenderedContentRowsByType = {
   wholeChapterUrls: {[key: string]: RenderedContentRow};
@@ -340,33 +420,22 @@ export type domainPeripheral = contentCommon & {
 
 export type contentsForLang = domainScripture | domainPeripheral;
 
-export type languageForClient = {
+export type LanguageForClient = {
   direction: "ltr" | "rtl";
   isGateway: boolean;
   code: string;
 };
-export type langWithContent = {
-  language: languageForClient;
+export type LangWithContent = {
+  language: LanguageForClient;
   contents: contentsForLang[];
 };
+type ManageCfCacheArgs = {
+  swrThresholdSeconds?: number;
+  query: string;
+  url: string;
+  cache: Cache;
+};
 
-// todo: swap query for this one, and see if I can join on heart, same name, or same resource type
-/*
-  query MyQuery {
-    language(where:{ietf_code:{_eq:"fr"}}) {
-      national_name
-      direction
-      wa_language_metadata {
-        is_gateway
-      }
-      contents(
-        where:{wa_content_metadata: {status: {_eq: "Primary"}, show_on_biel: {_eq: true}}, rendered_contents_aggregate: {count: {predicate: {_gt: 0}}}}
-      ) {
-        name
-      }
-    }
-}
-*/
 function collateGatewayContent({
   contents,
   langName,
@@ -399,7 +468,9 @@ function collateGatewayContent({
         if (value) {
           // mergin all of same type into the rendered_content
           value.forEach((contentRow) => {
-            content.rendered_contents.push(...contentRow.rendered_contents);
+            if (contentRow?.rendered_contents) {
+              content.rendered_contents.push(...contentRow.rendered_contents);
+            }
           });
         }
         return content;
@@ -468,19 +539,12 @@ function sortHtmlChaptersCanonically(htmlChapters: RenderedContentRow[]) {
   });
 }
 
-type manageCfCacheArgs = {
-  swrThresholdSeconds?: number;
-  query: string;
-  url: string;
-  cache: Cache;
-};
-
 async function manageCfCachePostReq({
   swrThresholdSeconds,
   query,
   url,
   cache,
-}: manageCfCacheArgs) {
+}: ManageCfCacheArgs) {
   // see caching post reqeust here: Basically making a unique cache key based on the url + query
   // https://developers.cloudflare.com/workers/examples/cache-post-request
   const hashedQuery = new TextEncoder().encode(query);
@@ -550,7 +614,7 @@ async function manageCfCachePostReq({
   };
 }
 
-type refreshCfCacheArgs = {
+type RefreshCfCacheArgs = {
   cache: Cache;
   cacheKey: Request;
   newHeaders: Headers;
@@ -561,7 +625,7 @@ async function refreshCfCache({
   cacheKey,
   requestToMake,
   newHeaders,
-}: refreshCfCacheArgs) {
+}: RefreshCfCacheArgs) {
   try {
     // Get fresh
     const res = await fetch(requestToMake);

@@ -106,6 +106,7 @@ export async function getPage({
       }
     }
   `;
+  // due to routing.  can't route to just / for this preview route
   if (uri.includes("home")) {
     uri = "/";
   }
@@ -410,7 +411,7 @@ export async function getAllPages({gqlUrl}: {gqlUrl: string}) {
           (t) => t.languageCode === translation.languageCode
         );
         if (!thatLangTranslation) return;
-
+        // todo: special case handling for home page here
         translation.ancestors.nodes.push({
           uri: `${thatLangTranslation.uri}`,
           slug: thatLangTranslation.slug,

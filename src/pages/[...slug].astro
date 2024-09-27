@@ -49,7 +49,7 @@ interface Props {
 export async function getStaticPaths() {
   if (import.meta.env.DEV) {
     // set to true to regenerate a local fs based cache of these pages to dev against / preview faster instead of fetchign each. Alteratively, just use the server rendered route.
-    const forceRefresh = true;
+    const forceRefresh = false;
     const pages = getDevCachedPages(forceRefresh);
     if (pages) return pages;
   }

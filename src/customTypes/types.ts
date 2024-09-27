@@ -1,7 +1,7 @@
 import type {ghFile} from "@src/data/github";
 import type {
   contentsForLang as ContentsForLang,
-  languageForClient,
+  LanguageForClient,
 } from "@src/data/pubDataApi";
 import type {i18nDictType} from "@src/i18n/strings";
 
@@ -203,7 +203,7 @@ export type FooterType = {
 
 export type ContentListingProps = {
   contents: ContentsForLang[];
-  language: languageForClient;
+  language: LanguageForClient;
   tsFiles: TsFile[] | undefined;
   i18nDict: i18nDictType;
   queryParams: {
