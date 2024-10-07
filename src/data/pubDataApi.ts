@@ -160,6 +160,7 @@ export async function getLanguageContents({
   const query = `query LangContents {
   language(where: {ietf_code: {_eq: "${language}"}}) {
     national_name
+    english_name
     direction
     ietf_code
     wa_language_metadata {
@@ -262,6 +263,7 @@ export async function getLanguageContents({
         direction: lang.direction,
         isGateway: lang.wa_language_metadata?.is_gateway,
         code: lang.ietf_code,
+        englishName: lang.english_name,
       },
       contents: content,
     },
@@ -378,6 +380,7 @@ type langContentReturn = {
   data: {
     language: {
       national_name: string;
+      english_name: string;
       direction: "ltr" | "rtl";
       ietf_code: string;
       // # english_name
@@ -424,6 +427,7 @@ export type LanguageForClient = {
   direction: "ltr" | "rtl";
   isGateway: boolean;
   code: string;
+  englishName: string;
 };
 export type LangWithContent = {
   language: LanguageForClient;
