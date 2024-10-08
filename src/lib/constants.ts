@@ -2,7 +2,7 @@ export const constants = {
   apiFetchExternal: "/api/fetchExternal",
   apiDocStart: "/api/doc",
   apiPollDoc: "/api/pollDoc",
-  apiTriggerDownload: "/api/pollDoc",
+  apiTriggerDownload: "/api/triggerDownload",
   apiFallbackSwZip: "/api/swFallbackSourceZip",
   headerOctectStream: "application/octet-stream",
   swKeepAlive: "/sw/keepAlive",
