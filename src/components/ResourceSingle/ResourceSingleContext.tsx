@@ -29,27 +29,26 @@ const ResourceSingleContext = createContext<{
   setActiveContent: SetStoreFunction<ScriptureStoreState>;
   fitsScripturalSchema: () => boolean;
   resourceTypes: () => string[];
-  twState: Accessor<{
-    menuList:
-      | {
-          id: string;
-          oneWordSlug: string;
-        }[]
-      | null;
-    html: string | null;
-    currentWord: {id: string; oneWordSlug: string} | null;
-  }>;
-  setTwState: Setter<{
-    menuList: {id: string; oneWordSlug: string}[] | null;
-    html: string | null;
-    currentWord: {id: string; oneWordSlug: string} | null;
-  }>;
+  twState: Accessor<twStateType>;
+  setTwState: Setter<twStateType>;
   langDirection: "ltr" | "rtl";
   zipSrc: () => ZipSrcBodyReq;
   mobileResourceTitle: () => string;
   i18nDict: i18nDictType;
   langEnglishName: string;
+  docUiUrl: string;
 }>();
+
+export type twStateType = {
+  menuList:
+    | {
+        id: string;
+        oneWordSlug: string;
+      }[]
+    | null;
+  html: string | null;
+  currentWord: {id: string; oneWordSlug: string} | null;
+};
 
 type ResourceSingleProviderProps = {
   // biome-ignore lint/suspicious/noExplicitAny: <I think children have to be jsx els or something, but not going to pass a type that's not that of course>
@@ -60,6 +59,7 @@ type ResourceSingleProviderProps = {
   i18nDict: i18nDictType;
   queryParams: ContentListingProps["queryParams"];
   englishName: string;
+  docUiUrl: string;
 };
 export const ResourceSingleProvider = (props: ResourceSingleProviderProps) => {
   const isBig = createMediaQuery("(min-width: 768px)", true);
@@ -101,11 +101,7 @@ export const ResourceSingleProvider = (props: ResourceSingleProviderProps) => {
   });
   const fitsScripturalSchema = () => isScriptural(activeContent);
   const resourceTypes = () => props.allLangContents.map((x) => x.resource_type);
-  const [twState, setTwState] = createSignal<{
-    menuList: {id: string; oneWordSlug: string}[] | null;
-    html: string | null;
-    currentWord: {id: string; oneWordSlug: string} | null;
-  }>({
+  const [twState, setTwState] = createSignal<twStateType>({
     menuList: null,
     html: null,
     currentWord: null,
@@ -192,6 +188,7 @@ export const ResourceSingleProvider = (props: ResourceSingleProviderProps) => {
         mobileResourceTitle,
         i18nDict: props.i18nDict,
         langEnglishName: props.englishName,
+        docUiUrl: props.docUiUrl,
       }}
     >
       {props.children}

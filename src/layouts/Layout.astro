@@ -14,6 +14,7 @@ interface Props {
   inlineCss: string[];
   description: string;
   langDirection: "ltr" | "rtl";
+  isContactPage: boolean;
 }
 import {ViewTransitions} from "astro:transitions";
 import {cacheFooterForDev, getCachedFooter} from "@lib/caching";
@@ -22,8 +23,15 @@ const gqlUrl =
   import.meta.env.WORDPRESS_GQL_URL ||
   Astro.locals.runtime.env?.WORDPRESS_GQL_URL;
 
-const {title, inlineCss, langInfo, langSwitcher, description, langDirection} =
-  Astro.props;
+const {
+  title,
+  inlineCss,
+  langInfo,
+  langSwitcher,
+  description,
+  langDirection,
+  isContactPage,
+} = Astro.props;
 const forceRefresh = true;
 const cachedFooter =
   import.meta.env.DEV && getCachedFooter(forceRefresh)
@@ -72,6 +80,16 @@ const {englishUriMap} = await getEnglishUriMap({gqlUrl});
       })
     }
     <ViewTransitions />
+    {
+      isContactPage && (
+        <script
+          src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+          async
+          defer
+          is:inline
+        />
+      )
+    }
   </head>
   <body>
     <div class="site bg-surface-primary">

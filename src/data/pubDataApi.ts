@@ -54,7 +54,6 @@ query MyQuery {
   const oneYearInSeconds = 60 * 60 * 24 * 365;
   try {
     // CF doesn't support SWR yet, but we cna implement it for one route.  Just use caches.default and put one in with a custom x-swr header. When this is called, do a caches.match()... if the max-age or s-max isn't expired, cf should just use that. Then,
-    // todo: test all this tomorrow
     let json: queryReturn;
     const requestToMake = () => {
       return new Request(pubDataApiUrl, {

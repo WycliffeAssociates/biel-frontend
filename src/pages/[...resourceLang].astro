@@ -62,11 +62,21 @@ const langSwitcherList = Object.values(wpmlLangDict)
     const matchingSlug = resourceSlugs.data.page.translations.find(
       (t) => t.languageCode === lang.code
     );
-    if (lang.code === "en") {
+    if (isListingPageEn || isListingPageOther) {
+      if (lang.code === "en") {
+      copy.localizedUrl = "/resources";
+    } else {
+      copy.localizedUrl = `/${lang.code}/${matchingSlug?.slug}`;
+    }
+    } else {
+      if (lang.code === "en") {
       copy.localizedUrl = `/resources/${pubDataIetf}`;
     } else {
       copy.localizedUrl = `/${lang.code}/${matchingSlug?.slug}/${pubDataIetf}`;
     }
+      // resource/en or es/recursos/lang
+    }
+   
     return copy;
   });
 const nodes = [
@@ -143,6 +153,7 @@ const crumbs = {
     allLangs={langSwitcherList}
     currentLang={langInfo}
     menu={headerMenu}
+    i18nDict={i18nDict!}
     client:load
   />
   <BreadCrumbs crumbs={crumbs} />

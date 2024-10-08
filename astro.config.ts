@@ -15,15 +15,16 @@ const isDev = import.meta.env.DEV;
 export default defineConfig({
   vite: {
     build: {
-      // todo: change for produ, but can make false to inspect deployed bundle
-      minify: false,
+      // toggle if neeing to debug locally.
+      minify: true,
     },
-    resolve: {
-      conditions: !isDev ? ["worker", "webworker"] : [],
-      mainFields: !isDev ? ["module"] : [],
-    },
+    // resolve: {
+    //   conditions: !isDev ? ["worker", "webworker"] : [],
+    //   mainFields: !isDev ? ["module"] : [],
+    // },
     ssr: {
       noExternal: [],
+      // external used only in dev to avoid calling getStaticPaths and rebuilding site sometimes.
       external: ["node:fs", "node:path"],
       // noExternal: ["path-to-regexp"],
     },
@@ -75,6 +76,7 @@ export default defineConfig({
     },
   }),
   image: {
+    // todo env var: idk if we want to redirect or just give new biel the old domain?
     domains: ["https://bieldev.wpengine.com"],
   },
 });

@@ -1,13 +1,17 @@
 ---
 import Blocks from "@components/Blocks.astro";
 import {BreadCrumbs} from "@components/BreadCrumbs";
+import ContactPage from "@components/ContactPage.astro";
 import {HeaderMenu} from "@components/HeaderMenu";
 import Hero from "@components/Hero.astro";
+import {injectSearch} from "@components/SearchInjectClientSide";
+import SearchPage from "@components/SearchPage.astro";
 // export const prerender = false;
 import type {Menu, languageType} from "@customTypes/types";
 import type {WpPage} from "@customTypes/types";
 import Layout from "@layouts/Layout.astro";
 import {cachePageForDevSpeed, getDevCachedPages} from "@lib/caching";
+import {constants} from "@lib/constants";
 import {blocksAreEmpty} from "@lib/web";
 import {
   getAllPages,
@@ -29,7 +33,6 @@ import {DOMParser} from "linkedom/worker";
 
 interface Props {
   page: WpPage;
-  // todo: can I get a more speicific type?
   headerMenu: Menu;
   langInfo: languageType;
   contactSection: {
@@ -38,18 +41,15 @@ interface Props {
   ctaSection: {
     content: string;
   } | null;
-
   langSwitcherList: languageType[];
   inlineStyles: string[];
   englishUriMap: Record<string, Record<string, string>>;
 }
 
-// style id=generateblocks-inline-css
-// const res = await fetch("http://bible-in-every-language.local/headless/");
 export async function getStaticPaths() {
   if (import.meta.env.DEV) {
     // set to true to regenerate a local fs based cache of these pages to dev against / preview faster instead of fetchign each. Alteratively, just use the server rendered route.
-    const forceRefresh = false;
+    const forceRefresh = true;
     const pages = getDevCachedPages(forceRefresh);
     if (pages) return pages;
   }
@@ -214,15 +214,22 @@ const {
   englishUriMap,
   ctaSection,
 } = Astro.props;
-// Generate something for seo, even if not great
-// todo: inject search if this is a home page.
-const description = page.editorBlocks
+let doHydrateInjectedSearch = false;
+const blockHtmlWithClientInjections = page.editorBlocks
   .filter((b) => b.parentClientId == null)
   .map((block) => {
+    if (block.renderedHtml.includes(`id="injectStaticSearch"`)) {
+      const searchComponent = injectSearch({langCode: langInfo.code, langSwitcherList});
+      const wrapped = `<div class="relative p-0!"> ${searchComponent} </div>`;
+      block.renderedHtml = block.renderedHtml.replace(
+        constants.injectRegex,
+        wrapped
+      );
+      doHydrateInjectedSearch = true;
+    }
     return block.renderedHtml;
-  })
-  .join(" ")
-  .slice(0, 100);
+  });
+const description = blockHtmlWithClientInjections.join(" ").slice(0, 100);
 ---
 
 <Layout
@@ -232,15 +239,18 @@ const description = page.editorBlocks
   langSwitcher={langSwitcherList}
   description={description}
   langDirection="ltr"
+  isContactPage={page.isContactPage}
 >
-  <div class="header">
+  <header class="header">
     <HeaderMenu
       allLangs={langSwitcherList}
       currentLang={langInfo}
       menu={headerMenu}
+      doHydrateInjectedSearch={doHydrateInjectedSearch}
+      i18nDict={getDict(langInfo.code, true)!}
       client:load
     />
-  </div>
+  </header>
   <main
     data-pagefind-meta="type:page"
     class={`${!page.isHomePage && "interior-page"} `}
@@ -259,13 +269,13 @@ const description = page.editorBlocks
       )
     }
     {
-      !page.isHomePage && !page.pageOptions?.topBlurb && (
+      !page.isHomePage && !page.isSearchPage && !page.pageOptions?.topBlurb && (
         <h1 class="text-center text-6xl mb-12 ">{page.title}</h1>
       )
     }
 
     {
-      (
+      !page.isSearchPage && !page.isContactPage && (
         <div
           class={`headless-insertion wp-blocks ${
             !page.isHomePage && "site-container"
@@ -288,6 +298,27 @@ const description = page.editorBlocks
             <h2 class="">{getDict(langInfo.code, true)!.notYetTranslated}</h2>
           )}
         </div>
+      )
+    }
+    <!-- CONTACT PAGE -->
+    {
+      page.isContactPage && (
+        <ContactPage
+          languageCode={langInfo.language_code}
+          editorBlocks={page.editorBlocks}
+          notTranslatedYet={blocksAreEmpty(page.editorBlocks)}
+          dict={getDict(langInfo.code, true)!}
+        />
+      )
+    }
+    <!-- SEARCH PAGE -->
+    {
+      page.isSearchPage && (
+        <SearchPage
+          dict={getDict(langInfo.code, true)!}
+          languageCode={langInfo.code}
+          langSwitcherList={langSwitcherList}
+        />
       )
     }
     {

@@ -74,10 +74,9 @@ export function ScripturalView() {
 type MenuRowProps = {
   classes?: string;
 };
-// todo: probably refactor out of being in this file. Can have a menu for for script and non
-// todo: some things here are not strictly scriptural vs non scriptraul;
+// menu row could be moved, but is here since this menu is strictly scriptpural, so this exists after the branch of scriptural vs non in logic
 export function MenuRow(props: MenuRowProps) {
-  const {setActiveContent, activeContent, isBig, langDirection} =
+  const {setActiveContent, activeContent, isBig, langDirection, i18nDict} =
     useResourceSingleContext();
 
   const activeRow = () =>
@@ -89,6 +88,7 @@ export function MenuRow(props: MenuRowProps) {
         langDirection={langDirection}
         content={activeContent}
         activeRow={activeRow}
+        i18nDict={i18nDict}
       />
       <Show when={isBig()}>
         <DownloadOptions />
@@ -102,6 +102,7 @@ type MenuProps = {
   content: ContentType;
   langDirection: "ltr" | "rtl";
   setActiveContent: SetStoreFunction<ScriptureStoreState>;
+  i18nDict: i18nDictType;
 };
 function Menu(props: MenuProps) {
   const numHtmlChaps = props.content.rendered_contents.htmlChapters.length;
@@ -123,6 +124,7 @@ function Menu(props: MenuProps) {
         htmlChapters={props.content.rendered_contents.htmlChapters}
         setActiveContent={props.setActiveContent}
         langDirection={props.langDirection}
+        i18nDict={props.i18nDict}
       />
       <NavAdjacentButton
         activeRowIdx={props.content.activeRowIdx}
@@ -140,6 +142,7 @@ type MenuDialogProps = {
   htmlChapters: RenderedContentRow[];
   setActiveContent: SetStoreFunction<ScriptureStoreState>;
   langDirection: "ltr" | "rtl";
+  i18nDict: i18nDictType;
 };
 function MenuDialog(props: MenuDialogProps) {
   const [dialogOpen, setDialogOpen] = createSignal(false);
@@ -197,8 +200,9 @@ function MenuDialog(props: MenuDialogProps) {
                         } w-.75em h-.75em font-size-[var(--step-2)]  bg-onSurface-primary!`}
                       />
                     </button>
-                    {/* todo: i18n */}
-                    <Dialog.Title class="">Navigation</Dialog.Title>
+                    <Dialog.Title class="">
+                      {props.i18nDict.ls_Navigate}
+                    </Dialog.Title>
                   </div>
                   <DownloadOptions />
                 </div>

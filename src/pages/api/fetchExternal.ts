@@ -14,7 +14,7 @@ export const GET: APIRoute = async ({url, locals}) => {
     });
   }
   const decodedUrlToFetch = decodeURIComponent(urlToFetch);
-  console.log(`fetching ${decodedUrlToFetch}`);
+  console.log(`fetching ${decodedUrlToFetch}with hash of ${hashParam}`);
   // In cloudflare, fetches on Get requests go through the caches.default, so we don't have to manually call caches.match for these
   const res = await fetch(decodedUrlToFetch);
   if (hashParam && res.ok) {

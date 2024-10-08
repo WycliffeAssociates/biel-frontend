@@ -13,6 +13,7 @@ export function ResourceWrapper(props: ContentListingProps) {
       langCode={props.language.code}
       englishName={props.language.englishName}
       i18nDict={props.i18nDict}
+      docUiUrl={props.docUiUrl}
     >
       <div class="grid px-2 items-stretch  md:(gap-x-40 gap-y-4 justify-center  grid-cols-[1fr_3fr] items-start)">
         <SearchBar classes="hidden md:block" />

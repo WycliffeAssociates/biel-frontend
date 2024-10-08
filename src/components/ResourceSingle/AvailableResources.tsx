@@ -11,7 +11,6 @@ type AvailableResourcesProps = {
   classes?: string;
   tsFiles: TsFile[] | undefined;
 };
-// todo: this is likely just gonna be "big", and have a separate export for small
 export function AvailableResources(props: AvailableResourcesProps) {
   const {
     isBig,
@@ -79,7 +78,6 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
       <Dialog open={open()} onOpenChange={setOpen}>
         <Dialog.Trigger
           data-name="mobile-resource-changer"
-          // todo: fix this to match figma
           class={
             "underline uppercase relative inline-flex justify-between items-center  ps-2 text-start font-size-[var(--step-0)]"
           }
@@ -137,7 +135,6 @@ export function SearchBar(props: SearchBarProps) {
         class="bg-surface-secondary px-6 py-2 rounded-lg w-full border border-surface-border"
         onInput={(e) => setMenuSearchTerm(e.currentTarget.value)}
       />
-      {/* todo: maybeexternalize icons into other file for consistency */}
       <span class="absolute ltr:right-4 rtl:left-4 top-1/2 -translate-y-1/2 i-ph:magnifying-glass" />
     </div>
   );
@@ -201,9 +198,8 @@ export function AvailableResource(props: AvailableResourceProps) {
 }
 
 function TsFileDownload(props: {tsFile: TsFile}) {
-  // todo: Thomas change to think of only using url for whole repo and not each folder
   const [category, {files}] = props.tsFile;
-  // https://raw.githubusercontent.com/wkelly17/biel-tk-example/master/en/docx.docx
+
   const formPayload = {
     payload: files,
     name: category,
@@ -212,7 +208,7 @@ function TsFileDownload(props: {tsFile: TsFile}) {
     <div class="flex justify-between w-full p-2">
       {category}
       <form
-        action="/sw-proxy-ts"
+        action="/api/downloadTsFiles"
         method="post"
         class=""
         data-js={`proxy-ts-${category}`}

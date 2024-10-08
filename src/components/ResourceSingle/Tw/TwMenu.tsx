@@ -1,12 +1,22 @@
 import {DropdownMenu} from "@kobalte/core/dropdown-menu";
 import {type Virtualizer, createVirtualizer} from "@tanstack/solid-virtual";
-import {For, Show, createEffect, createSignal} from "solid-js";
+import {
+  For,
+  Show,
+  createEffect,
+  createSignal,
+  type Accessor,
+  type Setter,
+} from "solid-js";
 import {DownloadOptions} from "../DownloadOptions";
-import {useResourceSingleContext} from "../ResourceSingleContext";
+import type {twStateType} from "../ResourceSingleContext";
 
-export default function TwMenu() {
-  const {twState, setTwState, isBig} = useResourceSingleContext();
-
+type TwMenuProps = {
+  twState: Accessor<twStateType>;
+  setTwState: Setter<twStateType>;
+  isBig: () => boolean;
+};
+export default function TwMenu(props: TwMenuProps) {
   const [menuIsOpen, setMenuIsOpen] = createSignal(false);
   const [searchTerm, setSearchTerm] = createSignal("");
   // const [currentWord, setCurrentWord] = createSignal(
@@ -18,17 +28,18 @@ export default function TwMenu() {
   let scrollRef: HTMLUListElement | undefined;
   let searchRef: HTMLInputElement | undefined;
   function setWordAndClose(id: string) {
-    const matchingWord = twState().menuList!.find((w) => w.id === id);
+    const matchingWord = props.twState().menuList!.find((w) => w.id === id);
     // setCurrentWord(matchingWord);
     if (matchingWord) {
-      setTwState((prev) => ({...prev, currentWord: matchingWord}));
+      props.setTwState((prev) => ({...prev, currentWord: matchingWord}));
     }
     setMenuIsOpen(false);
   }
   const wordsToShow = () => {
     const lowered = searchTerm()?.toLowerCase();
-    if (lowered && twState().menuList) {
-      const filtered = twState()
+    if (lowered && props.twState().menuList) {
+      const filtered = props
+        .twState()
         .menuList!.filter((w) => {
           const fields = [w.oneWordSlug, w.id];
           return fields.some((f) => f.toLowerCase().includes(lowered));
@@ -48,7 +59,7 @@ export default function TwMenu() {
 
       return filtered;
     }
-    return twState().menuList;
+    return props.twState().menuList;
   };
   const getOverlappingBoundingRect = () => {
     if (menuRef) {
@@ -76,15 +87,13 @@ export default function TwMenu() {
     }
   });
   return (
-    <Show when={twState().menuList && twState().currentWord}>
+    <Show when={props.twState().menuList && props.twState().currentWord}>
       <div class="flex gap-4">
         <DropdownMenu
           open={menuIsOpen()}
           sameWidth={true}
           getAnchorRect={getOverlappingBoundingRect}
           preventScroll={false}
-          // placement="top-end"
-          // onOpenChange={setMenuIsOpen}
         >
           <DropdownMenu.Trigger
             class="w-full rounded-md bg-surface-secondary hover:bg-surface-secondary focus:bg-surface-secondary"
@@ -94,7 +103,7 @@ export default function TwMenu() {
             }}
           >
             <span class="w-full p-2 inline-block" ref={menuRef}>
-              {twState().currentWord?.oneWordSlug}
+              {props.twState().currentWord?.oneWordSlug}
             </span>
           </DropdownMenu.Trigger>
           <DropdownMenu.Portal>
@@ -161,7 +170,7 @@ export default function TwMenu() {
             </DropdownMenu.Content>
           </DropdownMenu.Portal>
         </DropdownMenu>
-        <Show when={isBig()}>
+        <Show when={props.isBig()}>
           <DownloadOptions />
         </Show>
       </div>

@@ -14,6 +14,7 @@ const tsFiles = await getTsFiles(languageToFetch);
 const cache = Astro.locals.runtime.caches.default;
 const ctx = Astro.locals.runtime.ctx;
 const pubDataApiUrl = Astro.locals.runtime.env.PUBLIC_DATA_API;
+const docUiUrl = Astro.locals.runtime.env.DOC_UI_URL as string;
 const data = await getLanguageContents({
   language: languageToFetch,
   cache,
@@ -35,7 +36,6 @@ const chapter = Astro.url.searchParams.get("chapter") || null;
 const queryParams = {resource, book, chapter};
 ---
 
-<!-- todo: i18n title -->
 <section data-name="pubDataApi" class="contain">
   <div>
     <ResourceWrapper
@@ -45,6 +45,7 @@ const queryParams = {resource, book, chapter};
       contents={contents}
       tsFiles={tsFiles}
       i18nDict={i18nDict}
+      docUiUrl={docUiUrl}
     />
   </div>
 </section>

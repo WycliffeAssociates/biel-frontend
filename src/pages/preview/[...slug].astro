@@ -6,6 +6,7 @@ import ContactPage from "@components/ContactPage.astro";
 import {HeaderMenu} from "@components/HeaderMenu";
 import Hero from "@components/Hero.astro";
 import {injectSearch} from "@components/SearchInjectClientSide";
+import SearchPage from "@components/SearchPage.astro";
 import LayoutServer from "@layouts/LayoutServer.astro";
 import {blocksAreEmpty} from "@lib/web";
 import {
@@ -55,21 +56,6 @@ const [page, ctaSection, contactSection, {englishUriMap}] = await Promise.all([
   getEnglishUriMap({gqlUrl}),
 ]);
 
-// const page = await getPage({
-//   uri: slug,
-//   langCode: langInfo.language_code,
-//   gqlUrl,
-// });
-// const ctaSection = await getGlobal({
-//   slug: "cta-interior-2",
-//   langCode: langInfo.language_code,
-//   gqlUrl,
-// });
-// const contactSection = await getGlobal({
-//   slug: "contact",
-//   langCode: langInfo.language_code,
-//   gqlUrl,
-// });
 if (!page) return Astro.redirect("/404");
 const menus = await getMenus({restUrl});
 const nonHiddenLanguages = new Set(Object.keys(menus));
@@ -96,7 +82,7 @@ if (contactSection?.inlineStyles) {
   inlineStyles.push(contactSection.inlineStyles);
 }
 page.inlineStyles = inlineStyles;
-// todo: reduce hardcode here
+// todo: reduce hardcode here?
 const headerMenu =
   menus[langInfo.language_code]?.["header-menu"] || menus.en?.["header-menu"]!;
 
@@ -107,31 +93,22 @@ const langSwitcherList = Object.values(wpmlLangDict)
   .map((lang) => {
     // Don't mutate the original dict item
     const copy = {...lang};
-    // Mutate the langMenu while in this loop. For each of these languages, find the equivalent given its lang code
-    // todo: fix the ts-ignore;
+    // Do Mutate the langMenu while in this loop. For each of these languages, find the equivalent given its lang code
     let translatedUri = page.otherVersions?.[copy.code] || "";
     if (page.uri === "/") {
       translatedUri = copy.code === "en" ? "/home" : `/${copy.code}/home`;
     }
 
     if (translatedUri) {
-      // @ts-ignore
       if (translatedUri === "/" && lang.code === "en") {
         copy.localizedUrl = "/";
       } else {
-        // @ts-ignore
         copy.localizedUrl = translatedUri;
       }
     }
     return copy;
   });
 
-// const pageRendered = await res.text();
-// const dom = new DOMParser().parseFromString(pageRendered, "text/html");
-// const inlineStyles = dom.querySelector("#generateblocks-inline-css");
-
-// const inlineStyle = inlineStyles?.innerText || "";
-// @ts-ignore
 const {title} = page;
 
 const injectRegex = /<div[^>]*\bid="injectStaticSearch"[^>]*>.*?<\/div>/gim;
@@ -140,7 +117,10 @@ page.editorBlocks
   .filter((b) => b.parentClientId == null)
   .map((block) => {
     if (block.renderedHtml.includes(`id="injectStaticSearch"`)) {
-      const searchComponent = injectSearch({langCode: langInfo.code});
+      const searchComponent = injectSearch({
+        langCode: langInfo.code,
+        langSwitcherList,
+      });
       const wrapped = `<div class="relative p-0!"> ${searchComponent} </div>`;
       block.renderedHtml = block.renderedHtml.replace(injectRegex, wrapped);
       doHydrateInjectedSearch = true;
@@ -162,6 +142,7 @@ page.editorBlocks
     currentLang={langInfo}
     menu={headerMenu}
     doHydrateInjectedSearch={doHydrateInjectedSearch}
+    i18nDict={getDict(langInfo.code, true)!}
     client:load
   />
   <main class={`${!page.isHomePage && "interior-page"} `}>
@@ -177,10 +158,9 @@ page.editorBlocks
         </div>
       )
     }
-    <!-- todo: I"d love to move this to RegularPage vs Special page astro components to clean up this bit of template. -->
     {
       // handle all but hardcoded pages of translations/contact
-      !page.isContactPage && (
+      !page.isSearchPage && !page.isContactPage && (
         <div
           class={`headless-insertion wp-blocks ${
             !page.isHomePage && "site-container"
@@ -212,6 +192,16 @@ page.editorBlocks
           editorBlocks={page.editorBlocks}
           notTranslatedYet={blocksAreEmpty(page.editorBlocks)}
           dict={getDict(langInfo.code, true)!}
+        />
+      )
+    }
+    <!-- SEARCH PAGE -->
+    {
+      page.isSearchPage && (
+        <SearchPage
+          dict={getDict(langInfo.code, true)!}
+          languageCode={langInfo.code}
+          langSwitcherList={langSwitcherList}
         />
       )
     }

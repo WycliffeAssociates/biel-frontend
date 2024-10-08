@@ -14,6 +14,8 @@ import {DOMParser} from "linkedom/worker";
 import Blocks from "../components/Blocks.astro";
 // export const prerender = false;
 import Layout from "../layouts/Layout.astro";
+import {constants} from "@lib/constants";
+import {getDict} from "@src/i18n/strings";
 // !NOTE: THIS IS ONLY THE ENGLISH PAGE, HECNE THE COERCCIONES AND HARDCODES TO .EN. THIS IS DUE TO WANTING TO ROUTE THE HOME PAGE TO /, BUT THE OTHER HOME PAGES ARE LOCALE PREFIXED /ES FOR EXAMPLE
 const forceRefresh = true;
 const gqlUrl =
@@ -68,23 +70,27 @@ const langSwitcherList = Object.values(wpmlLangDict)
     return lang;
   });
 const langInfo = wpmlLangDict.en!;
-const injectRegex = /<div[^>]*\bid="injectStaticSearch"[^>]*>.*?<\/div>/gim;
-// todo: have to do for the other home pages as well
 let doHydrateInjectedSearch = false;
-// todo: split out the search inejction from derivation of description
-const description = editorBlocks
+
+const blockHtmlWithClientInjections = editorBlocks
   .filter((b) => b.parentClientId == null)
   .map((block) => {
     if (block.renderedHtml.includes(`id="injectStaticSearch"`)) {
-      const searchComponent = injectSearch({langCode: langInfo.code});
+      const searchComponent = injectSearch({
+        langCode: langInfo.code,
+        langSwitcherList,
+      });
       const wrapped = `<div class="relative p-0!"> ${searchComponent} </div>`;
-      block.renderedHtml = block.renderedHtml.replace(injectRegex, wrapped);
+      block.renderedHtml = block.renderedHtml.replace(
+        constants.injectRegex,
+        wrapped
+      );
       doHydrateInjectedSearch = true;
     }
     return block.renderedHtml;
-  })
-  .join(" ")
-  .slice(0, 100);
+  });
+
+const description = blockHtmlWithClientInjections.join(" ").slice(0, 100);
 
 const {englishUriMap} = await getEnglishUriMap({gqlUrl});
 ---
@@ -96,12 +102,14 @@ const {englishUriMap} = await getEnglishUriMap({gqlUrl});
   langSwitcher={langSwitcherList}
   description={description}
   langDirection="ltr"
+  isContactPage={false}
 >
   <HeaderMenu
     allLangs={langSwitcherList}
     currentLang={langInfo}
     menu={headerMenu}
     doHydrateInjectedSearch={doHydrateInjectedSearch}
+    i18nDict={getDict("en")!}
     client:load
   />
   <main class="headless-insertion wp-blocks" data-pagefind-meta="type:page">

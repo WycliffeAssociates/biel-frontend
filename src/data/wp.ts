@@ -1,5 +1,5 @@
 import type {
-  FooterType,
+  GlobalWpType,
   WPMLMenu,
   WpPage,
   languageType,
@@ -33,7 +33,7 @@ export async function getHomePage({gqlUrl}: {gqlUrl: string}) {
       }
     }
   `;
-  // todo: see fi I cna fix url for prod by passing in env. everywehre there is a gql url. Gotta use the CF rutime and pass it in.
+
   const response = await fetch(gqlUrl, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
@@ -225,6 +225,7 @@ export async function getPage({
   page.isContactPage =
     page.title.toLowerCase() === "contact us" ||
     page.translations.some((t) => t.title.toLowerCase() === "contact us");
+  page.isSearchPage = page.title.toLowerCase() === "search";
   const otherVersions: Record<string, string> = {};
   page.translations.forEach((t) => {
     otherVersions[t.languageCode] = t.uri;
@@ -242,6 +243,7 @@ export async function getPage({
     t.otherVersions = otherVersions;
     t.isHomePage = page.uri === "/";
     t.isContactPage = page.isContactPage;
+    t.isSearchPage = page.isSearchPage;
   });
 
   return page;
@@ -362,6 +364,9 @@ export async function getAllPages({gqlUrl}: {gqlUrl: string}) {
     page.isContactPage =
       page.title.toLowerCase() === "contact us" ||
       page.translations.some((t) => t.title.toLowerCase() === "contact us");
+    page.isSearchPage =
+      page.title.toLowerCase() === "search" ||
+      page.translations.some((t) => t.title.toLowerCase() === "search");
     // Every page needs an otherVersions to all others in the form of langCode -> databaseId of the localized version: This is populating it for english, and we'll do same below;
     const otherVersions: Record<string, string> = {};
     page.translations.forEach((t) => {
@@ -391,6 +396,7 @@ export async function getAllPages({gqlUrl}: {gqlUrl: string}) {
       // flags for special
       translation.isHomePage = enPage.uri === "/";
       translation.isContactPage = enPage.isContactPage;
+      translation.isSearchPage = enPage.isSearchPage;
       if (enPage.uri === "/") {
         // Wpml / WP also have these uri's as /, but they are really /langCode cause we aren't ssr rendering / to whatever lang you want.  It's got to be at a different uri
         translation.uri = `/${translation.languageCode}`;
@@ -411,7 +417,6 @@ export async function getAllPages({gqlUrl}: {gqlUrl: string}) {
           (t) => t.languageCode === translation.languageCode
         );
         if (!thatLangTranslation) return;
-        // todo: special case handling for home page here
         translation.ancestors.nodes.push({
           uri: `${thatLangTranslation.uri}`,
           slug: thatLangTranslation.slug,
@@ -420,19 +425,18 @@ export async function getAllPages({gqlUrl}: {gqlUrl: string}) {
         });
       });
 
+      // hero stuff that should be same:
+      if (translation.pageOptions) {
+        translation.pageOptions.iconPreTitle = enPage.pageOptions?.iconPreTitle;
+      }
+
       const byLang = pagesByLangCode[translation.languageCode];
       if (byLang) {
         byLang[translation.databaseId] = translation;
       }
     });
   }
-  const englishUrisMap = Object.values(pagesByLangCode.en!).reduce(
-    (acc: Record<string, Record<string, string>>, curr) => {
-      acc[curr.uri] = curr.otherVersions;
-      return acc;
-    },
-    {}
-  );
+
   return {pagesByLangCode};
 }
 
@@ -571,8 +575,7 @@ export async function getGlobal({
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({query}),
     });
-    // todo: this isn't a footer type, but shape is same
-    const result = (await response.json()) as {data: FooterType};
+    const result = (await response.json()) as {data: GlobalWpType};
 
     const fetchLink = result.data.global.link;
     const fetchGlobal = await fetch(fetchLink);
@@ -636,7 +639,7 @@ export async function getFooter({
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({query}),
     });
-    const result = (await response.json()) as {data: FooterType};
+    const result = (await response.json()) as {data: GlobalWpType};
 
     const fetchLink = result.data.global.link;
     const fetchFooter = await fetch(fetchLink);

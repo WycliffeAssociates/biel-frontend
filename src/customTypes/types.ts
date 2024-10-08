@@ -144,6 +144,7 @@ export type WpPage = {
   translationOfId: number;
   isHomePage: boolean;
   isContactPage: boolean;
+  isSearchPage: boolean;
 };
 export type EditorBlock = {
   parentClientId: null | string;
@@ -164,6 +165,7 @@ type Translation = {
   modified: string;
   parentDatabaseId: number | null;
   isContactPage: boolean;
+  isSearchPage: boolean;
   isHomePage: boolean;
   editorBlocks: EditorBlock[];
   featuredImage: {
@@ -193,7 +195,7 @@ type Translation = {
   };
 };
 
-export type FooterType = {
+export type GlobalWpType = {
   global: {
     content: string;
     link: string;
@@ -211,6 +213,7 @@ export type ContentListingProps = {
     book: string | null;
     chapter: string | null;
   };
+  docUiUrl: string;
 };
 export type TsFile = [string, {url: string; files: ghFile[]}];
 export type ScriptureStoreState = ContentsForLang & {

@@ -291,7 +291,13 @@ main img {
   color: hsl(var(--clr-brand-base)) !important;
   cursor: pointer;
 }
-
+.platform-detect a:hover {
+  color: hsl(var(--clr-brand-light)) !important;
+  background: hsl(var(--clr-brand-dark)) !important;
+}
+.platform-detect path {
+  fill: hsl(var(--clr-surface-primary)) !important;
+}
 summary.webkit-hide-summary-arrow::-webkit-details-marker {
   display: none;
 }

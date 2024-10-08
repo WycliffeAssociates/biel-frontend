@@ -8,12 +8,21 @@ import {DropdownMenu} from "@kobalte/core/dropdown-menu";
 import {RadioGroup} from "@kobalte/core/radio-group";
 import {ToggleButton} from "@kobalte/core/toggle-button";
 import type {i18nDictType} from "@src/i18n/strings";
-import {type Accessor, For, type Setter, Show, createSignal} from "solid-js";
+import {
+  type Accessor,
+  For,
+  type Setter,
+  Show,
+  createSignal,
+  createEffect,
+  lazy,
+} from "solid-js";
 import {useResourceSingleContext} from "./ResourceSingleContext";
-import {startScriptureAppBuilder} from "@lib/web";
+import {constants} from "@src/lib/constants";
+const DownloadModal = lazy(() => import("./DownloadModalMobile"));
 
 type DownloadArgs = {
-  fileType: "PDF" | "EPUB" | "DOCX" | "SOURCE" | "APK";
+  fileType: "PDF" | "EPUB" | "DOCX" | "SOURCE";
   includeTranslationsNotes: boolean;
   includeAllBooks: boolean;
 };
@@ -26,7 +35,6 @@ export function DownloadOptions() {
     langCode,
     isBig,
     zipSrc,
-    fitsScripturalSchema,
     i18nDict,
     langEnglishName,
   } = useResourceSingleContext();
@@ -59,9 +67,7 @@ export function DownloadOptions() {
     resourceTypes()
       .map((x) => x.toLowerCase())
       .includes("tn") && downloadOptions().fileType !== "SOURCE";
-  const doShowAllBooksToggle = () =>
-    downloadOptions().fileType !== "SOURCE" &&
-    downloadOptions().fileType !== "APK";
+  const doShowAllBooksToggle = () => downloadOptions().fileType !== "SOURCE";
 
   const updateDownloadOptions = (
     key: keyof DownloadArgs,
@@ -96,8 +102,8 @@ export function DownloadOptions() {
     } else if (optionsSelected.fileType === "DOCX") {
       basePayload.generate_docx = true;
     }
-    // todo: constrain to tw probably
-    if (!fitsScripturalSchema()) {
+    // if there were something else that doc supported that wasn't tw, would add here
+    if (activeContent.resource_type.toLowerCase() === "tw") {
       basePayload.resource_requests = [
         // hard code a single book for like TW
         {
@@ -156,36 +162,20 @@ export function DownloadOptions() {
     const optionsSelected = downloadOptions();
     if (optionsSelected.fileType === "SOURCE") {
       const srcForm = document.querySelector(
-        "[data-js='proxy-source-zips']"
+        `[data-js='${constants.swProxyDataJsSelector}']`
       ) as HTMLFormElement;
       if (srcForm) {
         srcForm.submit();
-      }
-    } else if (optionsSelected.fileType === "APK") {
-      // todo: replace with Sab submit fxn
-      // const srcForm = document.querySelector(
-      //   "[data-js='proxy-sab-zips']"
-      // ) as HTMLFormElement;
-      // if (srcForm) {
-      //   srcForm.submit();
-      // }
-      // todo: investigate using form directly pointed at docker instead of ajax or sw to we stream the apk back
-      setIsLoading(true);
-      const apkBlob = await startScriptureAppBuilder({
-        payload: zipSrc(),
-        ietfCode: langCode,
-        langEnglishName: langEnglishName,
-      });
-      if (apkBlob) {
-        let a = document.createElement("a");
-        a.style.display = "none";
-        document.body.appendChild(a);
-        let url = window.URL.createObjectURL(apkBlob);
-        a.download = `${langEnglishName}.apk`;
-        a.href = url;
-        a.click();
-        window.URL.revokeObjectURL(url);
-        setIsLoading(false);
+        // firefox will kill a stream feeding a download if it takes too long, so just ping it to keep it alive for a while; This is less than ideal, but a noop in terms of work
+        const intervalId = window.setInterval(() => {
+          fetch(constants.swKeepAlive, {
+            method: "POST",
+          });
+        }, 5000);
+        const tenMins = 10 * 60 * 1000;
+        setTimeout(() => {
+          clearInterval(intervalId);
+        }, tenMins);
       }
     } else {
       sendDocRequest();
@@ -197,7 +187,7 @@ export function DownloadOptions() {
     setAbortPoll(false);
     const body = getDocRequestBody();
     try {
-      const res = await fetch("/api/doc", {
+      const res = await fetch(constants.apiDocStart, {
         signal: controller().signal,
         method: "POST",
         headers: {"Content-Type": "application/json"},
@@ -230,7 +220,7 @@ export function DownloadOptions() {
   async function poll(taskId: string) {
     try {
       const downloadSuffix = getSuffix();
-      const res = await fetch("/api/pollDoc", {
+      const res = await fetch(constants.apiPollDoc, {
         signal: controller().signal,
         method: "POST",
         body: JSON.stringify({taskId: taskId, suffix: downloadSuffix}),
@@ -238,15 +228,15 @@ export function DownloadOptions() {
       if (!res.ok) {
         throw new Error(res.statusText);
       }
-      const {state, result} = await res.json();
+      const {state, result, downloadUrl} = await res.json();
       if (state === "SUCCESS") {
-        // todo: maybe just get this from serverless?
-        const downloadUrl = `https://doc-files.bibleineverylanguage.org/${result}.${downloadSuffix}`;
         const docProxySwATag = document.querySelector(
-          "[data-js='proxy-sw-doc']"
+          `[data-js='${constants.uiProxyDocQuerySelector}']`
         ) as HTMLAnchorElement;
         if (docProxySwATag) {
-          docProxySwATag.href = `/api/triggerDownload?url=${encodeURIComponent(
+          docProxySwATag.href = `${
+            constants.apiTriggerDownload
+          }?url=${encodeURIComponent(
             downloadUrl
           )}&name=${result}.${downloadSuffix}`;
           docProxySwATag.click();
@@ -268,7 +258,23 @@ export function DownloadOptions() {
       setAbortPoll(true);
     }
   }
-  // todo: not here only, but see about splitting some of these out as lazy for page laod speed?
+
+  createEffect(async () => {
+    if (dialogOpen()) {
+      if ("navigator" in window && navigator.serviceWorker) {
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (!registration) {
+          const swProxyZipForm = document.querySelector(
+            `[data-js='${constants.swProxyDataJsSelector}']`
+          ) as HTMLFormElement;
+          if (swProxyZipForm) {
+            swProxyZipForm.action = constants.apiFallbackSwZip;
+          }
+        }
+      }
+    }
+  });
+
   return (
     <div class="md:(min-w-20)">
       <Show when={isBig()}>
@@ -327,12 +333,12 @@ export function DownloadOptions() {
   );
 }
 
-type DropDownPortalProps = {
+export type DropDownPortalProps = {
   dialogOpen: Accessor<boolean>;
   setDialogOpen: Setter<boolean>;
   updateDownloadOptions: (
     key: keyof DownloadArgs,
-    value: boolean | "PDF" | "EPUB" | "DOCX" | "SOURCE" | "APK"
+    value: boolean | "PDF" | "EPUB" | "DOCX" | "SOURCE"
   ) => void;
   canShowTn: () => boolean;
   startDownload: () => Promise<void>;
@@ -390,91 +396,8 @@ function DropDownPortal(props: DropDownPortalProps) {
           currentContent={props.currentContent}
           zipSrc={props.zipSrc}
         />
-        {/* todo undo */}
-        {/* <SabZipForm
-          currentContent={props.currentContent}
-          zipSrc={props.zipSrc}
-          ietfCode={props.ietfCode}
-          langEnglishName={props.langEnglishName}
-        /> */}
       </DropdownMenu.Content>
     </DropdownMenu.Portal>
-  );
-}
-
-function DownloadModal(
-  props: DropDownPortalProps & {
-    langDirection: "ltr" | "rtl";
-    ietfCode: string;
-  }
-) {
-  return (
-    <Dialog>
-      <Dialog.Trigger
-        class="px-2 py-2 aspect-square bg-brand-light text-brand-base rounded-lg focus:(bg-brand-base ring-4 ring-brand ring-offset-6) md:(aspect-auto bg-brand border-x-2 border-t-2 border-b-4 border-brand-darkest  bg-brand-base text-onSurface-invert! flex gap-2 items-center hover:(bg-brand-darkest) active:(bg-brand-darkest))"
-        onClick={() => props.setDialogOpen(!props.dialogOpen())}
-      >
-        <span class="i i-ic:baseline-download w-7 h-5" />
-      </Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Content class="fixed inset-0 z-20 bg-surface-primary p-2 flex flex-col gap-4">
-          <div class="flex items-center gap-4">
-            <Dialog.CloseButton
-              class={`${
-                props.langDirection === "ltr"
-                  ? "i-material-symbols:arrow-back"
-                  : "i-material-symbols:arrow-forward"
-              } w-.75em h-.75em font-size-[var(--step-2)]`}
-            />
-            <Dialog.Title>
-              <h2 class="font-size-[var(--step-2)]">
-                {props.i18nDict.ls_StartDownlaod}
-              </h2>
-            </Dialog.Title>
-          </div>
-          <FileTypePicker
-            updateDownloadOptions={props.updateDownloadOptions}
-            i18nDict={props.i18nDict}
-          />
-          <Show when={props.canShowTn()}>
-            <TranslationNotesToggle
-              i18nDict={props.i18nDict}
-              updateDownloadOptions={props.updateDownloadOptions}
-            />
-          </Show>
-          <Show when={props.doShowAllBooksToggle()}>
-            <IncludeAllBooksToggle
-              i18nDict={props.i18nDict}
-              updateDownloadOptions={props.updateDownloadOptions}
-            />
-          </Show>
-
-          <DownloadButton
-            i18nDict={props.i18nDict}
-            startDownload={props.startDownload}
-            isLoading={props.isLoading}
-            abort={props.abort}
-            docErred={props.docErred}
-          />
-          <OpenInDocButton i18nDict={props.i18nDict} />
-          {/* biome-ignore lint/a11y/useValidAnchor: <href anchor is filled in via js before clicking based on > */}
-          <a data-js="proxy-sw-doc" class="hidden">
-            {props.i18nDict.ls_StartDownlaod}
-          </a>
-          <HiddenZipSrcForm
-            currentContent={props.currentContent}
-            zipSrc={props.zipSrc}
-          />
-          {/* todo undo */}
-          {/* <SabZipForm
-            currentContent={props.currentContent}
-            zipSrc={props.zipSrc}
-            ietfCode={props.ietfCode}
-            langEnglishName={props.langEnglishName}
-          /> */}
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog>
   );
 }
 
@@ -498,11 +421,11 @@ function CloseButton(props: {onClick: Setter<boolean>}) {
 type FileTypePickerProps = {
   updateDownloadOptions: (
     key: keyof DownloadArgs,
-    value: boolean | "PDF" | "EPUB" | "DOCX" | "SOURCE" | "APK"
+    value: boolean | "PDF" | "EPUB" | "DOCX" | "SOURCE"
   ) => void;
   i18nDict: i18nDictType;
 };
-function FileTypePicker(props: FileTypePickerProps) {
+export function FileTypePicker(props: FileTypePickerProps) {
   type OptionType = {value: string; label: string};
   const options = (): OptionType[] => {
     return [
@@ -510,7 +433,6 @@ function FileTypePicker(props: FileTypePickerProps) {
       {value: "EPUB", label: "EPUB"},
       {value: "DOCX", label: "DOCX"},
       {value: "SOURCE", label: props.i18nDict.ls_SourceZipOption},
-      {value: "APK", label: "APK"},
     ];
   };
   return (
@@ -553,7 +475,7 @@ type ToggleButtonProps = {
   ) => void;
   i18nDict: i18nDictType;
 };
-function TranslationNotesToggle(props: ToggleButtonProps) {
+export function TranslationNotesToggle(props: ToggleButtonProps) {
   return (
     <div class="flex items-center justify-between">
       <p>{props.i18nDict.ls_IncludeTranslationNotes}</p>
@@ -570,7 +492,7 @@ function TranslationNotesToggle(props: ToggleButtonProps) {
   );
 }
 
-function IncludeAllBooksToggle(props: ToggleButtonProps) {
+export function IncludeAllBooksToggle(props: ToggleButtonProps) {
   return (
     <div class="flex items-center justify-between">
       <p>{props.i18nDict.ls_IncludeAllBooks}</p>
@@ -608,7 +530,7 @@ function ToggleInterior(props: ToggleInteriorProps) {
   );
 }
 
-function DownloadButton(props: {
+export function DownloadButton(props: {
   startDownload: () => void;
   isLoading: Accessor<boolean>;
   abort: () => void;
@@ -646,11 +568,11 @@ function DownloadButton(props: {
     </div>
   );
 }
-function OpenInDocButton(props: {i18nDict: i18nDictType}) {
+export function OpenInDocButton(props: {i18nDict: i18nDictType}) {
+  const {docUiUrl} = useResourceSingleContext();
   return (
     <a
-      href="https://doc.bibleineverylanguage.org"
-      data-js="open-in-doc-btn"
+      href={docUiUrl}
       class="text-brand-base inline-flex gap-1 items-center justify-center underline w-max mx-auto"
       target="_blank"
       rel="noreferrer"
@@ -661,7 +583,7 @@ function OpenInDocButton(props: {i18nDict: i18nDictType}) {
   );
 }
 
-function HiddenZipSrcForm(props: {
+export function HiddenZipSrcForm(props: {
   zipSrc: () => ZipSrcBodyReq;
   currentContent: ScriptureStoreState;
 }) {
@@ -669,9 +591,9 @@ function HiddenZipSrcForm(props: {
     <form
       class="hidden pointer-events-none"
       tabIndex={-1}
-      action="/sw-proxy-zip"
+      action={constants.swProxyZipsFormAction}
       method="post"
-      data-js="proxy-source-zips"
+      data-js={constants.swProxyDataJsSelector}
     >
       <input
         name="zipPayload"
@@ -682,41 +604,9 @@ function HiddenZipSrcForm(props: {
           name: props.currentContent.name,
         })}
       />
-      {/* submit btn for form. Using form bc we can go through sw for downlaod controls */}
+      {/* submit btn for form. Using form bc we can go through sw for downlaod controls . Programmatically submitted bc forms manually submitted trigger a navigation that acts differently than those triggered by user*/}
       <button type="submit" tabIndex={-1}>
         Proxy zip SW
-      </button>
-    </form>
-  );
-}
-// todo: probably doesn't have to be a form: But do after testing. Will need a phone number as well for texting to
-function SabZipForm(props: {
-  zipSrc: () => ZipSrcBodyReq;
-  currentContent: ScriptureStoreState;
-  ietfCode: string;
-  langEnglishName: string;
-}) {
-  return (
-    <form
-      class="hidden pointer-events-none"
-      tabIndex={-1}
-      action="/sab-zip"
-      method="post"
-      data-js="proxy-sab-zips"
-    >
-      <input
-        name="zipPayload"
-        type="hidden"
-        value={JSON.stringify({
-          redirectTo: globalThis.location.href,
-          payload: props.zipSrc(),
-          name: `${props.ietfCode}`,
-          langEnglishName: props.langEnglishName,
-        })}
-      />
-      {/* submit btn for form. Using form bc we can go through sw for downlaod controls */}
-      <button type="submit" tabIndex={-1}>
-        Proxy sab
       </button>
     </form>
   );

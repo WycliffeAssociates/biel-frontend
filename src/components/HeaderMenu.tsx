@@ -8,12 +8,14 @@ import {hydrate} from "solid-js/web";
 import {HeaderMenuMobile} from "./HeaderMenuMobile";
 import {LanguagePicker} from "./LanguagePicker";
 import {WaLogo} from "./Logo";
+import type {i18nDictType} from "@src/i18n/strings";
 
 type HeaderMenuProps = {
   menu: Menu;
   allLangs: languageType[];
   currentLang: languageType;
   doHydrateInjectedSearch?: boolean;
+  i18nDict: i18nDictType;
 };
 export function HeaderMenu(props: HeaderMenuProps) {
   const [activeIdx, setActiveIdx] = createSignal<number | null>();
@@ -49,6 +51,7 @@ export function HeaderMenu(props: HeaderMenuProps) {
             langCode={props.currentLang.language_code}
             addlClasses="w-full!"
             injected={true}
+            langSwitcherList={props.allLangs}
           />
         ),
         document.querySelector("[data-injected-search]")!.parentElement!,
@@ -58,11 +61,6 @@ export function HeaderMenu(props: HeaderMenuProps) {
       );
     }
   });
-  // function prependLangIfLocalizeTrue(menuLink) {
-  //   if (menuLink.localize) {
-  //     return `/${lang}${menuLink.url}`;
-  //   } else return menuLink.url;
-  // }
 
   return (
     <nav data-pagefind-ignore="all">
@@ -72,6 +70,7 @@ export function HeaderMenu(props: HeaderMenuProps) {
           allLangs={props.allLangs}
           currentLang={props.currentLang}
           isBig={isBig()}
+          i18nDict={props.i18nDict}
         />
       </Show>
       <Show when={canHover() && isBig()}>
@@ -82,8 +81,14 @@ export function HeaderMenu(props: HeaderMenuProps) {
             onMouseLeave={() => setActiveIdx(null)}
           >
             <div class="flex items-center">
-              {/* todo localize home route */}
-              <a href="/" class="w-40 ">
+              <a
+                href={`${
+                  props.currentLang.code === "en"
+                    ? "/"
+                    : `/${props.currentLang.language_code}`.replace("//", "/")
+                }`}
+                class="w-40 "
+              >
                 <WaLogo />
               </a>
               {/* nave items */}
@@ -171,6 +176,7 @@ export function HeaderMenu(props: HeaderMenuProps) {
               <Search
                 langCode={props.currentLang.language_code}
                 isBig={isBig()}
+                langSwitcherList={props.allLangs}
               />
               <LanguagePicker
                 allLangs={props.allLangs}

@@ -35,7 +35,6 @@ export function ResourceIndex(props: ResourceIndexArgs) {
 
   const [sortOrder, setSetOrder] = createSignal<validSorts>("NAME_AZ");
   const adjustForCompare = (val: string) =>
-    // todo: biome-ignore lint/suspicious/noMisleadingCharacterClass: <Not sure how to fix this today>
     val
       .normalize("NFD")
       .toLowerCase()
@@ -199,7 +198,6 @@ function ListingArrow() {
 }
 
 function HeaderTitle(props: DictProp) {
-  // todo: localize?
   return (
     <h1 class="text-size-[var(--step-3)]">
       {props.i18nDict.rl_ChooseALanguage}

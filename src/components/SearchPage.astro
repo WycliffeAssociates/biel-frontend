@@ -1,0 +1,24 @@
+---
+interface Props {
+  dict: i18nDictType;
+  languageCode: string;
+  langSwitcherList: languageType[];
+}
+import type {EditorBlock, languageType} from "@customTypes/types";
+import type {i18nDictType} from "@src/i18n/strings";
+import {Search} from "@components/Search";
+const {dict, languageCode, langSwitcherList} = Astro.props;
+
+// const redirectUrl = Astro.request.url;
+---
+
+<div class={`headless-insertion wp-blocks site-container pb-0!`}>
+  <div class="">
+    <Search
+      langCode={languageCode}
+      isSearchPage={true}
+      langSwitcherList={langSwitcherList}
+      client:load
+    />
+  </div>
+</div>

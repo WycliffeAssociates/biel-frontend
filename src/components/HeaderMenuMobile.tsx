@@ -19,12 +19,14 @@ import {
 } from "./Icons";
 import {LanguagePickerMobile} from "./LanguagePicker";
 import {WaLogo} from "./Logo";
+import type {i18nDictType} from "@src/i18n/strings";
 
 type HeaderMenuProps = {
   menu: Menu;
   allLangs: languageType[];
   currentLang: languageType;
   isBig: boolean;
+  i18nDict: i18nDictType;
 };
 export function HeaderMenuMobile(props: HeaderMenuProps) {
   const [isOpen, setIsOpen] = createSignal(false);
@@ -87,8 +89,14 @@ export function HeaderMenuMobile(props: HeaderMenuProps) {
     <div onkeydown={(e) => closeMenu(e)}>
       <nav class="relative pie-4 pis-4">
         <div class="flex justify-between items-center py-2 sm:text-blue">
-          {/* todo: localize home menu route */}
-          <a href="/" class="w-40 block">
+          <a
+            href={`${
+              props.currentLang.code === "en"
+                ? "/"
+                : `/${props.currentLang.language_code}`.replace("//", "/")
+            }`}
+            class="w-40 block"
+          >
             <WaLogo />
           </a>
           {/* search */}
@@ -191,7 +199,9 @@ export function HeaderMenuMobile(props: HeaderMenuProps) {
                 </span>
               </button>
               <div class="mt-4">
-                <Search langCode={props.currentLang.language_code} />
+                <a href="/search" class="underline text-brand-base">
+                  {props.i18nDict.goToSearch}
+                </a>
               </div>
               <Show when={paneIsActive("language")}>
                 <MobileNestedContainer>
