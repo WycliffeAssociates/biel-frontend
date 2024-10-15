@@ -121,7 +121,10 @@ export function HeaderMenuMobile(props: HeaderMenuProps) {
                     <>
                       <Show when={isParent(menuLink)}>
                         <li class="py-4 w-full flex justify-between content-center flex-shrink-0 last:(border-b border-surface-border pb-12)">
-                          <a class="font-bold" href={shapeLink(menuLink)}>
+                          <a
+                            class="font-500 font-step-0"
+                            href={shapeLink(menuLink)}
+                          >
                             {menuLink.title}
                           </a>
                           <span
@@ -174,7 +177,10 @@ export function HeaderMenuMobile(props: HeaderMenuProps) {
                       </Show>
                       <Show when={!isParent(menuLink)}>
                         <li class="py-4 w-full flex justify-between content-center flex-shrink-0 last:(border-b border-surface-border pb-12)">
-                          <a class="font-bold" href={shapeLink(menuLink)}>
+                          <a
+                            class="font-500 font-step-0"
+                            href={shapeLink(menuLink)}
+                          >
                             {menuLink.title}
                           </a>
                         </li>
@@ -187,7 +193,7 @@ export function HeaderMenuMobile(props: HeaderMenuProps) {
             <div class="pt-4">
               <button
                 type="button"
-                class="p-3 flex w-full items-center justify-between active:(bg-brand-base text-surface-invert) border border-surface-border rounded-lg"
+                class="p-3 flex w-full items-center justify-between  active:(bg-brand-base text-surface-invert) border border-surface-border rounded-lg"
                 onClick={() => setActivePane("language")}
               >
                 <span class="flex gap-2">
@@ -248,7 +254,7 @@ function MobileNestedLayerTitleBar(props: MobileNestedLayerTitleBarProps) {
             <ChevronDown />
           </span>
         </button>
-        <h2 class="text-black text-lg font-bold">{props.text}</h2>
+        <h2 class="text-black text-lg font-500 font-step-0">{props.text}</h2>
       </div>
     </div>
   );

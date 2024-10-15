@@ -80,7 +80,7 @@ const blockHtmlWithClientInjections = editorBlocks
         langCode: langInfo.code,
         langSwitcherList,
       });
-      const wrapped = `<div class="relative p-0!"> ${searchComponent} </div>`;
+      const wrapped = `<div class="relative "> ${searchComponent} </div>`;
       block.renderedHtml = block.renderedHtml.replace(
         constants.injectRegex,
         wrapped

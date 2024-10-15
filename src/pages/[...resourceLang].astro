@@ -64,19 +64,19 @@ const langSwitcherList = Object.values(wpmlLangDict)
     );
     if (isListingPageEn || isListingPageOther) {
       if (lang.code === "en") {
-      copy.localizedUrl = "/resources";
-    } else {
-      copy.localizedUrl = `/${lang.code}/${matchingSlug?.slug}`;
-    }
+        copy.localizedUrl = "/resources";
+      } else {
+        copy.localizedUrl = `/${lang.code}/${matchingSlug?.slug}`;
+      }
     } else {
       if (lang.code === "en") {
-      copy.localizedUrl = `/resources/${pubDataIetf}`;
-    } else {
-      copy.localizedUrl = `/${lang.code}/${matchingSlug?.slug}/${pubDataIetf}`;
-    }
+        copy.localizedUrl = `/resources/${pubDataIetf}`;
+      } else {
+        copy.localizedUrl = `/${lang.code}/${matchingSlug?.slug}/${pubDataIetf}`;
+      }
       // resource/en or es/recursos/lang
     }
-   
+
     return copy;
   });
 const nodes = [
@@ -164,7 +164,7 @@ const crumbs = {
   }
   {
     (isEnglishDetailPage || isDetailPageOther) && (
-      <div class="md:my-12 max-w-max mx-auto">
+      <div class="md:pt-12 max-w-max mx-auto h-full overflow-auto">
         <ResourceSingle languageToFetch={pubDataIetf} i18nDict={i18nDict!} />
       </div>
     )

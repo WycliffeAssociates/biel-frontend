@@ -32,3 +32,4 @@ src/pagefind/*
 !src/pagefind/pagefind.js
 .mise.toml
 notes.md
+scratch.html

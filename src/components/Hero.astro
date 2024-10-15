@@ -1,20 +1,22 @@
 ---
-import { Image } from "astro:assets";
-import type { WpPage } from "@customTypes/types";
+import {Image} from "astro:assets";
+import type {WpPage} from "@customTypes/types";
 
 interface Props {
-	pageOptions: WpPage["pageOptions"];
-	title: string;
-	featuredImage: WpPage["featuredImage"];
+  pageOptions: WpPage["pageOptions"];
+  title: string;
+  featuredImage: WpPage["featuredImage"];
 }
-const { pageOptions, title, featuredImage } = Astro.props;
+const {pageOptions, title, featuredImage} = Astro.props;
 ---
 
 <header class="mb-16 full-bleed hero-inner-shadow pr-0! pl-0!">
-  <div class="contain">
-    <div class="flex flex-col md:(flex-row items-center) py-0 relative">
+  <div class="contain md:(w-full!)">
+    <div
+      class="flex flex-col-reverse md:(grid grid-cols-[1fr_minmax(auto,720px)_minmax(auto,720px)_1fr]) py-0 relative"
+    >
       <div
-        class="w-full order-1 md:(w-1/2 order-0) z-10 relative py-14 my-8 mr--24 bg-surface-primary site-container"
+        class="w-full md:(grid-col-start-2 self-center) z-10 relative py-14 my-8 mr--24 bg-surface-primary flex flex-col gap-4 contain-pad"
       >
         <div class="flex gap-8px">
           {
@@ -28,16 +30,16 @@ const { pageOptions, title, featuredImage } = Astro.props;
             )
           }
 
-          <h2 class="gb-headline gb-headline-1ab88ac3 gb-headline-text">
+          <h1 class="mx-auto font-bold md:(text-left m-0)">
             <strong>{title}</strong>
-          </h2>
+          </h1>
         </div>
 
         <p class="text-onSurface-secondary">
           {pageOptions.topBlurb}
         </p>
 
-        <div class="flex flex-col md:flex-row gap-4">
+        <div class="flex flex-col md:flex-row gap-4 mbs-6">
           {
             pageOptions.heroLinks?.map((link) => {
               return (
@@ -60,12 +62,13 @@ const { pageOptions, title, featuredImage } = Astro.props;
       </div>
       {
         featuredImage?.node.sourceUrl && (
-          <div class="order-0 md:(order-1) max-md:relative">
+          <div class="md:(grid-col-start-3 grid-col-end-5 mis--4rem) max-md:relative">
             <Image
               src={featuredImage?.node.sourceUrl}
               loading="eager"
               alt={""}
               inferSize={true}
+              class="w-full h-full object-cover max-h-70vh"
             />
           </div>
         )

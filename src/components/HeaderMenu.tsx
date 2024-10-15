@@ -99,9 +99,9 @@ export function HeaderMenu(props: HeaderMenuProps) {
                     return (
                       <li class="group">
                         {/* top level info */}
-                        <span class="inline-block px-2 hover:bg-brand-light rounded-md">
+                        <span class="inline-block hover:bg-brand-light rounded-md">
                           <a
-                            class="font-bold  group-has-[:hover]:(text-blue-700) focus:(text-blue-700) inline-flex gap-2 items-center"
+                            class="font-500 font-step-0  group-has-[:hover]:(text-blue-700) focus:(text-blue-700) inline-flex gap-2 items-center p-4"
                             onFocus={() => setActiveIdx(index)}
                             onMouseOver={() => setActiveIdx(index)}
                             href={`${shapeLink(menuLink)}`}

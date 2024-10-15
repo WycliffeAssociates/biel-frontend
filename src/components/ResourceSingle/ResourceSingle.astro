@@ -36,8 +36,8 @@ const chapter = Astro.url.searchParams.get("chapter") || null;
 const queryParams = {resource, book, chapter};
 ---
 
-<section data-name="pubDataApi" class="contain">
-  <div>
+<section data-name="pubDataApi" class="contain h-full">
+  <div class="h-full">
     <ResourceWrapper
       client:load
       queryParams={queryParams}

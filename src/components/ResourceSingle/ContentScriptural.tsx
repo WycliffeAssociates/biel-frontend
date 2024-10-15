@@ -222,13 +222,17 @@ function MenuDialog(props: MenuDialogProps) {
                     {(bookName) => (
                       <Accordion.Item value={bookName}>
                         <div class="flex">
-                          <Accordion.Trigger class="flex gap-2 bg-surface-secondary w-full justify-between rounded-lg data-[expanded]:(bg-transparent) [&[data-expanded]_span]:rotate-90 px-2 py-3">
-                            <Accordion.Header data-accordionbook={bookName}>
+                          <Accordion.Trigger class="flex gap-2 bg-surface-secondary w-full justify-between rounded-lg data-[expanded]:(bg-transparent) [&[data-expanded]_span]:rotate-90 px-2 py-3 hover:(bg-surface-secondary)">
+                            <Accordion.Header
+                              data-accordionbook={bookName}
+                              as="h3"
+                              class="font-step-0 font-500 text-onSurface-secondary"
+                            >
                               {bookName}
                             </Accordion.Header>
                             <span
                               class={
-                                "ic:round-chevron-left w-1.5em h-1.5em text-onSurface-secondary -rotate-90 "
+                                "i-ic:round-chevron-left w-1.25em h-1.25em text-onSurface-secondary -rotate-90 "
                               }
                             />
                           </Accordion.Trigger>
@@ -352,11 +356,7 @@ function TextOfResource(props: {
   dict: i18nDictType;
 }) {
   return (
-    <div
-      class="theText max-h-80vh overflow-auto relative"
-      data-css="theText"
-      data-js="theText"
-    >
+    <div class="theText  relative" data-css="theText" data-js="theText">
       <Suspense
         fallback={
           <div
@@ -365,7 +365,7 @@ function TextOfResource(props: {
           />
         }
       >
-        <div class="theText" innerHTML={props.text() || ""} />
+        <div class="theText px-3 " innerHTML={props.text() || ""} />
       </Suspense>
     </div>
   );

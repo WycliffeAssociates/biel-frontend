@@ -132,7 +132,7 @@ export function Search(props: SearchProps) {
         {/* Input element for search */}
         <div class={"relative"} data-injected-search={props.injected}>
           <input
-            class={`border border-surface-border! px-2 py-2 rounded-lg bg-white! pis-10 placeholder:(text-#777 font-bold) w-full ${
+            class={`border border-surface-border! p-4  rounded-2xl bg-white!  placeholder:(text-#777 font-bold) w-full ${
               results() && props.injected
                 ? "border-t-0 border-b-1  border-l-0 border-r-0 rounded-bl-0! rounded-br-0! outline-none"
                 : ""
@@ -147,14 +147,14 @@ export function Search(props: SearchProps) {
             // @ts-ignore chrome only
             onSearch={handleInput}
           />
-          <MangifyingGlass class="absolute start-2 top-2" />
+          <MangifyingGlass class="absolute top-1/2 translate-y-[-50%] end-2" />
 
           {/* Container for search results */}
           <Show when={results() && query()}>
             <div
               class={`${props.isBig ? bigClassNames : mobileClassNames} ${
                 props.addlClasses
-              } searchResults shadow-lg shadow-dark rounded-lg`}
+              } searchResults shadow-lg shadow-dark rounded-2xl`}
             >
               <LocalizeActions
                 suggestLocalizeSiteOptions={suggestLocalizeSite}
@@ -315,7 +315,7 @@ function SearchAsPage(props: SearchAsPageProps) {
       <div class="relative">
         <input
           class={
-            "border border-surface-border! px-2 py-2 rounded-lg bg-white! pis-10 placeholder:(text-#777 font-bold) w-full"
+            "border border-surface-border! p-4 rounded-2xl bg-white! pis-10 placeholder:(text-#777 font-bold) w-full"
           }
           id="search"
           data-js="search"
@@ -474,7 +474,7 @@ function LocalizeActions(props: LocalizeActionsProps) {
           {(l) => (
             <li>
               <a
-                class="bg-surface-tertiary px-2 py-1 rounded-lg decoration-none! inline-flex items-center gap-2 hover:(bg-brand-base text-brand-light) focus:(bg-brand-base text-brand-light) cursor-pointer"
+                class="bg-surface-tertiary px-2 py-1 rounded-2xl decoration-none! inline-flex items-center gap-2 hover:(bg-brand-base text-brand-light) focus:(bg-brand-base text-brand-light) cursor-pointer"
                 href={l.localizedUrl!}
               >
                 <span class="i-circum:globe w-1em h-1em" />

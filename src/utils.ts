@@ -95,10 +95,19 @@ function replaceAllAbsoluteLinksToCms({
     tag.setAttribute("href", newHref);
     if (englishUriMap && currentLangCode) {
       // home link, special:
+      console.log(newHref);
+      const regexMatchHash = newHref.match(/#(.*)$/);
+      const hash = regexMatchHash ? regexMatchHash[0] : null;
+
       if (newHref === "/") {
-        tag.setAttribute("href", `/${currentLangCode}`);
+        hash
+          ? tag.setAttribute("href", `/${currentLangCode}${hash}`)
+          : tag.setAttribute("href", `/${currentLangCode}`);
+        // tag.setAttribute("href", `/${currentLangCode}`);
       } else if (englishUriMap[newHref]?.[currentLangCode]) {
-        const localizedHref = englishUriMap[newHref][currentLangCode];
+        const localizedHref = hash
+          ? englishUriMap[newHref][currentLangCode] + hash
+          : englishUriMap[newHref][currentLangCode];
         tag.setAttribute("href", localizedHref);
       }
     }

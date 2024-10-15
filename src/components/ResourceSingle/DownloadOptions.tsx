@@ -285,12 +285,12 @@ export function DownloadOptions() {
           sameWidth={false}
         >
           <DropdownMenu.Trigger
-            class="p-1 aspect-square bg-brand-light text-brand-base rounded-lg focus:(bg-brand-base ring-4 ring-brand ring-offset-6) md:(aspect-auto bg-brand border-x-2 border-t-2 border-b-4 border-brand-darkest  bg-brand-base text-onSurface-invert! flex gap-2 items-center hover:(bg-brand-darkest) active:(bg-brand-darkest))"
+            class="p-2 aspect-square bg-brand-light text-brand-base rounded-xl focus:(bg-brand-base ring-4 ring-brand ring-offset-6) md:(aspect-auto bg-brand border-x-2 border-t-2 border-b-4 border-brand-darkest  bg-brand-base text-onSurface-invert! flex gap-2 items-center hover:(bg-brand-darkest) active:(bg-brand-darkest))"
             onClick={() => setDialogOpen(!dialogOpen())}
           >
             <span class="i i-ic:baseline-download w-7 h-5" />
             <span class="hidden md:inline">{i18nDict.ls_DownloadButton}</span>
-            <span class="i i-mdi:chevron-down hidden md:inline" />
+            <span class="i i-ic:round-chevron-right rotate-90 font-size-1.25em hidden md:inline" />
           </DropdownMenu.Trigger>
           <DropDownPortal
             dialogOpen={dialogOpen}
@@ -380,14 +380,16 @@ function DropDownPortal(props: DropDownPortalProps) {
           />
         </Show>
 
-        <DownloadButton
-          i18nDict={props.i18nDict}
-          startDownload={props.startDownload}
-          isLoading={props.isLoading}
-          abort={props.abort}
-          docErred={props.docErred}
-        />
-        <OpenInDocButton i18nDict={props.i18nDict} />
+        <div class="flex flex-col gap-3">
+          <DownloadButton
+            i18nDict={props.i18nDict}
+            startDownload={props.startDownload}
+            isLoading={props.isLoading}
+            abort={props.abort}
+            docErred={props.docErred}
+          />
+          <OpenInDocButton i18nDict={props.i18nDict} />
+        </div>
         {/* biome-ignore lint/a11y/useValidAnchor: <href anchor is filled in via js before clicking based on > */}
         <a data-js="proxy-sw-doc" class="hidden">
           {props.i18nDict.ls_StartDownlaod}
@@ -573,7 +575,7 @@ export function OpenInDocButton(props: {i18nDict: i18nDictType}) {
   return (
     <a
       href={docUiUrl}
-      class="text-brand-base inline-flex gap-1 items-center justify-center underline w-max mx-auto"
+      class="py-1 px-2 text-brand-base inline-flex gap-1 items-center justify-center underline w-max mx-auto"
       target="_blank"
       rel="noreferrer"
     >

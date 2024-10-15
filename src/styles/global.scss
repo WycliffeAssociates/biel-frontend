@@ -1,46 +1,56 @@
-@font-face {
-  font-family: "Noto Sans";
-  src: url("/fonts/NotoSans/NotoSans-Italic.woff2") format("woff2"),
-    url("/fonts/NotoSans/NotoSans-Italic.woff") format("woff");
-  font-weight: normal;
-  font-style: italic;
-  font-display: swap;
-}
+// @font-face {
+//   font-family: "Noto Sans";
+//   src: url("/fonts/NotoSans/NotoSans-Italic.woff2") format("woff2"),
+//     url("/fonts/NotoSans/NotoSans-Italic.woff") format("woff");
+//   font-weight: normal;
+//   font-style: italic;
+//   font-display: swap;
+// }
+
+// @font-face {
+//   font-family: "Noto Sans";
+//   src: url("/fonts/NotoSans/NotoSans-BoldItalic.woff2") format("woff2"),
+//     url("/fonts/NotoSans/NotoSans-BoldItalic.woff") format("woff");
+//   font-weight: bold;
+//   font-style: italic;
+//   font-display: swap;
+// }
+
+// @font-face {
+//   font-family: "Noto Sans";
+//   src: url("/fonts/NotoSans/NotoSans-Bold.woff2") format("woff2"),
+//     url("/fonts/NotoSans/NotoSans-Bold.woff") format("woff");
+//   font-weight: 500;
+//   font-style: normal;
+//   font-display: swap;
+// }
+
+// @font-face {
+//   font-family: "Noto Sans";
+//   src: url("/fonts/NotoSans/NotoSans-ExtraBold.woff2") format("woff2"),
+//     url("/fonts/NotoSans/NotoSans-ExtraBold.woff") format("woff");
+//   font-weight: 700;
+//   font-style: normal;
+//   font-display: swap;
+// }
+
+// @font-face {
+//   font-family: "Noto Sans";
+//   src: url("/fonts/NotoSans/NotoSans-Regular.woff2") format("woff2"),
+//     url("/fonts/NotoSans/NotoSans-Regular.woff") format("woff");
+//   font-weight: normal;
+//   font-style: normal;
+//   font-display: swap;
+// }
 
 @font-face {
   font-family: "Noto Sans";
-  src: url("/fonts/NotoSans/NotoSans-BoldItalic.woff2") format("woff2"),
-    url("/fonts/NotoSans/NotoSans-BoldItalic.woff") format("woff");
-  font-weight: bold;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Noto Sans";
-  src: url("/fonts/NotoSans/NotoSans-Bold.woff2") format("woff2"),
-    url("/fonts/NotoSans/NotoSans-Bold.woff") format("woff");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Noto Sans";
-  src: url("/fonts/NotoSans/NotoSans-ExtraBold.woff2") format("woff2"),
-    url("/fonts/NotoSans/NotoSans-ExtraBold.woff") format("woff");
-  font-weight: 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Noto Sans";
-  src: url("/fonts/NotoSans/NotoSans-Regular.woff2") format("woff2"),
-    url("/fonts/NotoSans/NotoSans-Regular.woff") format("woff");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
+  src: url("/fonts/NotoVariable/NotoSans-VariableFont.woff2")
+      format("woff2 supports variations"),
+    url("/fonts/NotoVariable/NotoSans-VariableFont.woff2")
+      format("woff2-variations");
+  font-weight: 100 1000;
+  font-stretch: 62.5 100;
 }
 
 // typograpy:
@@ -57,9 +67,34 @@
   --step-5: clamp(4.2087rem, 3.8885rem + 1.8299vi, 5.2609rem);
   --flow-space: 1em;
 }
+.font-step--2 {
+  font-size: var(--step--2);
+}
+.font-step--1 {
+  font-size: var(--step--1);
+}
+.font-step-0 {
+  font-size: var(--step-0);
+}
+.font-step-1 {
+  font-size: var(--step-1);
+}
+.font-step-2 {
+  font-size: var(--step-2);
+}
+.font-step-3 {
+  font-size: var(--step-3);
+}
+.font-step-4 {
+  font-size: var(--step-4);
+}
+.font-step-5 {
+  font-size: var(--step-5);
+}
 html,
 body {
   font-family: "Noto Sans", sans-serif !important;
+  scroll-behavior: smooth;
 }
 // MOST OF THIS CSS IS TO OVERRIDE SOME STUFF THAT COMES FROM WORDPRESS, SET SOME DEFAULTS, AND DO A FEW THINGS THAT ARE JUST EASEIR IN CSS VS UNO/TW
 .headless-insertion,
@@ -91,6 +126,9 @@ body {
   .txt-small {
     font-size: var(--step--1);
   }
+}
+.headless-insertion p:not(.platform-detect p, p.has-text-color) {
+  @apply text-onSurface-secondary;
 }
 button,
 button:hover,
@@ -135,10 +173,31 @@ main img {
   padding-inline-start: 1rem;
   padding-inline-end: 1rem;
 }
+
 .site-container > * {
   grid-column: 2;
   padding-inline-start: 1rem;
   padding-inline-end: 1rem;
+}
+@screen md {
+  .site-container > *,
+  .contain-pad {
+    padding-inline-start: 2.5rem;
+    padding-inline-end: 2.5rem;
+  }
+  .contain-margin {
+    width: min(1440px, calc(100% - 5rem));
+  }
+}
+@screen lg {
+  .site-container > *,
+  .contain-pad {
+    padding-inline-start: 5rem;
+    padding-inline-end: 5rem;
+  }
+  .contain-margin {
+    width: min(1440px, calc(100% - 10rem));
+  }
 }
 .site-container .full-bleed {
   width: 100%;
@@ -290,6 +349,12 @@ main img {
   background: hsl(var(--clr-surface-primary)) !important;
   color: hsl(var(--clr-brand-base)) !important;
   cursor: pointer;
+}
+.platform-detect {
+  justify-content: flex-start !important;
+}
+.platform-detect p:has(+ a) {
+  margin-bottom: auto;
 }
 .platform-detect a:hover {
   color: hsl(var(--clr-brand-light)) !important;

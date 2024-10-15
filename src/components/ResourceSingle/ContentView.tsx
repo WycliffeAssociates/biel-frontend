@@ -123,13 +123,10 @@ function PeripheralView(props: {content: ScriptureStoreState}) {
     <>
       <Show when={twState()?.html} fallback={<TwFallback />}>
         <div class="md:(col-start-2 row-start-2) max-w-prose">
-          <div
-            class="theText theTextTw max-h-80vh overflow-auto px-2"
-            innerHTML={twState()?.html!}
-          />
+          <div class="theText theTextTw  px-2" innerHTML={twState()?.html!} />
         </div>
         <Show when={!isBig()}>
-          <div class="sticky bottom-0 bg-pink-100/40">
+          <div class="sticky bottom-0">
             <PeripheralMenu
               activeContent={activeContent}
               i18nDict={i18nDict}

@@ -51,10 +51,12 @@ const dedupedInlineStyles = [...deduped].join("\n");
         );
       })
     }
-    <ViewTransitions />
+    <!-- <ViewTransitions /> -->
   </head>
   <body>
-    <div class="site bg-surface-primary">
+    <div
+      class="site bg-surface-primary grid h-100dvh grid-rows-[max-content_1fr_max-content] md:(grid-rows-[max-content_max-content_auto])"
+    >
       <slot />
     </div>
   </body>

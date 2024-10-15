@@ -18,10 +18,9 @@ export default defineConfig({
       // toggle if neeing to debug locally.
       minify: true,
     },
-    // resolve: {
-    //   conditions: !isDev ? ["worker", "webworker"] : [],
-    //   mainFields: !isDev ? ["module"] : [],
-    // },
+    prefetch: {
+      prefetchAll: true,
+    },
     ssr: {
       noExternal: [],
       // external used only in dev to avoid calling getStaticPaths and rebuilding site sometimes.
