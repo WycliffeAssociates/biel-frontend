@@ -65,6 +65,7 @@ export default defineConfig({
     serverIslands: true,
   },
   prefetch: {
+    prefetchAll: true,
     defaultStrategy: "hover",
   },
   // Reminder uses custom routes.json in public
