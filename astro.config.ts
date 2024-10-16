@@ -18,9 +18,6 @@ export default defineConfig({
       // toggle if neeing to debug locally.
       minify: true,
     },
-    prefetch: {
-      prefetchAll: true,
-    },
     ssr: {
       noExternal: [],
       // external used only in dev to avoid calling getStaticPaths and rebuilding site sometimes.
@@ -66,6 +63,9 @@ export default defineConfig({
   output: "hybrid",
   experimental: {
     serverIslands: true,
+  },
+  prefetch: {
+    defaultStrategy: "hover",
   },
   // Reminder uses custom routes.json in public
   adapter: cloudflare({
