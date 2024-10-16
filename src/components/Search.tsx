@@ -53,6 +53,7 @@ export function Search(props: SearchProps) {
 
       baseUrl: "/",
     });
+
     window.pagefind = pageFind;
 
     document.body.addEventListener("click", (e) => {
@@ -162,7 +163,6 @@ export function Search(props: SearchProps) {
         window.pagefind = await import("../pagefind/pagefind.js");
       }
       // Search the index using the input value
-
       const search = await window.pagefind.debouncedSearch(inputValue, {}, 50);
       console.log(search);
 
@@ -174,7 +174,8 @@ export function Search(props: SearchProps) {
         return setResults(undefined);
       }
 
-      for (const result of search.results) {
+      // no more than 30 results likely needed on this small a site
+      for (const result of search.results.slice(0, 30)) {
         const data = await result.data();
         res.push(data);
       }
