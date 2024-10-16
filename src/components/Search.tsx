@@ -42,7 +42,6 @@ export function Search(props: SearchProps) {
     "absolute top-full  z-10 bg-white px-14 pbs-4 pbe-10 max-h-80vh overflow-auto w-[clamp(min(99vw,270px),50vw,500px)] right-0  ";
 
   onMount(async () => {
-    console.log("onmount");
     // eagerly fetch this
     // @ts-ignore
     // biome-ignore lint/suspicious/noExplicitAny: <explanation>
@@ -135,11 +134,9 @@ export function Search(props: SearchProps) {
     if (event?.key) {
       const curTimeout = isTypingTimeout();
       if (curTimeout) {
-        console.log("clearing timeout");
         clearTimeout(curTimeout);
       }
       const to = setTimeout(() => {
-        console.log("no more typing");
         setIsTyping(false);
       }, 250);
       setIsTypingTimeout(to);
@@ -164,7 +161,6 @@ export function Search(props: SearchProps) {
       }
       // Search the index using the input value
       const search = await window.pagefind.debouncedSearch(inputValue, {}, 50);
-      console.log(search);
 
       // Add the new results
       // biome-ignore lint/suspicious/noExplicitAny: <not sure on pagefind type>
@@ -179,7 +175,6 @@ export function Search(props: SearchProps) {
         const data = await result.data();
         res.push(data);
       }
-      console.log(res);
       const grouped = groupBy((result) => result.meta.type, res);
       setResults(grouped);
     }
@@ -232,11 +227,10 @@ export function Search(props: SearchProps) {
               setSearchFocused(true);
             }}
             onBlur={(e) => {
-              console.log(e.target);
               const searchWrapper = e.target.closest(
                 "[data-js='searchWrapper']"
               );
-              console.log({searchWrapper});
+
               if (!searchWrapper) {
                 setSearchFocused(false);
               }
