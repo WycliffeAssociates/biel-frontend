@@ -116,7 +116,7 @@ export function HeaderMenu(props: HeaderMenuProps) {
                         <Show
                           when={isParent(menuLink) && paneIsActive(index())}
                         >
-                          <div class="bg-white  absolute top-20 left-0 w-full">
+                          <div class="bg-white  absolute top-20 left-0 w-screen mis-[min(0px,_calc(var(--site-container-max)-100vw-1rem)/2)]">
                             <div class="contain py-4 flex gap-10">
                               <div class="p-4 flex flex-col gap-2 w-1/4">
                                 <div class="flex gap-2 items-center">
@@ -200,7 +200,7 @@ export function FeaturedMenuItem(props: FeaturedMenuItemProps) {
   return (
     <li>
       <a
-        class="p-4 rounded-lg flex flex-col bg-brand-light hover:(bg-brand-base text-onSurface-invert) group/featured"
+        class="p-4 rounded-lg flex flex-col justify-center bg-brand-light hover:(bg-brand-base text-onSurface-invert) group/featured"
         href={props.shapeLink(props.featured)}
       >
         <h3 class="flex gap-2 text-brand-base group-hover/featured:text-inherit! font-size-[var(--step-1)]">

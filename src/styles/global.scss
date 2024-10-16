@@ -66,6 +66,7 @@
   --step-4: clamp(3.1573rem, 2.9171rem + 1.3728vi, 3.9467rem);
   --step-5: clamp(4.2087rem, 3.8885rem + 1.8299vi, 5.2609rem);
   --flow-space: 1em;
+  --site-container-max: 1440px;
 }
 .font-step--2 {
   font-size: var(--step--2);
@@ -155,17 +156,20 @@ button:focus {
 main img {
   display: initial;
 }
+.btnHoverPrimary:hover {
+  @apply bg-brand-base! text-onSurface-invert!;
+}
 
 .site-container {
   display: grid;
   grid-template-columns:
     1fr
-    min(1440px, 100%)
+    min(var(--site-container-max), 100%)
     1fr;
   padding-bottom: 2rem;
 }
 .contain {
-  width: min(1440px, 100%);
+  width: min(var(--site-container-max), 100%);
   margin-left: auto;
   margin-right: auto;
 }
@@ -186,7 +190,7 @@ main img {
     padding-inline-end: 2.5rem;
   }
   .contain-margin {
-    width: min(1440px, calc(100% - 5rem));
+    width: min(var(--site-container-max), calc(100% - 5rem));
   }
 }
 @screen lg {
@@ -196,7 +200,7 @@ main img {
     padding-inline-end: 5rem;
   }
   .contain-margin {
-    width: min(1440px, calc(100% - 10rem));
+    width: min(var(--site-container-max), calc(100% - 10rem));
   }
 }
 .site-container .full-bleed {
@@ -364,6 +368,14 @@ main img {
   fill: hsl(var(--clr-surface-primary)) !important;
 }
 summary.webkit-hide-summary-arrow::-webkit-details-marker {
+  display: none;
+}
+
+// hide search icon webkit injects in serach boxes
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
   display: none;
 }
 

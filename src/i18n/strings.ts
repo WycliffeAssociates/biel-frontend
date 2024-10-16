@@ -2,6 +2,11 @@ const en = {
   notYetTranslated:
     "This has not yet been translated. We are working to get it finished soon.",
   search: "Search...",
+  searchIdeas: "Search Ideas",
+  searchSuggestion1PageLabel: "MAST",
+  searchSuggestion2SoftwareLabel: "Orature",
+  searchSuggestion3ResourceLabel: "En ULB",
+  searchNotFound: "No results were found for {{query}}.",
   goToSearch: "Search",
   localizeTo: "Search in",
   requiredIndicator: "indicates required field",

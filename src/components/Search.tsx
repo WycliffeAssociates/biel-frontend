@@ -9,6 +9,7 @@ import {
   createEffect,
   createSignal,
   onCleanup,
+  batch,
   onMount,
   type Accessor,
   type Setter,
@@ -31,11 +32,17 @@ export function Search(props: SearchProps) {
   const [query, setQuery] = createSignal("");
   // biome-ignore lint/suspicious/noExplicitAny: <not sure on pagefind type>
   const [results, setResults] = createSignal<Partial<Record<any, any[]>>>();
+  const [searchFocused, setSearchFocused] = createSignal(false);
+  const [isTyping, setIsTyping] = createSignal(false);
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  const [isTypingTimeout, setIsTypingTimeout] = createSignal<any>(null);
+
   const mobileClassNames = "mobile";
   const bigClassNames =
-    "absolute top-full  z-10 bg-white p-3 max-h-500px overflow-auto w-[clamp(min(99vw,270px),50vw,500px)] right-0  ";
+    "absolute top-full  z-10 bg-white px-14 pbs-4 pbe-10 max-h-80vh overflow-auto w-[clamp(min(99vw,270px),50vw,500px)] right-0  ";
 
   onMount(async () => {
+    console.log("onmount");
     // eagerly fetch this
     // @ts-ignore
     // biome-ignore lint/suspicious/noExplicitAny: <explanation>
@@ -62,19 +69,90 @@ export function Search(props: SearchProps) {
       ) {
         setQuery("");
         setResults(undefined);
+        setSearchFocused(false);
       }
     });
 
-    document.body.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") {
-        setQuery("");
-        setResults(undefined);
-      }
-    });
+    // @ts-ignore
+    if (!document.body.alreadyListeningKeydown) {
+      document.body.addEventListener("keydown", (e) => {
+        const focusedEl = document.activeElement;
+        // @ts-ignore
+        const datajsAttr = focusedEl?.dataset?.js;
+        let allOfThisType = null;
+        let currentIdx = null;
+        if (datajsAttr) {
+          allOfThisType = Array.from(
+            document.querySelectorAll(`[data-js="${datajsAttr}"]`)
+          );
+          currentIdx = allOfThisType.indexOf(focusedEl);
+        }
+        if (e.key === "Escape") {
+          setQuery("");
+          setResults(undefined);
+          setSearchFocused(false);
+        }
+        if (e.key === "ArrowDown") {
+          if (
+            currentIdx !== null &&
+            allOfThisType &&
+            currentIdx < allOfThisType.length - 1 &&
+            allOfThisType[currentIdx + 1]
+          ) {
+            const nextEl = allOfThisType[currentIdx + 1] as HTMLElement;
+            nextEl.focus();
+          }
+        }
+        if (e.key === "ArrowUp") {
+          if (
+            currentIdx !== null &&
+            allOfThisType &&
+            currentIdx > 0 &&
+            allOfThisType[currentIdx - 1]
+          ) {
+            const nextEl = allOfThisType[currentIdx - 1] as HTMLElement;
+            nextEl.focus();
+          }
+        }
+      });
+      // @ts-ignore
+      document.body.alreadyListeningKeydown = true;
+    }
   });
-  const handleInput = async (e: KeyboardEvent) => {
-    const target = e.target as HTMLInputElement;
-    const inputValue = target?.value;
+
+  function escapeSearch() {
+    setQuery("");
+    setResults(undefined);
+    setSearchFocused(false);
+  }
+  type handleInputArgs = {
+    event?: KeyboardEvent;
+    stringToSearch?: string;
+  };
+  const handleInput = async ({event, stringToSearch}: handleInputArgs) => {
+    if (!event && !stringToSearch) return;
+    if (event?.key) {
+      const curTimeout = isTypingTimeout();
+      if (curTimeout) {
+        console.log("clearing timeout");
+        clearTimeout(curTimeout);
+      }
+      const to = setTimeout(() => {
+        console.log("no more typing");
+        setIsTyping(false);
+      }, 250);
+      setIsTypingTimeout(to);
+    }
+    if (event?.key && event.key === "Escape") {
+      setQuery("");
+      setResults(undefined);
+      setSearchFocused(false);
+    }
+
+    const inputValue =
+      // @ts-ignore
+      stringToSearch || (event?.target?.value as HTMLInputElement);
+
     if (!inputValue) setResults();
     if (!import.meta.env.SSR) {
       //@ts-ignore
@@ -84,21 +162,25 @@ export function Search(props: SearchProps) {
         window.pagefind = await import("../pagefind/pagefind.js");
       }
       // Search the index using the input value
-      const search = await window.pagefind.debouncedSearch(inputValue, {}, 100);
+
+      const search = await window.pagefind.debouncedSearch(inputValue, {}, 50);
+      console.log(search);
 
       // Add the new results
       // biome-ignore lint/suspicious/noExplicitAny: <not sure on pagefind type>
       const res: any[] = [];
-      if (search?.results) {
-        for (const result of search.results) {
-          const data = await result.data();
-          res.push(data);
-        }
-        console.log(res);
-        const grouped = groupBy((result) => result.meta.type, res);
-        console.log({grouped});
-        setResults(grouped);
+
+      if (!search?.results.length) {
+        return setResults(undefined);
       }
+
+      for (const result of search.results) {
+        const data = await result.data();
+        res.push(data);
+      }
+      console.log(res);
+      const grouped = groupBy((result) => result.meta.type, res);
+      setResults(grouped);
     }
   };
 
@@ -119,6 +201,10 @@ export function Search(props: SearchProps) {
     });
     return suggestions;
   };
+  const setSearchRefValue = (value: string) => {
+    setQuery(value);
+    handleInput({stringToSearch: value});
+  };
 
   onCleanup(() => {
     if (!import.meta.env.SSR && window.pagefind) {
@@ -130,28 +216,87 @@ export function Search(props: SearchProps) {
     <>
       <Show when={!props.isSearchPage}>
         {/* Input element for search */}
-        <div class={"relative"} data-injected-search={props.injected}>
+        <div
+          class={"relative"}
+          data-js="searchWrapper"
+          data-injected-search={props.injected}
+        >
           <input
             class={`border border-surface-border! p-4  rounded-2xl bg-white!  placeholder:(text-#777 font-bold) w-full ${
               results() && props.injected
                 ? "border-t-0 border-b-1  border-l-0 border-r-0 rounded-bl-0! rounded-br-0! outline-none"
                 : ""
             }`}
+            onFocus={() => {
+              setSearchFocused(true);
+            }}
+            onBlur={(e) => {
+              console.log(e.target);
+              const searchWrapper = e.target.closest(
+                "[data-js='searchWrapper']"
+              );
+              console.log({searchWrapper});
+              if (!searchWrapper) {
+                setSearchFocused(false);
+              }
+            }}
             id="search"
             data-js="search"
             type="search"
             placeholder={dict.search}
             value={query()}
-            onInput={(e) => setQuery(e.target.value)}
-            onKeyUp={handleInput}
+            onInput={(e) => {
+              batch(() => {
+                setIsTyping(true);
+                setQuery(e.target.value);
+              });
+            }}
+            onKeyUp={(e) => handleInput({event: e})}
             // @ts-ignore chrome only
             onSearch={handleInput}
           />
           <MangifyingGlass class="absolute top-1/2 translate-y-[-50%] end-2" />
 
           {/* Container for search results */}
+          <Show when={!query() && searchFocused()}>
+            <div
+              data-js="searchSuggestions"
+              class={`${props.isBig ? bigClassNames : mobileClassNames} ${
+                props.addlClasses
+              }  shadow-lg shadow-dark rounded-2xl `}
+            >
+              <h3 class="font-500 font-step-1">{dict.searchIdeas}</h3>
+              <ul class="list-none">
+                <For
+                  each={[
+                    dict.searchSuggestion1PageLabel,
+                    dict.searchSuggestion2SoftwareLabel,
+                    dict.searchSuggestion3ResourceLabel,
+                  ]}
+                >
+                  {(l) => (
+                    <SearchSuggestionBtn
+                      label={l}
+                      onClick={setSearchRefValue}
+                    />
+                  )}
+                </For>
+              </ul>
+            </div>
+          </Show>
+          <Show when={query() && !results() && !isTyping()}>
+            <div
+              data-js="searchSuggestions"
+              class={`${props.isBig ? bigClassNames : mobileClassNames} ${
+                props.addlClasses
+              }  shadow-lg shadow-dark rounded-2xl `}
+            >
+              {dict.searchNotFound.replace(/\{\{([^}]*)\}\}/, query())}
+            </div>
+          </Show>
           <Show when={results() && query()}>
             <div
+              data-js="searchResults"
               class={`${props.isBig ? bigClassNames : mobileClassNames} ${
                 props.addlClasses
               } searchResults shadow-lg shadow-dark rounded-2xl`}
@@ -160,44 +305,48 @@ export function Search(props: SearchProps) {
                 suggestLocalizeSiteOptions={suggestLocalizeSite}
                 dict={dict}
               />
-              <Show when={results()?.page}>
-                <h3 class="font-size-[var(--step-0)]! font-400! text-onSurface-secondary!">
-                  {dict.pages}
-                </h3>
-                <ul class="list-none!">
-                  <For each={results()?.page?.slice(0, 5)}>
-                    {(item) => <SearchItem item={item} />}
-                  </For>
-                </ul>
-              </Show>
-              <Show when={results()?.software}>
-                <h3 class="font-size-[var(--step-0)]! font-400! text-onSurface-secondary!">
-                  {dict.software}
-                </h3>
-                <ul class="list-none!">
-                  <For each={results()?.software}>
-                    {(item) => <SearchItem item={item} />}
-                  </For>
-                </ul>
-              </Show>
-              <Show when={results()?.resource}>
-                <h3 class="font-size-[var(--step-0)]! font-400! text-onSurface-secondary!">
-                  {dict.resources}
-                </h3>
-                <ul class="list-none!">
-                  <For each={results()?.resource?.slice(0, 5)}>
-                    {(item) => <SearchItem item={item} />}
-                  </For>
-                </ul>
-              </Show>
+              <ul class="list-none! flex flex-col gap-4">
+                <Show when={results()?.page}>
+                  <SearchSectionTitle title={dict.pages} />
+                  <ul class="list-none! flex flex-col gap-2">
+                    <For each={results()?.page?.slice(0, 5)}>
+                      {(item) => (
+                        <SearchItem escapeSearch={escapeSearch} item={item} />
+                      )}
+                    </For>
+                  </ul>
+                </Show>
+                <Show when={results()?.software}>
+                  <SearchSectionTitle title={dict.software} />
+
+                  <ul class="list-none! flex flex-col gap-2">
+                    <For each={results()?.software}>
+                      {(item) => (
+                        <SearchItem escapeSearch={escapeSearch} item={item} />
+                      )}
+                    </For>
+                  </ul>
+                </Show>
+                <Show when={results()?.resource}>
+                  <SearchSectionTitle title={dict.resources} />
+                  <ul class="list-none! flex flex-col gap-2">
+                    <For each={results()?.resource?.slice(0, 5)}>
+                      {(item) => (
+                        <SearchItem escapeSearch={escapeSearch} item={item} />
+                      )}
+                    </For>
+                  </ul>
+                </Show>
+              </ul>
             </div>
           </Show>
         </div>
       </Show>
       <Show when={props.isSearchPage}>
         <SearchAsPage
+          escapeSearch={escapeSearch}
           dict={dict}
-          handleInput={handleInput}
+          handleInput={(e) => handleInput({event: e})}
           query={query}
           results={results}
           setQuery={setQuery}
@@ -210,20 +359,53 @@ export function Search(props: SearchProps) {
   );
 }
 
+function SearchSectionTitle(props: {title: string}) {
+  return (
+    <h3 class="font-step-1 font-600! text-onSurface-secondary!">
+      {props.title}
+    </h3>
+  );
+}
+function SearchSuggestionBtn(props: {
+  label: string;
+  onClick: (label: string) => void;
+}) {
+  return (
+    <li>
+      <button
+        type="button"
+        data-js="searchSuggestionBtn"
+        class="w-full  text-left focus:(bg-brand-light) py-2"
+        onClick={() => props.onClick(props.label)}
+      >
+        {props.label}
+      </button>
+    </li>
+  );
+}
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-function SearchItem(props: {item: any}) {
+function SearchItem(props: {item: any; escapeSearch: () => void}) {
   return (
     <Switch>
       <Match when={props.item.meta.type && props.item.meta.type !== "software"}>
-        <li class="py-1">
-          <p class="text-base! cursor-pointer text-onSurface-primary">
-            <a class="decoration-none! font-bold" href={props.item.url}>
+        <li
+          class="font-step--1 cursor-pointer hover:(bg-brand-light) "
+          onClick={() => window.open(props.item.url)}
+          onKeyDown={(e) => e.key === "Enter" && window.open(props.item.url)}
+        >
+          <p class="text-base!  text-onSurface-primary">
+            <a
+              data-js="searchResult"
+              class="decoration-none! font-bold focus:(ring ring-brand-base ring-offset-2 outline-none)  py-1"
+              href={props.item.url}
+              onKeyDown={(e) => e.key === "Escape" && props.escapeSearch()}
+            >
               {props.item.meta.title}
             </a>
           </p>
           <div class="flex">
             <p
-              class="color-onSurface-secondary font-size-[var(--step--1)]! text-sm"
+              class="color-onSurface-secondary!"
               innerHTML={props.item.excerpt}
             />
             <Show
@@ -235,13 +417,17 @@ function SearchItem(props: {item: any}) {
         </li>
       </Match>
       <Match when={props.item.meta.type && props.item.meta.type === "software"}>
-        <SearchItemSoftware item={props.item} />
+        <SearchItemSoftware
+          item={props.item}
+          escapeSearch={props.escapeSearch}
+        />
       </Match>
     </Switch>
   );
 }
 
 type SearchItemSoftwareProps = {
+  escapeSearch: () => void;
   item: {
     url: string;
     excerpt: string;
@@ -257,17 +443,19 @@ type SearchItemSoftwareProps = {
 };
 function SearchItemSoftware(props: SearchItemSoftwareProps) {
   return (
-    <li class="py-1">
-      <p class="text-base! cursor-pointer text-[var(--color-accent)] flex justify-between items-center">
+    <li
+      class="py-1 hover:(bg-brand-light)"
+      onClick={() => window.open(props.item.url)}
+      onKeyDown={(e) => e.key === "Enter" && window.open(props.item.url)}
+    >
+      <p class="text-base! cursor-pointer text-[var(--color-accent)] flex justify-between items-center focus-within:(ring ring-brand-base ring-offset-2 outline-none)">
         <span class="flex gap-2 items-center">
           <Switch>
             <Match when={props.item.meta.platform === "Mac"}>
               <span class="i-iconoir:apple-mac w-1em h-1em" />
             </Match>
             <Match when={props.item.meta.platform === "Windows"}>
-              <a class="decoration-none!" href={props.item.url}>
-                <span class="i-iconoir:windows w-1em h-1em" />
-              </a>
+              <span class="i-iconoir:windows w-1em h-1em" />
             </Match>
             <Match when={props.item.meta.platform === "Linux"}>
               <span class="i-ant-design:linux-outlined w-1em h-1em" />
@@ -275,7 +463,12 @@ function SearchItemSoftware(props: SearchItemSoftwareProps) {
           </Switch>
           {props.item.meta.download}
         </span>
-        <a class="decoration-none!" href={props.item.url}>
+        <a
+          data-js="searchResult"
+          class="decoration-none! focus:(outline-none)"
+          href={props.item.url}
+          onKeyDown={(e) => e.key === "Escape" && props.escapeSearch()}
+        >
           <span class="i-material-symbols:download w-1em h-1em" />
         </a>
       </p>
@@ -294,6 +487,7 @@ type SearchAsPageProps = {
   handleInput: (e: KeyboardEvent) => Promise<void>;
   suggestLocalizeSiteOptions: () => languageType[] | undefined;
   langCode: string;
+  escapeSearch: () => void;
 };
 function SearchAsPage(props: SearchAsPageProps) {
   const [tabActive, setTabActive] = createSignal<
@@ -315,7 +509,7 @@ function SearchAsPage(props: SearchAsPageProps) {
       <div class="relative">
         <input
           class={
-            "border border-surface-border! p-4 rounded-2xl bg-white! pis-10 placeholder:(text-#777 font-bold) w-full"
+            "border border-surface-border! p-4 rounded-2xl bg-white! pis-10 placeholder:(text-#777 font-bold) w-full cursor-pointer"
           }
           id="search"
           data-js="search"
@@ -383,17 +577,32 @@ function SearchAsPage(props: SearchAsPageProps) {
             <Switch>
               <Match when={tabActive() === "PAGES"}>
                 <For each={props.results()?.page || []}>
-                  {(item) => <SearchPageResultItem item={item} />}
+                  {(item) => (
+                    <SearchPageResultItem
+                      escapeSearch={props.escapeSearch}
+                      item={item}
+                    />
+                  )}
                 </For>
               </Match>
               <Match when={tabActive() === "RESOURCES"}>
                 <For each={props.results()?.resource || []}>
-                  {(item) => <SearchPageResultItem item={item} />}
+                  {(item) => (
+                    <SearchPageResultItem
+                      escapeSearch={props.escapeSearch}
+                      item={item}
+                    />
+                  )}
                 </For>
               </Match>
               <Match when={tabActive() === "SOFTWARE"}>
                 <For each={props.results()?.software || []}>
-                  {(item) => <SearchPageResultItem item={item} />}
+                  {(item) => (
+                    <SearchPageResultItem
+                      escapeSearch={props.escapeSearch}
+                      item={item}
+                    />
+                  )}
                 </For>
               </Match>
             </Switch>
@@ -444,7 +653,9 @@ function SearchPageResultItem(props: SearchItemSoftwareProps) {
   );
 }
 
-function InlineSoftwareIcon(props: SearchItemSoftwareProps) {
+function InlineSoftwareIcon(
+  props: Omit<SearchItemSoftwareProps, "escapeSearch">
+) {
   return (
     <Switch>
       <Match when={props.item.meta.platform === "Mac"}>
@@ -474,6 +685,7 @@ function LocalizeActions(props: LocalizeActionsProps) {
           {(l) => (
             <li>
               <a
+                data-js="searchResult"
                 class="bg-surface-tertiary px-2 py-1 rounded-2xl decoration-none! inline-flex items-center gap-2 hover:(bg-brand-base text-brand-light) focus:(bg-brand-base text-brand-light) cursor-pointer"
                 href={l.localizedUrl!}
               >
