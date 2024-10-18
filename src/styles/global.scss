@@ -86,6 +86,9 @@ body {
 .headless-insertion p:not(.platform-detect p, p.has-text-color) {
   @apply text-onSurface-secondary;
 }
+.headless-insertion :where(h1, h2, h3, h4):not(.has-text-color) {
+  @apply text-onSurface-primary;
+}
 button,
 button:hover,
 button:focus {
@@ -431,10 +434,3 @@ input[type="search"]::-webkit-search-results-decoration {
   color: var(--clr-on-surface-secondary);
   font-weight: 900;
 }
-/* 
-dot-new: 
-top-level: css of hero-inner-shadow
-next -> align-items-center; 
-left-col: width 50
-right-col: flex grow 1 width 50
-*/
