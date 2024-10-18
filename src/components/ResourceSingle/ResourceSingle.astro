@@ -15,11 +15,15 @@ const cache = Astro.locals.runtime.caches.default;
 const ctx = Astro.locals.runtime.ctx;
 const pubDataApiUrl = Astro.locals.runtime.env.PUBLIC_DATA_API;
 const docUiUrl = Astro.locals.runtime.env.DOC_UI_URL as string;
+const urlParams = Astro.url.searchParams;
+const doBustCache = !!urlParams.get("cache-bust");
+
 const data = await getLanguageContents({
   language: languageToFetch,
   cache,
   ctx,
   pubDataApiUrl,
+  doBustCache,
 });
 const {data: languageData, wasCached} = data;
 

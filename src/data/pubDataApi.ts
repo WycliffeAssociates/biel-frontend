@@ -12,11 +12,13 @@ type getLanguagesWithContentForBielArgs = {
   cache: Cache;
   ctx: ExecutionContext;
   pubDataApiUrl: string;
+  doBustCache: boolean;
 };
 export async function getLanguagesWithContentForBiel({
   cache,
   ctx,
   pubDataApiUrl,
+  doBustCache,
 }: getLanguagesWithContentForBielArgs): Promise<{
   data: queryReturn | null;
   wasCached: boolean;
@@ -50,6 +52,7 @@ query MyQuery {
   }
 }
 `;
+  // todo: decide on a valid stale seconds time
   const swrThresholdSeconds = 40;
   const oneYearInSeconds = 60 * 60 * 24 * 365;
   try {
@@ -71,13 +74,16 @@ query MyQuery {
       "Content-Type": "application/json",
     });
 
+    // skips cache matching if there is a query parameter to explicitly bust and update shared cache
+
     const {match, revalidate, cacheKey} = await manageCfCachePostReq({
       query,
       url: pubDataApiUrl,
       swrThresholdSeconds,
       cache,
     });
-    if (match) {
+    // todo: refactor to not even try to match though if we are busting
+    if (match && !doBustCache) {
       if (revalidate) {
         ctx.waitUntil(
           refreshCfCache({
@@ -91,6 +97,7 @@ query MyQuery {
       json = (await match.json()) as queryReturn;
       return {data: json, wasCached: !!match};
     }
+
     const res = await fetch(requestToMake());
     if (res?.ok) {
       json = (await res.json()) as queryReturn;
@@ -155,6 +162,7 @@ export async function getLanguageContents({
   ctx,
   language,
   pubDataApiUrl,
+  doBustCache,
 }: getLanguageContentsArgs) {
   const query = `query LangContents {
   language(where: {ietf_code: {_eq: "${language}"}}) {
@@ -201,7 +209,7 @@ export async function getLanguageContents({
     // no swr for this route
   });
   // No swr means we just return max if it's cache control header from CF hasn't expired, and otherwise, fetch and stick in cache
-  if (match) {
+  if (match && !doBustCache) {
     res = match;
   }
   if (!res) {

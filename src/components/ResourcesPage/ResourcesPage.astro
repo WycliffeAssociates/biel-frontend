@@ -8,6 +8,8 @@ interface Props {
 }
 const startTime = performance.now();
 const runtime = Astro.locals.runtime;
+const queryParams = Astro.url.searchParams;
+const doBustCache = !!queryParams.get("cache-bust");
 // note, cache is a noop in dev right now for cloudfalre adapter
 const cache = runtime.caches.default;
 const ctx = runtime.ctx;
@@ -17,6 +19,7 @@ const {data, wasCached} = await getLanguagesWithContentForBiel({
   cache,
   ctx,
   pubDataApiUrl,
+  doBustCache,
 });
 if (!data) return Astro.redirect("/404");
 const endTime = performance.now();
