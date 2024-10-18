@@ -26,8 +26,11 @@ import {
   adjustCmsDomLinks,
   collectInlineStyles,
   determineShowGlobal,
+  doShowPageTitle,
+  doShowTopBlurb,
   getNonHiddenPages,
   getOtherLanguagesPagesList,
+  isNotCustomPage,
 } from "@src/utils";
 import {DOMParser} from "linkedom/worker";
 
@@ -214,19 +217,10 @@ const {
   englishUriMap,
   ctaSection,
 } = Astro.props;
-let doHydrateInjectedSearch = false;
 const blockHtmlWithClientInjections = page.editorBlocks
   .filter((b) => b.parentClientId == null)
   .map((block) => {
-    if (block.renderedHtml.includes(`id="injectStaticSearch"`)) {
-      const searchComponent = injectSearch({langCode: langInfo.code, langSwitcherList});
-      const wrapped = `<div class="relative p-0!"> ${searchComponent} </div>`;
-      block.renderedHtml = block.renderedHtml.replace(
-        constants.injectRegex,
-        wrapped
-      );
-      doHydrateInjectedSearch = true;
-    }
+    // do some client side injections of components here if needed
     return block.renderedHtml;
   });
 const description = blockHtmlWithClientInjections.join(" ").slice(0, 100);
@@ -246,7 +240,6 @@ const description = blockHtmlWithClientInjections.join(" ").slice(0, 100);
       allLangs={langSwitcherList}
       currentLang={langInfo}
       menu={headerMenu}
-      doHydrateInjectedSearch={doHydrateInjectedSearch}
       i18nDict={getDict(langInfo.code, true)!}
       client:load
     />
@@ -258,7 +251,7 @@ const description = blockHtmlWithClientInjections.join(" ").slice(0, 100);
     {!page.isHomePage && <BreadCrumbs crumbs={page.ancestors} />}
 
     {
-      !page.isHomePage && page.pageOptions?.topBlurb && (
+      doShowTopBlurb(page) && (
         <div class="headless-insertion wp-blocks site-container">
           <Hero
             pageOptions={page.pageOptions}
@@ -269,13 +262,13 @@ const description = blockHtmlWithClientInjections.join(" ").slice(0, 100);
       )
     }
     {
-      !page.isHomePage && !page.isSearchPage && !page.pageOptions?.topBlurb && (
+      doShowPageTitle(page) && (
         <h1 class="text-center text-6xl mb-12 ">{page.title}</h1>
       )
     }
 
     {
-      !page.isSearchPage && !page.isContactPage && (
+      isNotCustomPage(page) && (
         <div
           class={`headless-insertion wp-blocks ${
             !page.isHomePage && "site-container"

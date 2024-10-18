@@ -62,7 +62,7 @@ export function ScripturalView() {
       {/* wk: Yes, this is in the wrong "place" by name. Thomas chnaged the designs around on me while trying to get it out the door, so for now it's just in a weird spot w/ respect to names. September 26, 2024 */}
       <Show when={!isBig()}>
         <div class="sticky bottom-4 shadow-surface-primary shadow-[0px_20px_0px_0px]">
-          <MenuRow />
+          <MenuRow classes="self-start" />
           {/* hides text scrolling undernath  */}
           <div class="bg-surface-primary absolute bottom-0 w-full h-full z--1" />
         </div>
@@ -82,7 +82,7 @@ export function MenuRow(props: MenuRowProps) {
   const activeRow = () =>
     activeContent.rendered_contents.htmlChapters[activeContent.activeRowIdx];
   return (
-    <div class={`flex gap-4 ${props.classes || ""}`}>
+    <div data-name="menuRow" class={`flex gap-4 ${props.classes || ""}`}>
       <Menu
         setActiveContent={setActiveContent}
         langDirection={langDirection}

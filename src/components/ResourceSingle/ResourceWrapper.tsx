@@ -17,7 +17,7 @@ export function ResourceWrapper(props: ContentListingProps) {
     >
       <div class="h-full grid px-2 items-stretch  md:(gap-x-40 gap-y-4 justify-center  grid-cols-[1fr_3fr] items-start grid-rows-[auto_1fr])">
         <SearchBar classes="hidden md:block" />
-        <Menu classes="md:(mie-auto p-0 max-w-prose w-full)" />
+        <Menu classes="self-start md:(mie-auto p-0 max-w-prose w-full)" />
         <AvailableResources
           classes={
             " md:(grid-row-start-2 h-full overflow-y-auto pb-12 w-full) "
@@ -26,7 +26,7 @@ export function ResourceWrapper(props: ContentListingProps) {
         />
         <ContentView
           classes={
-            "px-2 self-start md:(mie-auto p-0 max-w-prose w-full h-full pb-12 overflow-y-auto)"
+            "px-2 md:(mie-auto p-0 max-w-prose w-full h-full pb-12 overflow-y-auto)"
           }
         />
       </div>

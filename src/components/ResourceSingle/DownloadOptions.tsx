@@ -367,6 +367,9 @@ function DropDownPortal(props: DropDownPortalProps) {
           updateDownloadOptions={props.updateDownloadOptions}
           i18nDict={props.i18nDict}
         />
+        <Show when={props.canShowTn() || props.doShowAllBooksToggle()}>
+          <p class="font-500 font-step-1">{props.i18nDict.ls_OptionsLabel}</p>
+        </Show>
         <Show when={props.canShowTn()}>
           <TranslationNotesToggle
             i18nDict={props.i18nDict}
@@ -439,16 +442,17 @@ export function FileTypePicker(props: FileTypePickerProps) {
   };
   return (
     <RadioGroup
+      data-name="download-options-radio-group"
       class="radio-group"
       defaultValue={"PDF"}
       onChange={(v) => {
         props.updateDownloadOptions("fileType", v as DownloadArgs["fileType"]);
       }}
     >
-      <RadioGroup.Label class="radio-group__label">
+      <RadioGroup.Label class="radio-group__label font-500 font-step-1">
         {props.i18nDict.ls_SelectFormat}
       </RadioGroup.Label>
-      <div class="radio-group__items">
+      <div class="grid grid-cols-2 gap-3">
         <For each={options()}>
           {(opt) => (
             <RadioGroup.Item
@@ -479,7 +483,7 @@ type ToggleButtonProps = {
 };
 export function TranslationNotesToggle(props: ToggleButtonProps) {
   return (
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between font-500 ">
       <p>{props.i18nDict.ls_IncludeTranslationNotes}</p>
       <ToggleButton
         class="relative"
@@ -575,7 +579,7 @@ export function OpenInDocButton(props: {i18nDict: i18nDictType}) {
   return (
     <a
       href={docUiUrl}
-      class="py-1 px-2 text-brand-base inline-flex gap-1 items-center justify-center underline w-max mx-auto"
+      class="p-2 text-brand-base inline-flex gap-1 items-center justify-center underline w-max mx-auto"
       target="_blank"
       rel="noreferrer"
     >

@@ -70,23 +70,11 @@ const langSwitcherList = Object.values(wpmlLangDict)
     return lang;
   });
 const langInfo = wpmlLangDict.en!;
-let doHydrateInjectedSearch = false;
 
 const blockHtmlWithClientInjections = editorBlocks
   .filter((b) => b.parentClientId == null)
   .map((block) => {
-    if (block.renderedHtml.includes(`id="injectStaticSearch"`)) {
-      const searchComponent = injectSearch({
-        langCode: langInfo.code,
-        langSwitcherList,
-      });
-      const wrapped = `<div class="relative "> ${searchComponent} </div>`;
-      block.renderedHtml = block.renderedHtml.replace(
-        constants.injectRegex,
-        wrapped
-      );
-      doHydrateInjectedSearch = true;
-    }
+    // do client side injections here if needed
     return block.renderedHtml;
   });
 
@@ -108,7 +96,6 @@ const {englishUriMap} = await getEnglishUriMap({gqlUrl});
     allLangs={langSwitcherList}
     currentLang={langInfo}
     menu={headerMenu}
-    doHydrateInjectedSearch={doHydrateInjectedSearch}
     i18nDict={getDict("en")!}
     client:load
   />

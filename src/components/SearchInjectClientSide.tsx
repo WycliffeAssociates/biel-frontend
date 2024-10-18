@@ -14,7 +14,6 @@ export function injectSearch({
       <Search
         isBig={true}
         langCode={langCode}
-        injected={true}
         addlClasses="w-full!"
         langSwitcherList={langSwitcherList}
       />

@@ -252,6 +252,22 @@ export function determineShowGlobal({
   return !page.isContactPage && !page.isHomePage && !!global;
 }
 
+export function doShowPageTitle(page: WpPage) {
+  return (
+    !page.isContactPage &&
+    !page.isHomePage &&
+    !page.isSearchPage &&
+    !page.pageOptions?.topBlurb
+  );
+}
+
+export function isNotCustomPage(page: WpPage) {
+  return !page.isSearchPage && !page.isContactPage;
+}
+export function doShowTopBlurb(page: WpPage) {
+  return page.pageOptions?.topBlurb && !page.isHomePage;
+}
+
 export const BibleBookCategories = {
   OT: [
     "GEN",

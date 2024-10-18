@@ -21,7 +21,6 @@ import type {languageType} from "@customTypes/types.js";
 type SearchProps = {
   langCode: string;
   isBig?: boolean;
-  injected?: boolean;
   addlClasses?: string;
   isSearchPage?: boolean;
   langSwitcherList: languageType[];
@@ -212,17 +211,11 @@ export function Search(props: SearchProps) {
     <>
       <Show when={!props.isSearchPage}>
         {/* Input element for search */}
-        <div
-          class={"relative"}
-          data-js="searchWrapper"
-          data-injected-search={props.injected}
-        >
+        <div class={"relative"} data-js="searchWrapper">
           <input
-            class={`border border-surface-border! p-4  rounded-2xl bg-white!  placeholder:(text-#777 font-bold) w-full ${
-              results() && props.injected
-                ? "border-t-0 border-b-1  border-l-0 border-r-0 rounded-bl-0! rounded-br-0! outline-none"
-                : ""
-            }`}
+            class={
+              "border border-surface-border! p-4  rounded-2xl bg-white!  placeholder:(text-#777 font-bold) w-full"
+            }
             onFocus={() => {
               setSearchFocused(true);
             }}
@@ -260,7 +253,9 @@ export function Search(props: SearchProps) {
                 props.addlClasses
               }  shadow-lg shadow-dark rounded-2xl `}
             >
-              <h3 class="font-500 font-step-1">{dict.searchIdeas}</h3>
+              <h3 class="font-500 font-step-1 text-onSurface-secondary">
+                {dict.searchIdeas}
+              </h3>
               <ul class="list-none">
                 <For
                   each={[
@@ -370,7 +365,7 @@ function SearchSuggestionBtn(props: {
       <button
         type="button"
         data-js="searchSuggestionBtn"
-        class="w-full  text-left focus:(bg-brand-light) py-2"
+        class="w-full font-350 text-left focus:(bg-brand-light) hover:(text-brand-base font-500) py-2 text-onSurface-secondary"
         onClick={() => props.onClick(props.label)}
       >
         {props.label}

@@ -25,7 +25,7 @@ export default function DownloadModal(
         <span class="i i-ic:baseline-download w-7 h-5" />
       </Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Content class="fixed inset-0 z-20 bg-surface-primary p-2 flex flex-col gap-4">
+        <Dialog.Content class="fixed inset-0 z-20 bg-surface-primary p-2 flex flex-col gap-6 md:gap-4">
           <div class="flex items-center gap-4">
             <Dialog.CloseButton
               class={`${
@@ -44,6 +44,9 @@ export default function DownloadModal(
             updateDownloadOptions={props.updateDownloadOptions}
             i18nDict={props.i18nDict}
           />
+          <Show when={props.canShowTn() || props.doShowAllBooksToggle()}>
+            <p class="font-500 font-step-1">{props.i18nDict.ls_OptionsLabel}</p>
+          </Show>
           <Show when={props.canShowTn()}>
             <TranslationNotesToggle
               i18nDict={props.i18nDict}

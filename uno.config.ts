@@ -34,6 +34,7 @@ const config: UserConfig = {
     maxWidth: {
       prose: "85ch",
     },
+
     colors: {
       brand: {
         base: "hsla(var(--clr-brand-base))",

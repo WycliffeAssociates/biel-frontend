@@ -111,20 +111,10 @@ const langSwitcherList = Object.values(wpmlLangDict)
 
 const {title} = page;
 
-const injectRegex = /<div[^>]*\bid="injectStaticSearch"[^>]*>.*?<\/div>/gim;
-let doHydrateInjectedSearch = false;
 page.editorBlocks
   .filter((b) => b.parentClientId == null)
   .map((block) => {
-    if (block.renderedHtml.includes(`id="injectStaticSearch"`)) {
-      const searchComponent = injectSearch({
-        langCode: langInfo.code,
-        langSwitcherList,
-      });
-      const wrapped = `<div class="relative"> ${searchComponent} </div>`;
-      block.renderedHtml = block.renderedHtml.replace(injectRegex, wrapped);
-      doHydrateInjectedSearch = true;
-    }
+    //do injections here if neede
     return block.renderedHtml;
   });
 ---
@@ -141,7 +131,6 @@ page.editorBlocks
     allLangs={langSwitcherList}
     currentLang={langInfo}
     menu={headerMenu}
-    doHydrateInjectedSearch={doHydrateInjectedSearch}
     i18nDict={getDict(langInfo.code, true)!}
     client:load
   />

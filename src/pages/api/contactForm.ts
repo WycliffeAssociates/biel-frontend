@@ -1,8 +1,19 @@
 export const prerender = false;
 import type {APIRoute} from "astro";
 
+type remotePayloadType = {
+  env: string;
+  devEmail?: string;
+  formFields: Array<{
+    field: string;
+    value: string;
+  }>;
+};
+
 export const POST: APIRoute = async ({request, site, url, locals}) => {
   const requestOrigin = url.origin;
+  const CONTACT_FORM_PROCESSING_URL = locals.runtime.env
+    .CONTACT_FORM_ENDPOINT as string;
   // site is from astro config. support only same site form submissions
   if (import.meta.env.PROD) {
     if (site?.origin !== requestOrigin) {
@@ -16,9 +27,16 @@ export const POST: APIRoute = async ({request, site, url, locals}) => {
   const secretTurnstileKey = locals.runtime.env?.SECRET_TURNSTILE_KEY;
 
   const data = await request.formData();
-  const name = data.get("name");
-  const email = data.get("email");
-  const message = data.get("message");
+  const email = data.get("email")?.toString();
+  const helpMethod = data.get("method")?.toString();
+  const message = data.get("message")?.toString() || "";
+
+  if (!email || !helpMethod) {
+    return new Response(null, {
+      status: 400,
+    });
+  }
+
   const token = data.get("cf-turnstile-response")?.toString() || "";
   const ip = request.headers.get("CF-Connecting-IP")?.toString() || "";
 
@@ -38,17 +56,50 @@ export const POST: APIRoute = async ({request, site, url, locals}) => {
 
   const outcome = await result.json();
   if (outcome.success) {
-    // ...
-    const body = JSON.stringify({
-      success: true,
-    });
-    return new Response(body, {
-      status: 200,
+    const formFields = [
+      {
+        field: "email",
+        value: email,
+      },
+      {
+        field: "method of help request",
+        value: helpMethod,
+      },
+      {
+        field: "message",
+        value: message,
+      },
+    ];
+    const processingBody: remotePayloadType = {
+      env: locals.runtime.env.CONTACT_ENV || "local",
+      devEmail: locals.runtime.env.CONTACT_DEV_EMAIL || "noop",
+      formFields,
+    };
+    console.log(processingBody);
+    const res = await fetch(CONTACT_FORM_PROCESSING_URL, {
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
       },
+      body: JSON.stringify(processingBody),
     });
+
+    if ([200, 202].includes(res.status)) {
+      return new Response(JSON.stringify({success: true}), {
+        status: 200,
+      });
+    }
+    return new Response(JSON.stringify({success: false}), {
+      status: res.status,
+    });
+    // SEND FOR PROCESSING
+    // return new Response(body, {
+    //   status: 200,
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //     "Access-Control-Allow-Origin": "*",
+    //   },
+    // });
   }
   return new Response(null, {
     status: 403,

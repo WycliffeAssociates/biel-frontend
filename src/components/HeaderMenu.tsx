@@ -14,7 +14,6 @@ type HeaderMenuProps = {
   menu: Menu;
   allLangs: languageType[];
   currentLang: languageType;
-  doHydrateInjectedSearch?: boolean;
   i18nDict: i18nDictType;
 };
 export function HeaderMenu(props: HeaderMenuProps) {
@@ -42,25 +41,6 @@ export function HeaderMenu(props: HeaderMenuProps) {
   function isParent(item: MenuItem) {
     return !!item.children;
   }
-  onMount(() => {
-    if (props.doHydrateInjectedSearch) {
-      hydrate(
-        () => (
-          <Search
-            isBig={isBig()}
-            langCode={props.currentLang.language_code}
-            addlClasses="w-full!"
-            injected={true}
-            langSwitcherList={props.allLangs}
-          />
-        ),
-        document.querySelector("[data-injected-search]")!.parentElement!,
-        {
-          renderId: "injectStaticSearch",
-        }
-      );
-    }
-  });
 
   return (
     <nav data-pagefind-ignore="all">

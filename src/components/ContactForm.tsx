@@ -86,17 +86,28 @@ export function ContactForm(props: ContactFormProps) {
     e.preventDefault();
     setFormStatus((prev) => ({...prev, status: statuses.submitted}));
     const formData = new FormData(e.target as HTMLFormElement);
-    const res = await fetch("/api/contactForm", {
-      method: "POST",
-      body: formData,
-    });
-    const data = await res.json();
-    await fadeOutCmsFormIntro();
-    setFormStatus({
-      status: statuses.submitted,
-      success: data.success,
-      errored: !data.success,
-    });
+    try {
+      const res = await fetch("/api/contactForm", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success) {
+        await fadeOutCmsFormIntro();
+        setFormStatus({
+          status: statuses.submitted,
+          success: data.success,
+          errored: !data.success,
+        });
+      }
+    } catch (e) {
+      console.error(e);
+      setFormStatus({
+        status: statuses.submitted,
+        success: false,
+        errored: true,
+      });
+    }
   }
 
   return (
@@ -112,25 +123,10 @@ export function ContactForm(props: ContactFormProps) {
         }
       >
         <form onSubmit={submit} class="py-8">
-          <span class="flex gap-2px mb-8">
-            <span>{props.dict.requiredIndicator}</span>
-            <RequiredIndicator />
-          </span>
-          <div class="flex flex-col gap-4">
+          <div class="flex flex-col gap-12">
             <FormLabel
-              text={props.dict.contactNameInput}
-              classes="md:w-3/5 font-bold"
-            >
-              <input
-                type="text"
-                name="name"
-                required
-                class="py-2 px-4 rounded-lg border border-surface-border text-onSurface-tertiary bg-surface-secondary! focus:(bg-surface-primary!)"
-                placeholder={props.dict.contactNamePlaceholder}
-              />
-            </FormLabel>
-            <FormLabel
-              classes="md:w-4/5"
+              dict={props.dict}
+              classes="w-full"
               text={props.dict.contactEmailInput}
               required={true}
             >
@@ -141,7 +137,38 @@ export function ContactForm(props: ContactFormProps) {
                 placeholder={props.dict.contactEmailPlaceholder}
               />
             </FormLabel>
-            <FormLabel required={true} text={props.dict.contactMessageInput}>
+
+            <FormLabel
+              dict={props.dict}
+              classes="w-full"
+              text={props.dict.contactMethodLabel}
+              required={true}
+            >
+              <div class="grid grid-cols-2 gap-x-8 gap-y-6 w-full justify-between text-onSurface-secondary font-450">
+                <RadioAndLabel
+                  value="Scripture Engagement"
+                  label={props.dict.contactMethodScriptureEngagement}
+                />
+                <RadioAndLabel
+                  value="Tech Support"
+                  label={props.dict.contactMethodTechSupport}
+                />
+                <RadioAndLabel
+                  value="Translation Support"
+                  label={props.dict.contactMethodTranslationSupport}
+                />
+                <RadioAndLabel
+                  value="Other"
+                  label={props.dict.contactMethodOther}
+                />
+              </div>
+            </FormLabel>
+
+            <FormLabel
+              dict={props.dict}
+              required={false}
+              text={props.dict.contactMessageInput}
+            >
               <textarea
                 placeholder={props.dict.contactMessagePlaceholder}
                 name="message"
@@ -206,10 +233,12 @@ function FailedMessage(props: {dict: i18nDictType}) {
   );
 }
 
-function RequiredIndicator() {
+function RequiredIndicator(props: {dict: i18nDictType}) {
   return (
     <>
-      <span class="text-error-onSurface">*</span>
+      <span class="text-error-onSurface">
+        <sup>*</sup> {props.dict.requiredIndicator}
+      </span>
     </>
   );
 }
@@ -219,21 +248,26 @@ function FormLabel(props: {
   classes?: string;
   required?: boolean;
   children: JSX.Element;
+  dict: i18nDictType;
 }) {
   return (
     // biome-ignore lint/a11y/noLabelWithoutControl: <The children is the assoicated for control >
     <label class={`flex flex-col gap-2 ${props.classes}`}>
       {props.required ? (
         <>
-          <span class="flex gap-2px mb-2 font-bold">
+          <span class="flex justify-between mb-2 font-500 items-center font-step-0 text-onSurface-secondary">
             {props.text}
-            <RequiredIndicator />
+            <small class="font-step--1">
+              <RequiredIndicator dict={props.dict} />
+            </small>
           </span>
           {props.children}
         </>
       ) : (
         <>
-          <span class="block">{props.text}</span>
+          <span class="flex justify-between mb-2 font-500 items-center font-step-0 text-onSurface-secondary">
+            {props.text}
+          </span>
           {props.children}
         </>
       )}
@@ -247,7 +281,7 @@ function SubmitBtn(props: {text: string; disabled: boolean}) {
       disabled={props.disabled}
       type="submit"
       class={
-        "px-14 bg-brand-base text-onSurface-invert border-2 border-solid border-[hsla(var(--clr-brand-100))] py-1  hover:(bg-brand-base/80 text-onSurface-invert) rounded-lg w-fit disabled:(opacity-50 cursor-not-allowed)"
+        "px-14 bg-brand-base text-onSurface-invert border-2 border-b-4 border-solid border-brand-darkest py-1  hover:(bg-brand-base/80 text-onSurface-invert) rounded-xl w-fit disabled:(opacity-50 cursor-not-allowed)"
       }
     >
       {props.text}
@@ -294,5 +328,20 @@ function SVGSuccess() {
         </clipPath>
       </defs>
     </svg>
+  );
+}
+
+function RadioAndLabel(props: {label: string; value: string}) {
+  return (
+    <label class="flex items-center gap-3">
+      <input
+        type="radio"
+        name="method"
+        required
+        value={props.value}
+        class="accent-brand-base peer"
+      />
+      <span class="peer-checked:(text-brand-base font-550)">{props.label}</span>
+    </label>
   );
 }
