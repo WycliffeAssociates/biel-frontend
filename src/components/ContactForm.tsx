@@ -99,6 +99,12 @@ export function ContactForm(props: ContactFormProps) {
           success: data.success,
           errored: !data.success,
         });
+      } else {
+        setFormStatus({
+          status: statuses.submitted,
+          success: false,
+          errored: true,
+        });
       }
     } catch (e) {
       console.error(e);

@@ -91,6 +91,7 @@ export const POST: APIRoute = async ({request, site, url, locals}) => {
         status: 200,
       });
     }
+    console.log(res);
     return new Response(JSON.stringify({success: false}), {
       status: res.status,
     });
