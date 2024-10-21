@@ -74,8 +74,7 @@ export const POST: APIRoute = async ({request, site, url, locals}) => {
     ];
     const processingBody: remotePayloadType = {
       env: locals.runtime.env.CONTACT_ENV || "local",
-      devEmail: "noop",
-      // devEmail: locals.runtime.env.CONTACT_DEV_EMAIL || "noop",
+      devEmail: locals.runtime.env.CONTACT_DEV_EMAIL || "noop",
       formFields,
     };
     console.log({processingBody});
