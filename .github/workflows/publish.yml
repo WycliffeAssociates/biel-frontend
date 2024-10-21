@@ -39,6 +39,7 @@ jobs:
           SITE_URL: "op://DevOps/biel-env-vars/${{ steps.determine_env.outputs.ENV }}/${{ steps.determine_env.outputs.ENV }}-site-url"
           WORDPRESS_GQL_URL: "op://DevOps/biel-env-vars/${{ steps.determine_env.outputs.ENV }}/${{ steps.determine_env.outputs.ENV }}-graphql-url"
           PUBLIC_DATA_API_URL: "op://DevOps/biel-env-vars/${{ steps.determine_env.outputs.ENV }}/${{ steps.determine_env.outputs.ENV }}-public-data-api-url"
+          TURNSTILE_PUBLIC_KEY: "op://DevOps/biel-env-vars/common/turnstile-public-key"
       - name: set prod variables
         uses: 1password/load-secrets-action@v1
         with:
@@ -72,6 +73,7 @@ jobs:
           pnpm install && pnpm build
         env:
           NODE_OPTIONS: --max_old_space_size=4096
+          TURNSTILE_PUBLIC_KEY: ${{ env.CMS_URL }}
 
       - name: Purge extra css
         run: |
