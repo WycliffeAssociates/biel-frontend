@@ -210,7 +210,7 @@ function ConfirmationMessage(props: {
       fallback={<FailedMessage dict={props.dict} />}
     >
       <div class="flex flex-col-reverse gap-8 md:flex-row md:justify-center md:(gap-30 mb-0) items-center mb-8">
-        <div class="w-full md:w-1/2">
+        <div class="w-full md:w-1/2 py-16">
           <h1>{props.dict.contactSuccessTitle} </h1>
           <p
             innerHTML={props.dict.contactSuccessBody}

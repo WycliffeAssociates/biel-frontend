@@ -74,10 +74,11 @@ export const POST: APIRoute = async ({request, site, url, locals}) => {
     ];
     const processingBody: remotePayloadType = {
       env: locals.runtime.env.CONTACT_ENV || "local",
-      devEmail: locals.runtime.env.CONTACT_DEV_EMAIL || "noop",
+      devEmail: "noop",
+      // devEmail: locals.runtime.env.CONTACT_DEV_EMAIL || "noop",
       formFields,
     };
-    console.log(processingBody);
+    console.log({processingBody});
     const res = await fetch(CONTACT_FORM_PROCESSING_URL, {
       method: "POST",
       headers: {
@@ -85,15 +86,24 @@ export const POST: APIRoute = async ({request, site, url, locals}) => {
       },
       body: JSON.stringify(processingBody),
     });
-
+    console.log({
+      ...res,
+    });
     if ([200, 202].includes(res.status)) {
       return new Response(JSON.stringify({success: true}), {
         status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
       });
     }
-    console.log(res);
     return new Response(JSON.stringify({success: false}), {
       status: res.status,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+      },
     });
     // SEND FOR PROCESSING
     // return new Response(body, {
