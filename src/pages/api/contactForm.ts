@@ -55,6 +55,7 @@ export const POST: APIRoute = async ({request, site, url, locals}) => {
   });
 
   const outcome = await result.json();
+  console.log(outcome);
   if (outcome.success) {
     const formFields = [
       {
