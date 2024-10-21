@@ -209,7 +209,10 @@ function ConfirmationMessage(props: {
       when={props.didSucceed}
       fallback={<FailedMessage dict={props.dict} />}
     >
-      <div class="flex flex-col-reverse gap-8 md:flex-row md:justify-center md:(gap-30 mb-0) items-center mb-8">
+      <div
+        data-js="contactSuccessContainer"
+        class="flex flex-col-reverse gap-8 md:flex-row md:justify-center md:(gap-30 mb-0) items-stretch  mb-8"
+      >
         <div class="w-full md:w-1/2 py-16">
           <h1>{props.dict.contactSuccessTitle} </h1>
           <p
@@ -223,7 +226,7 @@ function ConfirmationMessage(props: {
             {props.dict.contactSuccessButtonText}
           </a>
         </div>
-        <div class="w-full md:w-1/2 bg-brand-light grid place-content-center aspect-16/9 md:aspect-4/3">
+        <div class="w-full md:w-1/2 bg-brand-light grid place-content-center aspect-16/9 md:aspect-auto">
           <SVGSuccess />
         </div>
       </div>
@@ -233,7 +236,7 @@ function ConfirmationMessage(props: {
 
 function FailedMessage(props: {dict: i18nDictType}) {
   return (
-    <div class="min-h-40vh place-content-center grid text-2xl">
+    <div class="min-h-40vh place-content-center grid text-2xl py-30">
       {props.dict.formFailed}
     </div>
   );
