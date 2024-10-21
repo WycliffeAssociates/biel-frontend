@@ -8,6 +8,12 @@ on:
     - cron: '6 4 * * *'
   push:
   workflow_dispatch:
+
+# Cancel in progress if making multiple prs or pushes to a branch. 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
