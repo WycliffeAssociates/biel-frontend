@@ -15,13 +15,14 @@ export const POST: APIRoute = async ({request, site, url, locals}) => {
   const CONTACT_FORM_PROCESSING_URL = locals.runtime.env
     .CONTACT_FORM_ENDPOINT as string;
   // site is from astro config. support only same site form submissions
-  if (import.meta.env.PROD) {
-    if (site?.origin !== requestOrigin) {
-      return new Response(null, {
-        status: 403,
-      });
-    }
-  }
+  // todo: decide on reenable this?
+  // if (import.meta.env.PROD) {
+  //   if (site?.origin !== requestOrigin) {
+  //     return new Response(null, {
+  //       status: 403,
+  //     });
+  //   }
+  // }
   // Can type it when changing to next version I think
   // @ts-ignore
   const secretTurnstileKey = locals.runtime.env?.SECRET_TURNSTILE_KEY;
