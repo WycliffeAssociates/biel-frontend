@@ -73,7 +73,7 @@ jobs:
           pnpm install && pnpm build
         env:
           NODE_OPTIONS: --max_old_space_size=4096
-          TURNSTILE_PUBLIC_KEY: ${{ env.CMS_URL }}
+          TURNSTILE_PUBLIC_KEY: ${{ env.TURNSTILE_PUBLIC_KEY }}
 
       - name: Purge extra css
         run: |
