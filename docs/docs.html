@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Site Docs</title>
+  </head>
+  <body>
+    <h1>New Biel Tech Notes</h1>
+  </body>
+  <div class="wrapper">
+    <section class="pages">
+      <h2>Pages</h2>
+      <ul>
+        <li>
+          Currently, everything that is not Resources/ and Resources/{lang} is a
+          statically rendered page. All data wordpress Data is fetched at
+          build/deploy time. There's about 10-15 static pages right now
+        </li>
+        <li>
+          Everything at /resources and /resources {lang} is a dynamically
+          rendered page.
+        </li>
+        <li>
+          The web framework is called <a href="https://astro.build">Astro</a>.
+          Astro is a modern web framework. Javascript and a javascript like
+          syntax are used for static templating. Hydration/Interactivity is opt
+          in. Pages are server rendered as opt in.
+        </li>
+      </ul>
+    </section>
+    <section class="wordpress">
+      <h2>Wordpress</h2>
+      <p>Content is sourced from wordpress using</p>
+      <ul>
+        <li>
+          <a href="https://generateblocks.com/">Generate Blocks</a>
+          for most content (a small free collection of native Gutenberg blocks).
+          Example <img src="./wp_page.png" alt="" />
+        </li>
+        <li>
+          Advanced Custom Fields (For some structured content. Namely the menu
+          and the hero)
+        </li>
+        <li>
+          Native WP menu for header - WPML provides all translations for
+          anythign not past /resources and ancillary text
+        </li>
+        <li>WPGraphql for content blocks + advanced custom fields + wpml</li>
+        <li>
+          Custom Post type called Globals for Footer + Contact Us Card on
+          interior pages
+        </li>
+        <li>
+          In order to keep as much control to the author as possible from their
+          little preview pane, wordpress base styles, and block library base
+          styles are included in the project. These libraries are large, so an
+          additional script is run after build called purgeCss which removes
+          unused CSS by cross checking it against what shows up in your html.
+        </li>
+      </ul>
+    </section>
+    <div class="front_end_concenrs">
+      <h2>Front end matters</h2>
+      <ul>
+        <li>
+          Interactive Javascript = <strong>Solid JS</strong>. A headless UI
+          library called
+          <a href="https://kobalte.dev/docs/core/overview/introduction"
+            >Kobalte</a
+          >
+          is used for accessibility in certain components (modals, dropdowns,
+          etc).
+        </li>
+        <li>
+          Service Worker -> This site does have a service worker for caching. If
+          a service worker fails to register (or is non supported, i.e. private
+          Firefox), there is some redundancy in functionality as an api route.
+          The service worker is used for caching plus fetching zips of usfm.
+        </li>
+        <li>
+          Search -> All search is done client side with a library called
+          <a href="https://pagefind.app/docs/api/">Pagefind</a>. Pagefind is a
+          fully static search library that aims to perform well on large sites,
+          while using as little of your users bandwidth as possible, and without
+          hosting any infrastructure. The search index is built
+          <strong>after</strong> the site is built as a part of the deploy task.
+          Search is specific to the WPML language of the site. Custom records
+          are also added to search for things such as
+          <strong>software downloads</strong> and searchign through the
+          <strong>scriptural resources</strong>
+        </li>
+        <li>
+          Api Routes / Server functionality -> The site itself is deployed on
+          Cloudflare Pages, which reusues cloudflare's serverless functions
+          framework. Opt-in server routes are rendered as functions. Therefore,
+          everything pages/api is opted in running on the server, and env vars
+          are set through the cloudflare dashboard. The cloudflare platform
+          (i.e. cache etc;) is also available in these contexts.
+        </li>
+        <li>
+          <h3>Data</h3>
+          <p>Apart from Wordpress, there are 2 other data sources</p>
+          <p>
+            The first is the <strong>Public Data Api</strong>. /resources
+            queries for all languages that have content that is
+            (show_on_biel+primary) and not missing renderings.
+            /resources/language queries for all "content" and the pre-rendered
+            results of that repo on a per chapter (or per file for tw) basis.
+            /resources/language then queries for each chapter of the each
+            project per request.
+          </p>
+          <p>
+            The second is <strong>Github</strong>. For languages that have add'l
+            content store in a "biel_files" repo, these resources are split out
+            for TS on their respective language pages and made avaialbe to
+            always have to download each folder as latest for zip.
+          </p>
+          <h3>Caching</h3>
+          <p>
+            Each file in the public data api comes with a hash of its content (I
+            think all are sha256, but it's up to whomever puts the data in the
+            api). This checksum allows for <strong>strong</strong> caching
+            headers at both the cdn and service worker levels. All fetches for
+            content are proxied through a serverless function (due to cors
+            headers, and populating a shared cache) with maximal caching headers
+            set based on a hash query parameter. She following swim lane for an
+            example of life cycle of a request for content
+          </p>
+          <img src="./fetch_lifecycle.png" alt="" />
+          <p>
+            The public Data API is POST request, which is by default not
+            cacheable on Cloudflare. There are workarounds, and the following
+            logic exists for these.
+          </p>
+          <p>
+            Overall, the requst for /resources and /resource/{lang} is cached at
+            the CF cdn level using custom Stale while Revalidate logic. Given a
+            a STALE_THRESHOLD and MAX_AGE, the request will use cached but stale
+            data if there is a cache match that younger than MAX_AGE but older
+            than STALE_THRESHOLD. This will fetch in the background to update
+            the stale data. If it's beyond the MAX_AGE, a fresh fetch to origin
+            api is made. Both /resources and /resource/{lang} take a
+            <strong>cache-bust</strong> query parameter on their routes to force
+            a fresh fetch. (i.e. public data api was updated, adn we want to
+            update the shared cache)
+          </p>
+          <img src="./resources_index.png" alt="" />
+          <img src="./resources_lang.png" alt="" />
+          <p>
+            <strong> Resource Downloads </strong> -> Handled through the
+            <strong>DOC API</strong> except for source zip material. GL's are
+            fetched stright from wacs. HL's are hand rolled by fetching each
+            <i>source.usfm</i> file that's rendered for each book by of a heart
+            language and pipelining and zipping together.
+          </p>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <style>
+    :root {
+      --font-size-00: 0.5rem;
+      --font-size-0: 0.75rem;
+      --font-size-1: 1rem;
+      --font-size-2: 1.1rem;
+      --font-size-3: 1.25rem;
+      --font-size-4: 1.5rem;
+      --font-size-5: 2rem;
+      --font-size-6: 2.5rem;
+      --font-size-7: 3rem;
+      --font-size-8: 3.5rem;
+    }
+    h1 {
+      font-size: var(--font-size-6);
+    }
+    h2 {
+      font-size: var(--font-size-5);
+    }
+    p,
+    ul,
+    li {
+      font-size: var(--font-size-3);
+      line-height: 1.5;
+    }
+    * + * {
+      margin-top: 0.5rem;
+    }
+    .wrapper {
+      max-width: 120ch;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    strong {
+      font-weight: 700;
+      text-decoration: underline;
+    }
+    img {
+      display: block;
+      max-width: 100%;
+    }
+  </style>
+</html>

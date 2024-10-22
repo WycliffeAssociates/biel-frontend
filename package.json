@@ -21,7 +21,6 @@
     "@astrojs/sitemap": "^3.2.0",
     "@astrojs/solid-js": "^4.4.2",
     "@kobalte/core": "^0.13.7",
-    "@sindresorhus/slugify": "^2.2.1",
     "@solid-primitives/media": "^2.2.9",
     "@tanstack/solid-virtual": "^3.10.8",
     "@wordpress/base-styles": "^5.9.0",

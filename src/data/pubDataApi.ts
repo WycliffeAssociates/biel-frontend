@@ -53,7 +53,8 @@ query MyQuery {
 }
 `;
   // todo: decide on a valid stale seconds time
-  const swrThresholdSeconds = 40;
+  const swrThresholdSeconds = 3600; //valid for another hour after max
+  const maxAgeValidSecond = 60 * 60 * 3; // 3 hours
   const oneYearInSeconds = 60 * 60 * 24 * 365;
   try {
     // CF doesn't support SWR yet, but we cna implement it for one route.  Just use caches.default and put one in with a custom x-swr header. When this is called, do a caches.match()... if the max-age or s-max isn't expired, cf should just use that. Then,
@@ -70,7 +71,7 @@ query MyQuery {
     };
     const resCacheHeaders = new Headers({
       "Access-Control-Allow-Origin": "*",
-      "Cache-Control": `public, max-age=30, s-maxage=${oneYearInSeconds}`,
+      "Cache-Control": `public, max-age=${maxAgeValidSecond}, s-maxage=${oneYearInSeconds}`,
       "Content-Type": "application/json",
     });
 
@@ -81,9 +82,10 @@ query MyQuery {
       url: pubDataApiUrl,
       swrThresholdSeconds,
       cache,
+      isCacheBustRequest: doBustCache,
     });
     // todo: refactor to not even try to match though if we are busting
-    if (match && !doBustCache) {
+    if (match) {
       if (revalidate) {
         ctx.waitUntil(
           refreshCfCache({
@@ -206,10 +208,11 @@ export async function getLanguageContents({
     query,
     url: pubDataApiUrl,
     cache,
+    isCacheBustRequest: doBustCache,
     // no swr for this route
   });
   // No swr means we just return max if it's cache control header from CF hasn't expired, and otherwise, fetch and stick in cache
-  if (match && !doBustCache) {
+  if (match) {
     res = match;
   }
   if (!res) {
@@ -222,6 +225,7 @@ export async function getLanguageContents({
       const clone = res.clone();
       const headers = new Headers(clone.headers);
       const oneDayInSeconds = 60 * 60 * 24;
+
       headers.set(
         "Cache-Control",
         `public, max-age=60, s-maxage=${oneDayInSeconds}`
@@ -445,6 +449,7 @@ type ManageCfCacheArgs = {
   query: string;
   url: string;
   cache: Cache;
+  isCacheBustRequest?: boolean;
 };
 
 function collateGatewayContent({
@@ -555,6 +560,7 @@ async function manageCfCachePostReq({
   query,
   url,
   cache,
+  isCacheBustRequest = false,
 }: ManageCfCacheArgs) {
   // see caching post reqeust here: Basically making a unique cache key based on the url + query
   // https://developers.cloudflare.com/workers/examples/cache-post-request
@@ -568,6 +574,13 @@ async function manageCfCachePostReq({
     method: "GET",
     headers: {"Content-Type": "application/json"},
   });
+  if (isCacheBustRequest) {
+    return {
+      revalidate: true,
+      match: null,
+      cacheKey: cacheKey,
+    };
+  }
   const matched = await cache.match(cacheKey as unknown as WorkerRequest);
   if (!matched) {
     return {
