@@ -47,6 +47,9 @@
 .font-step-5 {
   font-size: var(--step-5);
 }
+.font-wdth-90 {
+  font-variation-settings: "wdth" 90;
+}
 html,
 body {
   font-family: "Noto Sans", sans-serif !important;

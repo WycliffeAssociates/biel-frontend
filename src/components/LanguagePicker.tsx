@@ -25,7 +25,7 @@ export function LanguagePicker(props: LangPickerProps) {
             {(item) => (
               <DropdownMenu.Item>
                 <a
-                  class="flex w-full justify-between p-4 hover:(bg-brand-light text-brand-base) focus:(bg-brand-light text-brand-base)"
+                  class="text-onSurface-secondary flex w-full font-wdth-90 justify-between p-4 items-center hover:(bg-brand-light) focus:(bg-brand-light)"
                   href={
                     item.localizedUrl ||
                     `${item.code === "en" ? "/" : `/${item.code}`}`

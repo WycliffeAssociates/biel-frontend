@@ -133,7 +133,7 @@ type ListingsProps = {
 };
 function Listings(props: ListingsProps) {
   return (
-    <ul class="w-full flex flex-col ">
+    <ul class="w-full flex flex-col gap-2">
       <For each={props.languages}>
         {(language) => (
           <Listing
@@ -158,7 +158,7 @@ function Listing(props: ListingProps) {
   return (
     <li class="">
       <a
-        class="rounded-xl px-4 py-2 flex flex-row-reverse items-center md:(grid grid-cols-[1fr_4fr_2fr] w-full justify-between) hover:bg-surface-secondary"
+        class="rounded-2xl px-4 py-2 flex flex-row-reverse gap-x-4px md:(grid grid-cols-[1fr_4fr_2fr] items-center  w-full justify-between) hover:bg-surface-secondary"
         href={`/${props.prefix}/${props.code}`}
       >
         <ListingCode value={props.code} />
@@ -182,7 +182,7 @@ function ListingCode(props: ListingUnitProps) {
   return <span class="color-onSurface-tertiary shrink-0">{props.value}</span>;
 }
 function ListingName(props: ListingUnitProps) {
-  return <span class="color-onSurface-secondary font-500">{props.value}</span>;
+  return <span class="color-onSurface-secondary">{props.value}</span>;
 }
 function ListingAnglicized(props: ListingUnitProps) {
   return (

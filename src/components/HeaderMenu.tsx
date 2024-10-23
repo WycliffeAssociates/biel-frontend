@@ -77,11 +77,11 @@ export function HeaderMenu(props: HeaderMenuProps) {
                 <For each={props.menu?.items}>
                   {(menuLink, index) => {
                     return (
-                      <li class="group">
+                      <li class="group text-onSurface-secondary font-wdth-90">
                         {/* top level info */}
-                        <span class="inline-block hover:bg-brand-light rounded-md">
+                        <span class="inline-block hover:bg-brand-light rounded-2xl">
                           <a
-                            class="font-500 font-step-0  group-has-[:hover]:(text-blue-700) focus:(text-blue-700) inline-flex gap-2 items-center p-4"
+                            class="font-500 font-step-0  group-has-[:hover]:(text-brand-base) focus:(text-brand-base) inline-flex gap-2 items-center p-4"
                             onFocus={() => setActiveIdx(index)}
                             onMouseOver={() => setActiveIdx(index)}
                             href={`${shapeLink(menuLink)}`}
