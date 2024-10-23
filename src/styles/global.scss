@@ -141,6 +141,9 @@ main img {
   padding-inline-start: 1rem;
   padding-inline-end: 1rem;
 }
+.homePage div:has(figure) {
+  flex-shrink: 0;
+}
 @screen md {
   .site-container > *,
   .contain-pad {
@@ -148,7 +151,7 @@ main img {
     padding-inline-end: 2.5rem;
   }
   .contain-margin {
-    width: min(var(--site-container-max), calc(100% - 5rem));
+    width: min(calc(var(--site-container-max) - 5rem), calc(100% - 5rem));
   }
 }
 @screen lg {
@@ -158,7 +161,7 @@ main img {
     padding-inline-end: 5rem;
   }
   .contain-margin {
-    width: min(var(--site-container-max), calc(100% - 10rem));
+    width: min(calc(var(--site-container-max) - 10rem), calc(100% - 10rem));
   }
 }
 .site-container .full-bleed {

@@ -56,7 +56,7 @@ export function HeaderMenu(props: HeaderMenuProps) {
       <Show when={canHover() && isBig()}>
         <div class="relative">
           <nav
-            class="relative p-4 flex items-center justify-between z-20 contain h-20"
+            class="relative p-4 flex items-center justify-between z-20 contain contain-pad h-20"
             onBlur={() => setActiveIdx(null)}
             onMouseLeave={() => setActiveIdx(null)}
           >

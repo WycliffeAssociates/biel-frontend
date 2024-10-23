@@ -8,7 +8,7 @@ export function BreadCrumbs(props: Props) {
   if (!props.crumbs || !props.crumbs.nodes?.length) return null;
 
   return (
-    <nav class="hidden md:block bg-surface-primary py-2 border border-y-solid border-surface-border px-4">
+    <nav class="hidden md:block bg-surface-primary py-2 border border-y-solid border-surface-border">
       <ul class="list-none flex contain contain-pad">
         <For each={props.crumbs.nodes}>
           {(crumb, idx) => {

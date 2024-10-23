@@ -87,7 +87,7 @@ export function HeaderMenuMobile(props: HeaderMenuProps) {
   // Render Arrow.
   return (
     <div onkeydown={(e) => closeMenu(e)}>
-      <nav class="relative pie-4 pis-4">
+      <nav class="relative contain contain-pad">
         <div class="flex justify-between items-center py-2 sm:text-blue">
           <a
             href={`${
