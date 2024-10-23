@@ -1,0 +1,110 @@
+---
+import {getDict, type i18nDictType} from "@src/i18n/strings";
+import Layout from "@layouts/Layout.astro";
+import {HeaderMenu} from "@components/HeaderMenu";
+import {getMenus, getResourcePageSlugs, getWpmlLanguages} from "@src/data/wp";
+import ResourceIndex from "@components/ResourcesPage/ResourcesPage.astro";
+import type {languageType, Menu} from "@customTypes/types";
+
+type Props = {
+  title: string;
+  allLangs: languageType[];
+  langInfo: languageType;
+  headerMenu: Menu;
+  pageDict: i18nDictType;
+};
+
+export async function getStaticPaths() {
+  const gqlUrl: string =
+    import.meta.env.WORDPRESS_GQL_URL ||
+    Astro.locals.runtime.env?.WORDPRESS_GQL_URL;
+  const restUrl: string =
+    import.meta.env.WORDPRESS_REST_MENU_ENDPOINT ||
+    Astro.locals.runtime.env?.WORDPRESS_REST_MENU_ENDPOINT;
+  const [wpmlLangDict, menus, resourceSlugs] = await Promise.all([
+    getWpmlLanguages({gqlUrl}),
+    getMenus({restUrl}),
+    getResourcePageSlugs({gqlUrl}),
+  ]);
+  const nonHiddenLanguages = new Set(Object.keys(menus));
+
+  const langSwitcherList = Object.values(wpmlLangDict)
+    .filter((lang) => {
+      return nonHiddenLanguages.has(lang.code);
+    })
+    .map((lang) => {
+      const copy = {...lang};
+      const matchingSlug = resourceSlugs.data.page.translations.find(
+        (t) => t.languageCode === lang.code
+      );
+      if (lang.code === "en") {
+        copy.localizedUrl = "/resources";
+      } else {
+        copy.localizedUrl = `/${lang.code}/${matchingSlug?.slug}`;
+      }
+      return copy;
+    });
+  resourceSlugs.data.page.translations.push({
+    languageCode: "en",
+    slug: resourceSlugs.data.page.slug,
+    title: resourceSlugs.data.page.title,
+  });
+  const pageData = resourceSlugs.data.page.translations
+    .filter((t) => nonHiddenLanguages.has(t.languageCode))
+    .map((t) => {
+      const slug =
+        t.languageCode === "en" ? `${t.slug}` : `/${t.languageCode}/${t.slug}`;
+
+      const langInfo = wpmlLangDict[t.languageCode] || wpmlLangDict.en!;
+      const headerMenu =
+        menus[langInfo.language_code]?.["header-menu"] ||
+        menus.en?.["header-menu"]!;
+
+      return {
+        params: {
+          resourceIndex: slug,
+        },
+        props: {
+          title: t.title,
+          allLangs: langSwitcherList,
+          langInfo,
+          headerMenu,
+          pageDict: getDict(t.languageCode, true)!,
+        },
+      };
+    });
+  return pageData;
+}
+
+const {title, allLangs, langInfo, headerMenu, pageDict} = Astro.props;
+
+const {resourceIndex: prefix} = Astro.params;
+---
+
+<Layout
+  title={title}
+  inlineCss={[]}
+  description="Resources Page"
+  langInfo={langInfo}
+  langSwitcher={allLangs}
+  langDirection="ltr"
+  isContactPage={false}
+>
+  <div class="header">
+    <HeaderMenu
+      allLangs={allLangs}
+      currentLang={langInfo}
+      menu={headerMenu}
+      i18nDict={pageDict}
+      client:load
+    />
+  </div>
+  <ResourceIndex server:defer i18nDict={pageDict} detailPrefix={prefix}>
+    <div
+      slot="fallback"
+      class="min-h-screen w-full place-content-center text-center"
+    >
+      {pageDict.ls_Loading}
+    </div>
+  </ResourceIndex>
+</Layout>

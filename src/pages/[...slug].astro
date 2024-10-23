@@ -38,9 +38,6 @@ interface Props {
   page: WpPage;
   headerMenu: Menu;
   langInfo: languageType;
-  contactSection: {
-    content: string;
-  } | null;
   ctaSection: {
     content: string;
   } | null;
@@ -140,10 +137,6 @@ export async function getStaticPaths() {
       const curLang = page.languageCode;
       const headerMenu =
         menus[curLang]?.["header-menu"] || menus.en?.["header-menu"]!;
-      const contactSection = addOptionalSectionsToCmsPages({
-        targetLang: curLang,
-        sectionToAdd: contactGlobalAll,
-      });
       const ctaSection = addOptionalSectionsToCmsPages({
         targetLang: curLang,
         sectionToAdd: ctaGlobalAll,
@@ -184,7 +177,6 @@ export async function getStaticPaths() {
           page,
           headerMenu,
           langInfo,
-          contactSection,
           ctaSection,
           langSwitcherList,
           inlineStyles: page.inlineStyles,
@@ -213,7 +205,6 @@ const {
   langInfo,
   langSwitcherList,
   inlineStyles,
-  contactSection,
   englishUriMap,
   ctaSection,
 } = Astro.props;
@@ -327,15 +318,6 @@ const description = blockHtmlWithClientInjections.join(" ").slice(0, 100);
         </div>
       )
     }
-    <!-- todo: backtrack and kill all contactSection globals if not revided on deploy. in both wp and here-->
-    <!-- {
-      // figma changed. No more contact section. Revive if figma changes again.
-      determineShowGlobal({page, global: contactSection}) && (
-        <div class="headless-insertion py-40">
-          <Blocks content={adjustCmsDomLinks(contactSection?.content!)} />
-        </div>
-      )
-    } -->
   </main>
 </Layout>
 

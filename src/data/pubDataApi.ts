@@ -76,7 +76,6 @@ query MyQuery {
     });
 
     // skips cache matching if there is a query parameter to explicitly bust and update shared cache
-
     const {match, revalidate, cacheKey} = await manageCfCachePostReq({
       query,
       url: pubDataApiUrl,
@@ -84,7 +83,6 @@ query MyQuery {
       cache,
       isCacheBustRequest: doBustCache,
     });
-    // todo: refactor to not even try to match though if we are busting
     if (match) {
       if (revalidate) {
         ctx.waitUntil(

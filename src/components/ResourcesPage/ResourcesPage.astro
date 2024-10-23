@@ -8,8 +8,10 @@ interface Props {
 }
 const startTime = performance.now();
 const runtime = Astro.locals.runtime;
-const queryParams = Astro.url.searchParams;
-const doBustCache = !!queryParams.get("cache-bust");
+const referer = Astro.request.headers.get("Referer") as string;
+const refererUrl = new URL(referer);
+const doBustCache = !!refererUrl.searchParams.get("cache-bust");
+
 // note, cache is a noop in dev right now for cloudfalre adapter
 const cache = runtime.caches.default;
 const ctx = runtime.ctx;
@@ -38,6 +40,3 @@ console.log(
     detailPrefix={detailPrefix}
   />
 </div>
-<!-- <slot /> -->
-<!--  children with the `slot="after-header"` attribute will go here -->
-<!-- </ResourceIndex> -->

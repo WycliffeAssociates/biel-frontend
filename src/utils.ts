@@ -114,7 +114,6 @@ function replaceAllAbsoluteLinksToCms({
               "/"
             )
           : `${englishUriMap[newHref][currentLangCode]}`.replace("//", "/");
-        console.log({localizedHref});
         tag.setAttribute("href", localizedHref);
       }
     }

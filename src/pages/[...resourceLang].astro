@@ -2,7 +2,6 @@
 export const prerender = false;
 import {HeaderMenu} from "@components/HeaderMenu";
 import ResourceSingle from "@components/ResourceSingle/ResourceSingle.astro";
-import ResourceIndex from "@components/ResourcesPage/ResourcesPage.astro";
 import {BreadCrumbs} from "@components/BreadCrumbs";
 import Layout from "@layouts/LayoutNoFooter.astro";
 import {getMenus, getResourcePageSlugs, getWpmlLanguages} from "@src/data/wp";
@@ -23,12 +22,9 @@ const [wpmlLangDict, menus, resourceSlugs] = await Promise.all([
 ]);
 
 const parts = resourceLang.split("/");
-
-const isListingPageEn = parts[0] === "resources" && parts.length === 1;
-const isListingPageOther = parts.length === 2 && parts[0] !== "resources";
 const isEnglishDetailPage = parts[0] === "resources" && parts.length === 2;
 const isDetailPageOther = parts.length === 3;
-const thisLang = isListingPageEn || isEnglishDetailPage ? "en" : parts[0];
+const thisLang = isEnglishDetailPage ? "en" : parts[0];
 if (!thisLang) return Astro.redirect("/404");
 const i18nDict = getDict(thisLang, true);
 const pubDataIetf = parts[parts.length - 1];
@@ -38,8 +34,7 @@ const thisTranslation = resourceSlugs.data.page.translations.find(
 );
 
 const isReqForResources =
-  isListingPageEn ||
-  (isListingPageOther && thisTranslation?.slug === parts[1]) ||
+  thisTranslation?.slug === parts[1] ||
   isEnglishDetailPage ||
   (isDetailPageOther && thisTranslation?.slug === parts[2]);
 
@@ -62,45 +57,25 @@ const langSwitcherList = Object.values(wpmlLangDict)
     const matchingSlug = resourceSlugs.data.page.translations.find(
       (t) => t.languageCode === lang.code
     );
-    if (isListingPageEn || isListingPageOther) {
-      if (lang.code === "en") {
-        copy.localizedUrl = "/resources";
-      } else {
-        copy.localizedUrl = `/${lang.code}/${matchingSlug?.slug}`;
-      }
+
+    if (lang.code === "en") {
+      copy.localizedUrl = `/resources/${pubDataIetf}`;
     } else {
-      if (lang.code === "en") {
-        copy.localizedUrl = `/resources/${pubDataIetf}`;
-      } else {
-        copy.localizedUrl = `/${lang.code}/${matchingSlug?.slug}/${pubDataIetf}`;
-      }
-      // resource/en or es/recursos/lang
+      copy.localizedUrl = `/${lang.code}/${matchingSlug?.slug}/${pubDataIetf}`;
     }
+    // resource/en or es/recursos/lang
 
     return copy;
   });
 const nodes = [
   {
-    uri: isListingPageEn || isEnglishDetailPage ? "/" : `/${thisLang}`,
+    uri: isEnglishDetailPage ? "/" : `/${thisLang}`,
     slug: "",
     title: "Home",
   },
 ];
 switch (parts.length) {
-  case 1:
-    nodes.push({
-      uri: "/resources",
-      slug: "",
-      title: "Resources",
-    });
-    break;
   case 2:
-    isListingPageOther &&
-      nodes.push({
-        uri: `${parts[0]!}/${parts[1]!}`,
-        slug: thisTranslation?.slug!,
-        title: thisTranslation?.title!,
-      });
     // resource and resources/en
     isEnglishDetailPage &&
       nodes.push(
@@ -115,7 +90,6 @@ switch (parts.length) {
           title: parts[1]!,
         }
       );
-    console.log(nodes);
     break;
   case 3:
     // es/recursos/fr
@@ -157,16 +131,8 @@ const crumbs = {
     client:load
   />
   <BreadCrumbs crumbs={crumbs} />
-  {
-    (isListingPageEn || isListingPageOther) && (
-      <ResourceIndex i18nDict={i18nDict!} detailPrefix={parts.join("/")} />
-    )
-  }
-  {
-    (isEnglishDetailPage || isDetailPageOther) && (
-      <div class="md:pt-12 max-w-max mx-auto h-full overflow-auto">
-        <ResourceSingle languageToFetch={pubDataIetf} i18nDict={i18nDict!} />
-      </div>
-    )
-  }
+
+  <div class="md:pt-12 max-w-max mx-auto h-full overflow-auto">
+    <ResourceSingle languageToFetch={pubDataIetf} i18nDict={i18nDict!} />
+  </div>
 </Layout>

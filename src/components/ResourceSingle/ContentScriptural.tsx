@@ -32,13 +32,7 @@ import {
 type ContentType = ScriptureStoreState;
 
 export function ScripturalView() {
-  const {
-    isBig,
-    i18nDict,
-    setActiveContent,
-    activeContent: content,
-    langDirection,
-  } = useResourceSingleContext();
+  const {isBig, i18nDict, activeContent: content} = useResourceSingleContext();
 
   const [text, {refetch}] = createResource(
     // when this source signal changes, i.e. the combo of content name changes, and or the active row changes
@@ -76,8 +70,14 @@ type MenuRowProps = {
 };
 // menu row could be moved, but is here since this menu is strictly scriptpural, so this exists after the branch of scriptural vs non in logic
 export function MenuRow(props: MenuRowProps) {
-  const {setActiveContent, activeContent, isBig, langDirection, i18nDict} =
-    useResourceSingleContext();
+  const {
+    setActiveContent,
+    activeContent,
+    isBig,
+    langDirection,
+    i18nDict,
+    prefetchAdjacent,
+  } = useResourceSingleContext();
 
   const activeRow = () =>
     activeContent.rendered_contents.htmlChapters[activeContent.activeRowIdx];
@@ -89,6 +89,7 @@ export function MenuRow(props: MenuRowProps) {
         content={activeContent}
         activeRow={activeRow}
         i18nDict={i18nDict}
+        prefetchAdjacent={prefetchAdjacent}
       />
       <Show when={isBig()}>
         <DownloadOptions />
@@ -103,7 +104,9 @@ type MenuProps = {
   langDirection: "ltr" | "rtl";
   setActiveContent: SetStoreFunction<ScriptureStoreState>;
   i18nDict: i18nDictType;
+  prefetchAdjacent: (dir: "next" | "prev") => void;
 };
+
 function Menu(props: MenuProps) {
   const numHtmlChaps = props.content.rendered_contents.htmlChapters.length;
   return (
@@ -118,6 +121,7 @@ function Menu(props: MenuProps) {
         htmlChaptersLength={numHtmlChaps}
         activeRowIdx={props.content.activeRowIdx}
         setActiveContent={props.setActiveContent}
+        prefetchAdjacent={props.prefetchAdjacent}
       />
       <MenuDialog
         activeRow={props.activeRow}
@@ -132,6 +136,7 @@ function Menu(props: MenuProps) {
         langDirection={props.langDirection}
         htmlChaptersLength={numHtmlChaps}
         setActiveContent={props.setActiveContent}
+        prefetchAdjacent={props.prefetchAdjacent}
       />
     </div>
   );
@@ -288,6 +293,7 @@ type NavAdjacentButtonProps = {
   htmlChaptersLength: number;
   activeRowIdx: number;
   setActiveContent: SetStoreFunction<ScriptureStoreState>;
+  prefetchAdjacent: (dir: "next" | "prev") => void;
 };
 function NavAdjacentButton(props: NavAdjacentButtonProps) {
   const isDisabled = () => {
@@ -335,17 +341,33 @@ function NavAdjacentButton(props: NavAdjacentButtonProps) {
         <button
           type="button"
           disabled={isDisabled()}
-          class="md:inline-block i-ic:round-chevron-left w-1.5em h-1.5em hover:(bg-brand-base) disabled:(cursor-not-allowed! opacity-50 bg-gray-700)"
+          class="md:inline-block hover:(text-brand-base) focus:(text-brand-base  ring-brand-base ring-inset-2) disabled:(cursor-not-allowed! opacity-50 text-gray-700)"
           onClick={onBtnClick}
-        />
+          onMouseOver={() => {
+            props.prefetchAdjacent(flipForRTLIfNeeded());
+          }}
+          onFocus={() => {
+            props.prefetchAdjacent(flipForRTLIfNeeded());
+          }}
+        >
+          <span class=" i-ic:round-chevron-left w-1.5em h-1.5em" />
+        </button>
       </Match>
       <Match when={props.dir === "next"}>
         <button
           type="button"
           disabled={isDisabled()}
-          class=" md:inline-block i-ic:round-chevron-right w-1.5em h-1.5em hover:(bg-brand-base) disabled:(cursor-not-allowed! opacity-50 bg-gray-700)"
+          class=" md:inline-block hover:(text-brand-base) focus:(text-brand-base  ring-brand-base ring-inset-2)  disabled:(cursor-not-allowed! opacity-50 text-gray-700)"
           onClick={onBtnClick}
-        />
+          onMouseOver={() => {
+            props.prefetchAdjacent(flipForRTLIfNeeded());
+          }}
+          onFocus={() => {
+            props.prefetchAdjacent(flipForRTLIfNeeded());
+          }}
+        >
+          <span class=" i-ic:round-chevron-right w-1.5em h-1.5em " />
+        </button>
       </Match>
     </Switch>
   );
@@ -356,7 +378,7 @@ function TextOfResource(props: {
   dict: i18nDictType;
 }) {
   return (
-    <div class="theText  relative" data-css="theText" data-js="theText">
+    <div class="relative px-3" data-css="theText" data-js="theText">
       <Suspense
         fallback={
           <div
@@ -365,7 +387,7 @@ function TextOfResource(props: {
           />
         }
       >
-        <div class="theText px-3 " innerHTML={props.text() || ""} />
+        <div innerHTML={props.text() || ""} />
       </Suspense>
     </div>
   );

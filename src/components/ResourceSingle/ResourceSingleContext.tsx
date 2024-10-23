@@ -15,7 +15,7 @@ import {
   useContext,
 } from "solid-js";
 import {type SetStoreFunction, createStore} from "solid-js/store";
-import {isScriptural} from "./lib";
+import {fetchHtmlChapters, isScriptural} from "./lib";
 
 const ResourceSingleContext = createContext<{
   isBig: () => boolean;
@@ -37,6 +37,7 @@ const ResourceSingleContext = createContext<{
   i18nDict: i18nDictType;
   langEnglishName: string;
   docUiUrl: string;
+  prefetchAdjacent: (dir: "next" | "prev") => void;
 }>();
 
 export type twStateType = {
@@ -132,6 +133,28 @@ export const ResourceSingleProvider = (props: ResourceSingleProviderProps) => {
     //use rendered src.usfm array
   };
 
+  const prefetchAdjacent = (dir: "next" | "prev") => {
+    if (fitsScripturalSchema()) {
+      if (
+        dir === "next" &&
+        activeContent.activeRowIdx <
+          activeContent.rendered_contents.htmlChapters.length - 1
+      ) {
+        const nextRow =
+          activeContent.rendered_contents.htmlChapters[
+            activeContent.activeRowIdx + 1
+          ];
+        fetchHtmlChapters({selected: nextRow});
+      } else if (dir === "prev" && activeContent.activeRowIdx !== 0) {
+        const prevRow =
+          activeContent.rendered_contents.htmlChapters[
+            activeContent.activeRowIdx - 1
+          ];
+        fetchHtmlChapters({selected: prevRow});
+      }
+    }
+  };
+
   const mobileResourceTitle = () => {
     if (fitsScripturalSchema()) {
       const activeRow =
@@ -189,6 +212,7 @@ export const ResourceSingleProvider = (props: ResourceSingleProviderProps) => {
         i18nDict: props.i18nDict,
         langEnglishName: props.englishName,
         docUiUrl: props.docUiUrl,
+        prefetchAdjacent,
       }}
     >
       {props.children}

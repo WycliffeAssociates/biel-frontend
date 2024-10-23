@@ -37,7 +37,7 @@ const langInfo = wpmlLangDict[firstPart]
   : wpmlLangDict.en;
 if (!langInfo) return Astro.redirect("/404");
 // const langInfo.language_code = !!wpmlLangDict[firstPart] ? firstPart : "en";
-const [page, ctaSection, contactSection, {englishUriMap}] = await Promise.all([
+const [page, ctaSection, {englishUriMap}] = await Promise.all([
   getPage({
     uri: slug,
     langCode: langInfo.language_code,
@@ -45,11 +45,6 @@ const [page, ctaSection, contactSection, {englishUriMap}] = await Promise.all([
   }),
   getGlobal({
     slug: "cta-interior-2",
-    langCode: langInfo.language_code,
-    gqlUrl,
-  }),
-  getGlobal({
-    slug: "contact",
     langCode: langInfo.language_code,
     gqlUrl,
   }),
@@ -77,9 +72,6 @@ const inlineStyles = inlineStyleIds.map((id) => {
 });
 if (ctaSection?.inlineStyles) {
   inlineStyles.push(ctaSection.inlineStyles);
-}
-if (contactSection?.inlineStyles) {
-  inlineStyles.push(contactSection.inlineStyles);
 }
 page.inlineStyles = inlineStyles;
 // todo: reduce hardcode here?
