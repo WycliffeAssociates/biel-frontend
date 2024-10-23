@@ -97,7 +97,7 @@ export function HeaderMenu(props: HeaderMenuProps) {
                           when={isParent(menuLink) && paneIsActive(index())}
                         >
                           <div class="bg-white  absolute top-20 left-0 w-screen mis-[min(0px,_calc(var(--site-container-max)-100vw-1rem)/2)]">
-                            <div class="contain py-4 flex gap-10">
+                            <div class="contain contain-pad py-4 flex gap-10">
                               <div class="p-4 flex flex-col gap-2 w-1/4">
                                 <div class="flex gap-2 items-center">
                                   <Show when={menuLink.icon}>
