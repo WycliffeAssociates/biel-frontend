@@ -262,7 +262,7 @@ const description = blockHtmlWithClientInjections.join(" ").slice(0, 100);
       isNotCustomPage(page) && (
         <div
           class={`headless-insertion wp-blocks ${
-            !page.isHomePage && "site-container"
+            !page.isHomePage && "site-container homePage"
           }`}
         >
           {page.editorBlocks
