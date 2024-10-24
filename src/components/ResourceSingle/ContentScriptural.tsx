@@ -378,7 +378,7 @@ function TextOfResource(props: {
   dict: i18nDictType;
 }) {
   return (
-    <div class="relative px-3" data-css="theText" data-js="theText">
+    <div class="relative px-3 theText" data-css="theText" data-js="theText">
       <Suspense
         fallback={
           <div
