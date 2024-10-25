@@ -89,7 +89,11 @@ body {
 .headless-insertion p:not(.platform-detect p, p.has-text-color) {
   @apply text-onSurface-secondary;
 }
-.headless-insertion :where(h1, h2, h3, h4):not(.has-text-color) {
+.headless-insertion
+  :where(h1, h2, h3, h4):not(
+    .has-text-color,
+    :where(#download h1, #download h2, #download h3, #download h4)
+  ) {
   @apply text-onSurface-primary;
 }
 button,

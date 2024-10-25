@@ -1,7 +1,11 @@
-import type {ScriptureStoreState, TsFile} from "@customTypes/types";
+import type {
+  ScriptureStoreState,
+  TsDirectoryLang,
+  TsFile,
+} from "@customTypes/types";
 import {Dialog} from "@kobalte/core/dialog";
 import type {contentsForLang} from "@src/data/pubDataApi";
-import {For, Show, createSignal} from "solid-js";
+import {For, Show, createSignal, type Setter} from "solid-js";
 import type {SetStoreFunction} from "solid-js/store";
 import {DownloadOptions} from "./DownloadOptions";
 import {useResourceSingleContext} from "./ResourceSingleContext";
@@ -9,7 +13,7 @@ import {contentContainsSearch, isScriptural} from "./lib";
 
 type AvailableResourcesProps = {
   classes?: string;
-  tsFiles: TsFile[] | undefined;
+  tsFiles: TsDirectoryLang | undefined;
 };
 export function AvailableResources(props: AvailableResourcesProps) {
   const {
@@ -19,6 +23,8 @@ export function AvailableResources(props: AvailableResourcesProps) {
     menuSearchTerm,
     allLangContents,
     i18nDict,
+    setTsFolders,
+    setViewType,
   } = useResourceSingleContext();
 
   return (
@@ -32,6 +38,7 @@ export function AvailableResources(props: AvailableResourcesProps) {
           <For each={contentContainsSearch(menuSearchTerm, allLangContents)}>
             {(row) => (
               <AvailableResource
+                setViewType={setViewType}
                 setActiveContent={setActiveContent}
                 content={row}
                 activeContent={activeContent}
@@ -40,15 +47,22 @@ export function AvailableResources(props: AvailableResourcesProps) {
           </For>
         </ul>
 
-        <Show when={props.tsFiles?.length}>
+        <Show when={props.tsFiles}>
           <hr class="border-none h-2px text-[#e6e6e6] bg-[#e6e6e6]" />
           <div>
             <h3 class="text-brand-dark font-bold pis-2">
               {i18nDict.ls_AvailableForDownload}
             </h3>
             <ul>
-              <For each={props.tsFiles}>
-                {(row) => <TsFileDownload tsFile={row} />}
+              <For each={Object.entries(props.tsFiles!.folders)}>
+                {([key, value]) => (
+                  <TsFileDownload
+                    setViewType={setViewType}
+                    setTsFolders={setTsFolders}
+                    topLevelFolder={key}
+                    subTree={value}
+                  />
+                )}
               </For>
             </ul>
           </div>
@@ -66,15 +80,21 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
     allLangContents,
     mobileResourceTitle,
     i18nDict,
+    setViewType,
+    setTsFolders,
+    viewType,
+    tsFolders,
   } = useResourceSingleContext();
 
   return (
     <div
-      class={`flex flex-col w-max mx-auto gap-1 items-center ${
+      class={`flex flex-col w-full sticky top-0 bg-surface-primary mx-auto gap-1 items-center z-5 ${
         props.classes || ""
       }`}
     >
-      <h2 class="font-size-[var(--step-1)]">{mobileResourceTitle()}</h2>
+      <Show when={viewType() === "readable"}>
+        <h2 class="font-size-[var(--step-1)]">{mobileResourceTitle()}</h2>
+      </Show>
       <Dialog open={open()} onOpenChange={setOpen}>
         <Dialog.Trigger
           data-name="mobile-resource-changer"
@@ -82,11 +102,13 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
             "underline uppercase relative inline-flex justify-between items-center  ps-2 text-start font-size-[var(--step-0)]"
           }
         >
-          {activeContent.resource_type}
+          {viewType() === "readable"
+            ? activeContent.resource_type
+            : tsFolders()?.folderName}
           <span class="i-ic:round-arrow-drop-down" />
         </Dialog.Trigger>
         <Dialog.Portal>
-          <div class="absolute inset-0 w-full h-screen bg-surface-primary px-4 py-4">
+          <div class="absolute inset-0 w-full h-screen bg-surface-primary px-4 py-4 z-10">
             <div class="flex w-full justify-between items-center">
               <Dialog.Title class="text-3xl inline-flex items-center gap-4">
                 <button
@@ -106,6 +128,7 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
               >
                 {(row) => (
                   <AvailableResource
+                    setViewType={setViewType}
                     setActiveContent={setActiveContent}
                     content={row}
                     activeContent={activeContent}
@@ -114,9 +137,35 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
                 )}
               </For>
             </ul>
+            <Show when={props.tsFiles}>
+              <hr class="border-none h-2px text-[#e6e6e6] bg-[#e6e6e6]" />
+              <div>
+                <h3 class="text-brand-dark font-bold pis-2">
+                  {i18nDict.ls_AvailableForDownload}
+                </h3>
+                <ul>
+                  <For each={Object.entries(props.tsFiles!.folders)}>
+                    {([key, value]) => (
+                      <TsFileDownload
+                        setViewType={setViewType}
+                        setTsFolders={setTsFolders}
+                        topLevelFolder={key}
+                        subTree={value}
+                        additionalOnClick={() => setOpen(false)}
+                      />
+                    )}
+                  </For>
+                </ul>
+              </div>
+            </Show>
           </div>
         </Dialog.Portal>
       </Dialog>
+      <Show when={viewType() === "downloadable" && !open()}>
+        <button type="button" class="fixed bottom-4 bg-brand-base end-4">
+          btn to download selections
+        </button>
+      </Show>
     </div>
   );
 }
@@ -145,6 +194,7 @@ type AvailableResourceProps = {
   content: contentsForLang;
   activeContent: ScriptureStoreState;
   additionalOnClick?: () => void;
+  setViewType: Setter<"readable" | "downloadable">;
 };
 export function AvailableResource(props: AvailableResourceProps) {
   const isSelected = () => {
@@ -152,6 +202,7 @@ export function AvailableResource(props: AvailableResourceProps) {
   };
   function setContent() {
     props.setActiveContent((prev) => {
+      props.setViewType("readable");
       const newState = {
         ...props.content,
         activeRowIdx: 0,
@@ -197,41 +248,40 @@ export function AvailableResource(props: AvailableResourceProps) {
   );
 }
 
-function TsFileDownload(props: {tsFile: TsFile}) {
-  const [category, {files}] = props.tsFile;
+function TsFileDownload(props: {
+  topLevelFolder: string;
+  subTree: TsDirectoryLang;
+  setTsFolders: Setter<
+    | {
+        folderName: string;
+        subTree: TsDirectoryLang;
+      }
+    | undefined
+  >;
+  setViewType: Setter<"readable" | "downloadable">;
+  additionalOnClick?: () => void;
+}) {
+  // const [category, {files}] = props.tsFile;
 
-  const formPayload = {
-    payload: files,
-    name: category,
-  };
+  // const formPayload = {
+  //   payload: files,
+  //   name: category,
+  // };
   return (
-    <div class="flex justify-between w-full p-2">
-      {category}
-      <form
-        action="/api/downloadTsFiles"
-        method="post"
-        class=""
-        data-js={`proxy-ts-${category}`}
-      >
-        <input
-          type="hidden"
-          value={JSON.stringify(formPayload)}
-          name="zipPayload"
-        />
-      </form>
+    <li>
       <button
-        type="button"
-        class="hover:(text-brand-base)"
-        onClick={(e) => {
-          // note: I don't know why progrmamatic submission of form trigger octect stream downloads but not just clicking the bnt.  They are just slightl difference in how forms submit when a user clicks it.  I don't know why though.
-          const form = document.querySelector(
-            `[data-js="proxy-ts-${category}"]`
-          ) as HTMLFormElement;
-          if (form) form.submit();
+        onClick={() => {
+          props.setTsFolders({
+            folderName: props.topLevelFolder,
+            subTree: props.subTree,
+          });
+          props.setViewType("downloadable");
+          if (props.additionalOnClick) props.additionalOnClick();
         }}
+        type="button"
       >
-        <span class="i-ic:round-file-download w-4 h-4" />
+        {props.topLevelFolder}
       </button>
-    </div>
+    </li>
   );
 }

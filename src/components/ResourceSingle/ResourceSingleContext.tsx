@@ -1,6 +1,8 @@
 import type {
   ContentListingProps,
   ScriptureStoreState,
+  TsDirectoryFile,
+  TsDirectoryLang,
   ZipSrcBodyReq,
 } from "@customTypes/types";
 import {createMediaQuery} from "@solid-primitives/media";
@@ -38,8 +40,18 @@ const ResourceSingleContext = createContext<{
   langEnglishName: string;
   docUiUrl: string;
   prefetchAdjacent: (dir: "next" | "prev") => void;
+  viewType: Accessor<"readable" | "downloadable">;
+  setViewType: Setter<"readable" | "downloadable">;
+  tsFolders: Accessor<tsFolderState | undefined>;
+  setTsFolders: Setter<tsFolderState | undefined>;
+  tsFilesToDownload: Accessor<tsFilesToDownload>;
+  setTsFilesToDownload: Setter<tsFilesToDownload>;
 }>();
-
+export type tsFolderState = {
+  folderName: string;
+  subTree: TsDirectoryLang;
+};
+export type tsFilesToDownload = Set<TsDirectoryFile>;
 export type twStateType = {
   menuList:
     | {
@@ -61,14 +73,22 @@ type ResourceSingleProviderProps = {
   queryParams: ContentListingProps["queryParams"];
   englishName: string;
   docUiUrl: string;
+  // tsFiles: ContentListingProps["tsFiles"];
 };
 export const ResourceSingleProvider = (props: ResourceSingleProviderProps) => {
   const isBig = createMediaQuery("(min-width: 768px)", true);
   const [resourcesSearchTerm, setResourcesSearchTerm] = createSignal("");
   const [menuSearchTerm, setMenuSearchTerm] = createSignal("");
+  const [viewType, setViewType] = createSignal<"readable" | "downloadable">(
+    "readable"
+  );
+  const [tsFolders, setTsFolders] = createSignal<tsFolderState>();
+  const [tsFilesToDownload, setTsFilesToDownload] =
+    createSignal<tsFilesToDownload>(new Set());
   const resourceFromQpOrDefault =
     props.allLangContents.find((r) => r.name === props.queryParams.resource) ||
     props.allLangContents[0]!;
+
   let activeRowIdxFromQpOrDefault =
     resourceFromQpOrDefault.rendered_contents.htmlChapters.findIndex((chap) => {
       if (props.queryParams.chapter && props.queryParams.book) {
@@ -213,6 +233,12 @@ export const ResourceSingleProvider = (props: ResourceSingleProviderProps) => {
         langEnglishName: props.englishName,
         docUiUrl: props.docUiUrl,
         prefetchAdjacent,
+        viewType,
+        setViewType,
+        tsFolders,
+        setTsFolders,
+        setTsFilesToDownload,
+        tsFilesToDownload,
       }}
     >
       {props.children}

@@ -4,7 +4,6 @@ import {BreadCrumbs} from "@components/BreadCrumbs";
 import ContactPage from "@components/ContactPage.astro";
 import {HeaderMenu} from "@components/HeaderMenu";
 import Hero from "@components/Hero.astro";
-import {injectSearch} from "@components/SearchInjectClientSide";
 import SearchPage from "@components/SearchPage.astro";
 // export const prerender = false;
 import type {Menu, languageType} from "@customTypes/types";
@@ -237,7 +236,7 @@ const description = blockHtmlWithClientInjections.join(" ").slice(0, 100);
   </header>
   <main
     data-pagefind-meta="type:page"
-    class={`${!page.isHomePage && "interior-page"} `}
+    class={`${!page.isHomePage ? "interior-page" : "homePage"} `}
   >
     {!page.isHomePage && <BreadCrumbs crumbs={page.ancestors} />}
 
@@ -262,7 +261,7 @@ const description = blockHtmlWithClientInjections.join(" ").slice(0, 100);
       isNotCustomPage(page) && (
         <div
           class={`headless-insertion wp-blocks ${
-            !page.isHomePage && "site-container homePage"
+            !page.isHomePage && "site-container"
           }`}
         >
           {page.editorBlocks

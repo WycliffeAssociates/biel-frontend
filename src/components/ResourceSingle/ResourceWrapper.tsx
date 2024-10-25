@@ -15,13 +15,11 @@ export function ResourceWrapper(props: ContentListingProps) {
       i18nDict={props.i18nDict}
       docUiUrl={props.docUiUrl}
     >
-      <div class="h-full grid items-stretch  md:(gap-x-40 gap-y-4 justify-center  grid-cols-[max-content_85ch] items-start justify-between grid-rows-[auto_1fr])">
+      <div class="h-max grid items-stretch  md:(gap-x-40 gap-y-4 justify-center  grid-cols-[max-content_85ch] items-start justify-between grid-rows-[auto_1fr])">
         <SearchBar classes="hidden md:block" />
         <Menu classes="self-start md:(mie-auto p-0 max-w-prose w-full)" />
         <AvailableResources
-          classes={
-            " md:(grid-row-start-2 h-full overflow-y-auto pb-12 w-full) "
-          }
+          classes={" md:(grid-row-start-2 h-full overflow-y-auto pb-12 w-full)"}
           tsFiles={props.tsFiles}
         />
         <ContentView

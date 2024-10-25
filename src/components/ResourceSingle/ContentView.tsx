@@ -1,26 +1,189 @@
-import type {ScriptureStoreState} from "@customTypes/types";
+import type {
+  DirectoryListing,
+  ScriptureStoreState,
+  TsDirectoryFile,
+  TsDirectoryLang,
+} from "@customTypes/types";
 import type {domainScripture} from "@src/data/pubDataApi";
-import {Show, Suspense, createSignal, onMount} from "solid-js";
+import {For, Show, Suspense, createSignal, onMount} from "solid-js";
 import {ScripturalView} from "./ContentScriptural";
 import {PeripheralMenu} from "./Menu";
 import {useResourceSingleContext} from "./ResourceSingleContext";
+import {Checkbox} from "@kobalte/core/checkbox";
 
 type ContentViewProps = {
   classes?: string;
 };
 export function ContentView(props: ContentViewProps) {
-  const {fitsScripturalSchema, activeContent} = useResourceSingleContext();
+  const {
+    fitsScripturalSchema,
+    activeContent,
+    viewType,
+    setViewType,
+    tsFolders,
+    tsFilesToDownload,
+  } = useResourceSingleContext();
+  const numTSFileToDownload = () => tsFilesToDownload().size;
   return (
     <Suspense>
-      <div class={`${props.classes || ""}`}>
-        <Show when={fitsScripturalSchema()}>
-          <ScripturalView />
+      <Show when={viewType() === "readable"}>
+        <div class={`${props.classes || ""}`}>
+          <Show when={fitsScripturalSchema()}>
+            <ScripturalView />
+          </Show>
+        </div>
+        <Show when={!fitsScripturalSchema()}>
+          <PeripheralView content={activeContent} />
         </Show>
-      </div>
-      <Show when={!fitsScripturalSchema()}>
-        <PeripheralView content={activeContent} />
+      </Show>
+      <Show when={viewType() === "downloadable"}>
+        {/* <p>{tsFolders()}</p> */}
+        <div class={`${props.classes || ""} pb-16! `}>
+          <DownloadableView tsTree={tsFolders()} loopIter={1} />
+        </div>
       </Show>
     </Suspense>
+  );
+}
+
+function DownloadableView(props: {
+  tsTree:
+    | {
+        folderName: string;
+        subTree: TsDirectoryLang;
+      }
+    | undefined;
+  loopIter?: number;
+}) {
+  const {tsFilesToDownload, setTsFilesToDownload} = useResourceSingleContext();
+  const [wholeFolderChecked, setWholeFolderChecked] = createSignal(false);
+
+  if (!props.tsTree) {
+    return null;
+  }
+  const isChecked = (file: TsDirectoryFile) => tsFilesToDownload().has(file);
+
+  const toggle = (file: TsDirectoryFile) => {
+    console.log("toggle", file);
+    if (isChecked(file)) {
+      setTsFilesToDownload((prev) => {
+        prev.delete(file);
+        return new Set(prev);
+      });
+    } else {
+      setTsFilesToDownload((prev) => {
+        prev.add(file);
+        return new Set(prev);
+      });
+    }
+  };
+  const selectSubTree = (files: TsDirectoryFile[]) => {
+    setTsFilesToDownload((prev) => {
+      files.forEach((file) => {
+        wholeFolderChecked() ? prev.delete(file) : prev.add(file);
+      });
+      setWholeFolderChecked(!wholeFolderChecked());
+      return new Set(prev);
+    });
+  };
+  const marginInline = props.loopIter ? props.loopIter * 12 : 0;
+  return (
+    <div
+      class={`${
+        props.loopIter && props.loopIter === 1
+          ? "border-s border-brand-dark"
+          : ""
+      }`}
+    >
+      <h2
+        style={{
+          "padding-inline-start": `${marginInline}px`,
+          "z-index": `${props.loopIter ? props.loopIter : 1}`,
+        }}
+        class="font-600 text-xl sticky top-0 bg-surface-primary  pb-2 text-onSurface-primary"
+      >
+        <Show when={props.tsTree.subTree.files.length}>
+          <Checkbox
+            checked={wholeFolderChecked()}
+            onChange={() => selectSubTree(props.tsTree!.subTree.files)}
+            class="flex items-center gap-2"
+          >
+            <Checkbox.Input />
+            <Checkbox.Control class="h-4 w-4 rounded-2px border relative border-brand-base data-[checked]:(bg-brand-base text-onSurface-invert border-none)">
+              <Checkbox.Indicator class="">
+                <span class="i-material-symbols:check w-full h-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4" />
+              </Checkbox.Indicator>
+            </Checkbox.Control>
+            <Checkbox.Label class="data-[checked]:(text-brand-base) transition-colors transition-duration-25">
+              {" "}
+              {props.tsTree.folderName}
+            </Checkbox.Label>
+          </Checkbox>
+        </Show>
+        <Show when={!props.tsTree.subTree.files.length}>
+          {props.tsTree.folderName}
+        </Show>
+      </h2>
+      <Show when={props.tsTree.subTree.files.length}>
+        <ul
+          style={{
+            "padding-inline-start": `${marginInline}px`,
+            "z-index": `${props.loopIter ? props.loopIter : 1}`,
+          }}
+          class="flex flex-col gap-2 text-onSurface-secondary"
+        >
+          <For each={props.tsTree.subTree.files}>
+            {(file) => (
+              <li
+                class={`relative pis-0px ${
+                  props.loopIter && props.loopIter > 0
+                    ? 'before:(content-[""]  bg-brand-dark w-[var(--fileWidth)]  h-1px start-[var(--inlineStart)] absolute top-50% translate-y--50%) font-500 last:mbe-4'
+                    : ""
+                }
+                `}
+                style={{
+                  "--inlineStart": `-${marginInline}px`,
+                  "--fileWidth": `${marginInline - 2}px`,
+                }}
+              >
+                <Checkbox
+                  checked={isChecked(file)}
+                  onChange={() => toggle(file)}
+                  class="flex items-center gap-2"
+                >
+                  <Checkbox.Input />
+                  <Checkbox.Control class="h-4 w-4 rounded-2px border relative border-brand-base data-[checked]:(bg-brand-base text-onSurface-invert border-none)">
+                    <Checkbox.Indicator class="">
+                      <span class="i-material-symbols:check w-full h-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4" />
+                    </Checkbox.Indicator>
+                  </Checkbox.Control>
+                  <Checkbox.Label class="data-[checked]:(text-brand-base) ">
+                    {file.fileName}
+                  </Checkbox.Label>
+                </Checkbox>
+              </li>
+            )}
+          </For>
+        </ul>
+      </Show>
+      <Show when={Object.keys(props.tsTree.subTree.folders).length}>
+        <ul class="">
+          <For each={Object.entries(props.tsTree.subTree.folders)}>
+            {([folderName, folder]) => {
+              return (
+                <DownloadableView
+                  loopIter={props.loopIter ? props.loopIter + 1 : 1}
+                  tsTree={{
+                    folderName,
+                    subTree: folder,
+                  }}
+                />
+              );
+            }}
+          </For>
+        </ul>
+      </Show>
+    </div>
   );
 }
 

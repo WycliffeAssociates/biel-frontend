@@ -206,7 +206,7 @@ export type GlobalWpType = {
 export type ContentListingProps = {
   contents: ContentsForLang[];
   language: LanguageForClient;
-  tsFiles: TsFile[] | undefined;
+  tsFiles: TsDirectoryLang | undefined;
   i18nDict: i18nDictType;
   queryParams: {
     resource: string | null;
@@ -216,6 +216,22 @@ export type ContentListingProps = {
   docUiUrl: string;
 };
 export type TsFile = [string, {url: string; files: ghFile[]}];
+export type DirectoryListing = {
+  [folderOrFileName: string]: TsDirectoryLang;
+};
+export type TsDirectoryLang = {
+  folders: DirectoryListing;
+  files: Array<TsDirectoryFile>;
+};
+export type TsDirectoryFile = {
+  sha: string;
+  url: string;
+  size: number;
+  fileName: string;
+  fileType: string;
+  path: string;
+};
+export type TsDirectoryListing = Record<string, DirectoryListing>;
 export type ScriptureStoreState = ContentsForLang & {
   activeRowIdx: number;
 };

@@ -1,11 +1,12 @@
 export const prerender = false;
 import type {Response as WorkerResponse} from "@cloudflare/workers-types";
+import type {TsDirectoryFile} from "@customTypes/types";
 import type {ghFile} from "@src/data/github";
 import type {APIRoute} from "astro";
-import {downloadZip} from "client-zip";
+import {downloadZip, makeZip, predictLength} from "client-zip";
 
 type downloadTsFilesBody = {
-  payload: ghFile[];
+  payload: TsDirectoryFile[];
   name: string;
 };
 
@@ -31,27 +32,45 @@ export const POST: APIRoute = async ({url, locals, request}) => {
   const originUrl = new URL(request.url);
   // biome-ignore lint/suspicious/noAssignInExpressions: <easy to see how this reduce works>
   // biome-ignore lint/style/noParameterAssign: <easy to see how this reduce works>
-  const totalSize = payload.reduce((acc, curr) => (acc += curr.size || 0), 0);
+  const syncIterable = payload.map((f) => {
+    return {
+      name: f.path,
+      size: f.size,
+    };
+  });
+  const totalSize = predictLength(syncIterable);
+  // const totalSize = payload.reduce((acc, curr) => (acc += curr.size || 0), 0);
+  console.log({payload, anticipatedSize: totalSize});
+  // const stream2 = downloadZip(zipTsFiles(payload, originUrl.origin));
   const stream = downloadZip(zipTsFiles(payload, originUrl.origin));
-
   return new Response(stream.body, {
     headers: {
+      "Content-Length": String(totalSize),
       "Access-Control-Allow-Origin": "*",
       "Content-Disposition": `attachment; filename="${name}.zip"`,
       "Content-Type": "application/octet-stream",
-      "Content-Length": String(totalSize),
     },
   });
 };
 
-async function* zipTsFiles(payload: ghFile[], originPrefixedUrl: string) {
+async function* zipTsFiles(
+  payload: TsDirectoryFile[],
+  originPrefixedUrl: string
+) {
+  let totalSize = 0;
   for (const f of payload) {
     try {
       const prefixedUrl = `${originPrefixedUrl}/api/fetchExternal?url=${encodeURIComponent(
         f.url
       )}&hash=${f.sha}`;
       // proxy through fetchExternal due to sha for strong cachign
+      console.log({f});
       const res = await fetch(prefixedUrl);
+      const contetnLength = res.headers.get("Content-length");
+
+      if (contetnLength) {
+        totalSize += Number(contetnLength);
+      }
       yield {
         name: `${f.path}`,
         input: res,
@@ -66,4 +85,5 @@ async function* zipTsFiles(payload: ghFile[], originPrefixedUrl: string) {
       };
     }
   }
+  console.log({actualSize: totalSize});
 }

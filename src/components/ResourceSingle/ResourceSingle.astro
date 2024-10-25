@@ -5,12 +5,15 @@ interface Props {
   i18nDict: i18nDictType;
 }
 import {ResourceWrapper} from "@components/ResourceSingle/ResourceWrapper";
-import {getTsFiles} from "@src/data/github";
+import {getTsFiles, getTsFiles2} from "@src/data/github";
 import {getLanguageContents} from "@src/data/pubDataApi";
 
 const {languageToFetch, i18nDict} = Astro.props;
 const startTime = performance.now();
-const tsFiles = await getTsFiles(languageToFetch);
+// todo: remove
+// const tsFiles = await getTsFiles(languageToFetch);
+// todo: rename
+const tsFiles = await getTsFiles2(languageToFetch);
 const cache = Astro.locals.runtime.caches.default;
 const ctx = Astro.locals.runtime.ctx;
 const pubDataApiUrl = Astro.locals.runtime.env.PUBLIC_DATA_API;

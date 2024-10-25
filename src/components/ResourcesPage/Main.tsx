@@ -199,7 +199,7 @@ function ListingArrow() {
 
 function HeaderTitle(props: DictProp) {
   return (
-    <h1 class="text-size-[var(--step-3)]">
+    <h1 class="text-size-[var(--step-2)] md:text-size-[var(--step-3)]">
       {props.i18nDict.rl_ChooseALanguage}
     </h1>
   );

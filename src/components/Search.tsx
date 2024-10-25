@@ -380,7 +380,7 @@ function SearchItem(props: {item: any; escapeSearch: () => void}) {
       <Match when={props.item.meta.type && props.item.meta.type !== "software"}>
         <li
           class="font-step--1 cursor-pointer hover:(bg-brand-light) "
-          onClick={() => window.open(props.item.url)}
+          onClick={() => window.open(props.item.url, "_self")}
           onKeyDown={(e) => e.key === "Enter" && window.open(props.item.url)}
         >
           <p class="text-base!  text-onSurface-primary">
