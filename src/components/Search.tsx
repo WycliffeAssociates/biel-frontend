@@ -173,7 +173,8 @@ export function Search(props: SearchProps) {
       const res: any[] = [];
       console.log(search);
       if (!search?.results.length) {
-        return setResults(null);
+        setResults(null);
+        return;
       }
 
       // no more than 30 results likely needed on this small a site
@@ -486,9 +487,9 @@ function SearchItemSoftware(props: SearchItemSoftwareProps) {
 
 type SearchAsPageProps = {
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  results: Accessor<Partial<Record<any, any[]>> | undefined>;
+  results: Accessor<Partial<Record<any, any[]>> | null | undefined>;
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  setResults: Setter<Partial<Record<any, any[]>> | undefined>;
+  setResults: Setter<Partial<Record<any, any[]>> | null | undefined>;
   query: Accessor<string>;
   setQuery: Setter<string>;
   dict: i18nDictType;
