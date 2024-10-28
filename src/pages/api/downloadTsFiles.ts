@@ -38,12 +38,21 @@ export const POST: APIRoute = async ({url, locals, request}) => {
       size: f.size,
     };
   });
-  const totalSize = predictLength(syncIterable);
+  // big int is 2^53 - 1 max, but that's like 9pb, so... no one is download that much
+  const totalSize = Number(predictLength(syncIterable));
+
   // const totalSize = payload.reduce((acc, curr) => (acc += curr.size || 0), 0);
-  console.log({payload, anticipatedSize: totalSize});
+  console.log({anticipatedSize: totalSize});
   // const stream2 = downloadZip(zipTsFiles(payload, originUrl.origin));
-  const stream = downloadZip(zipTsFiles(payload, originUrl.origin));
-  return new Response(stream.body, {
+  const stream: Response = downloadZip(zipTsFiles(payload, originUrl.origin));
+  let streamToReturn = stream.body;
+  if (import.meta.env.PROD) {
+    // @ts-ignore.  https://developers.cloudflare.com/workers/runtime-apis/streams/transformstream/#fixedlengthstream.  We know the length, but this is a platform api that is cloufdlare specific, so we can't just return the content length header. Cloudflare will override it.
+    const {readable, writable} = new FixedLengthStream(totalSize);
+    stream.body?.pipeTo(writable);
+    streamToReturn = readable as ReadableStream<Uint8Array>;
+  }
+  return new Response(streamToReturn, {
     headers: {
       "Content-Length": String(totalSize),
       "Access-Control-Allow-Origin": "*",
@@ -64,7 +73,6 @@ async function* zipTsFiles(
         f.url
       )}&hash=${f.sha}`;
       // proxy through fetchExternal due to sha for strong cachign
-      console.log({f});
       const res = await fetch(prefixedUrl);
       const contetnLength = res.headers.get("Content-length");
 

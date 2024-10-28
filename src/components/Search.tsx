@@ -29,8 +29,10 @@ type SearchProps = {
 export function Search(props: SearchProps) {
   const dict = getDict(props.langCode, true)!;
   const [query, setQuery] = createSignal("");
-  // biome-ignore lint/suspicious/noExplicitAny: <not sure on pagefind type>
-  const [results, setResults] = createSignal<Partial<Record<any, any[]>>>();
+  const [results, setResults] = createSignal<Partial<
+    // biome-ignore lint/suspicious/noExplicitAny: <not sure on pagefind type>
+    Record<any, any[]>
+  > | null>();
   const [searchFocused, setSearchFocused] = createSignal(false);
   const [isTyping, setIsTyping] = createSignal(false);
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
@@ -131,13 +133,18 @@ export function Search(props: SearchProps) {
   const handleInput = async ({event, stringToSearch}: handleInputArgs) => {
     if (!event && !stringToSearch) return;
     if (event?.key) {
+      setIsTyping(true);
       const curTimeout = isTypingTimeout();
       if (curTimeout) {
+        console.log("clearning timout");
         clearTimeout(curTimeout);
+        setIsTypingTimeout(null);
       }
       const to = setTimeout(() => {
+        console.log("setting false");
         setIsTyping(false);
-      }, 250);
+        setIsTypingTimeout(null);
+      }, 450);
       setIsTypingTimeout(to);
     }
     if (event?.key && event.key === "Escape") {
@@ -159,14 +166,14 @@ export function Search(props: SearchProps) {
         window.pagefind = await import("../pagefind/pagefind.js");
       }
       // Search the index using the input value
-      const search = await window.pagefind.debouncedSearch(inputValue, {}, 50);
+      const search = await window.pagefind.debouncedSearch(inputValue, {}, 150);
 
       // Add the new results
       // biome-ignore lint/suspicious/noExplicitAny: <not sure on pagefind type>
       const res: any[] = [];
-
+      console.log(search);
       if (!search?.results.length) {
-        return setResults(undefined);
+        return setResults(null);
       }
 
       // no more than 30 results likely needed on this small a site
@@ -247,7 +254,6 @@ export function Search(props: SearchProps) {
             value={query()}
             onInput={(e) => {
               batch(() => {
-                setIsTyping(true);
                 setQuery(e.target.value);
               });
             }}
@@ -286,7 +292,7 @@ export function Search(props: SearchProps) {
               </ul>
             </div>
           </Show>
-          <Show when={query() && !results() && !isTyping()}>
+          <Show when={query().length >= 2 && results() === null && !isTyping()}>
             <div
               data-js="searchSuggestions"
               class={`${props.isBig ? bigClassNames : mobileClassNames} ${
