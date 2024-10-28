@@ -211,7 +211,19 @@ export function Search(props: SearchProps) {
     <>
       <Show when={!props.isSearchPage}>
         {/* Input element for search */}
-        <div class={"relative"} data-js="searchWrapper">
+        <div
+          class={"relative"}
+          data-js="searchWrapper"
+          onFocusOut={(e) => {
+            const relatedTarget = e.relatedTarget as HTMLElement;
+            if (
+              relatedTarget &&
+              !relatedTarget.closest("[data-js='searchWrapper']")
+            ) {
+              setSearchFocused(false);
+            }
+          }}
+        >
           <input
             class={
               "border border-surface-border! p-4  rounded-2xl bg-white!  placeholder:(text-#777 font-bold) w-full"

@@ -103,7 +103,7 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
           }
         >
           {viewType() === "readable"
-            ? activeContent.resource_type
+            ? activeContent.displayName
             : tsFolders()?.folderName}
           <span class="i-ic:round-arrow-drop-down" />
         </Dialog.Trigger>
@@ -241,7 +241,7 @@ export function AvailableResource(props: AvailableResourceProps) {
           isSelected() ? "bg-brand-light text-brand-base" : ""
         }`}
       >
-        {props.content.title || props.content.name}
+        {props.content.displayName || props.content.title || props.content.name}
         <span class="i-material-symbols:arrow-right-alt-rounded rtl:rotate-180 md:(hidden)" />
       </button>
     </li>

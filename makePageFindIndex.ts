@@ -117,69 +117,10 @@ for await (const page of softwarePages) {
   }
 }
 
-// Permutations need to be for each lang, for each pubDataResourceLanguage, for each contents, triply nested loop?
 const requests = Object.values(langs)
   .filter((l) => nonHiddenLanguageCodes.includes(l.code))
   .map((wpmlLang) => {
-    const siteDict = getDict(wpmlLang.code, true)!;
-    return pubDataResource.data.language.map((pubDataResourceLanguage) => {
-      const resourcePageSlug =
-        wpmlLang.code === "en"
-          ? "/resources"
-          : resourcePageSlugs.data.page.translations.find(
-              (t) => t.languageCode === wpmlLang.code
-            )?.slug!;
-      const baseUrl =
-        wpmlLang.code === "en"
-          ? `${resourcePageSlug}/${pubDataResourceLanguage.ietf_code}`
-          : `/${wpmlLang.code}/${resourcePageSlug}/${pubDataResourceLanguage.ietf_code}`;
-      function insertEnglishNameIfDifferent() {
-        if (
-          pubDataResourceLanguage.english_name !==
-          pubDataResourceLanguage.national_name
-        ) {
-          return `<small> (${pubDataResourceLanguage.english_name}) </small>`;
-        }
-        return "";
-      }
-
-      const uniqueContentTypes = [
-        ...new Set(
-          pubDataResourceLanguage.contents.map((c) => {
-            return c.resource_type;
-          })
-        ),
-      ].join("/");
-      // console.log(uniqueContentTypes, pubDataResourceLanguage.english_name);
-      const wrapped = `<small> ${uniqueContentTypes} </small>`;
-      return {
-        language: wpmlLang.code,
-        content: `
-        <html lang="${wpmlLang.code}" data-pagefind-meta="type:resource">
-        <body> 
-        <h1 > ${
-          pubDataResourceLanguage.national_name
-        } ${insertEnglishNameIfDifferent()} </h1>
-        <div> ${wrapped} </div>
-        </body> 
-        </html>
-          `,
-        url: baseUrl,
-        meta: {
-          title: `${
-            pubDataResourceLanguage.national_name
-          } ${insertEnglishNameIfDifferent()}`,
-          type: siteDict.resource,
-        },
-      };
-    });
-  })
-  .flat(2);
-
-const request2 = Object.values(langs)
-  .filter((l) => nonHiddenLanguageCodes.includes(l.code))
-  .map((wpmlLang) => {
-    const siteDict = getDict(wpmlLang.code, true)!;
+    // const siteDict = getDict(wpmlLang.code, true)!;
     return pubDataResource.data.language.map((pubDataResourceLanguage) => {
       return pubDataResourceLanguage.contents.map((c) => {
         const resourcePageSlug =
@@ -206,7 +147,7 @@ const request2 = Object.values(langs)
           content: `
           <html lang="${wpmlLang.code}" data-pagefind-meta="type:resource">
           <body> 
-          <h1> ${c.title || c.resource_type} -  ${
+          <h1> ${c.displayName} -  ${
             pubDataResourceLanguage.national_name
           } ${insertEnglishNameIfDifferent()}  </h1>
           </body>
@@ -220,9 +161,9 @@ const request2 = Object.values(langs)
   .flat(2);
 
 let counter = 0;
-console.log(`${request2.length} req2`);
+console.log(`${requests.length} req2`);
 
-for await (const request of request2) {
+for await (const request of requests) {
   if (counter % 100 === 0) {
     console.log(
       `Adding ${counter} of ${requests.length} total resources to index`

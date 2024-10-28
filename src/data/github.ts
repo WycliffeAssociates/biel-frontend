@@ -217,10 +217,10 @@ export async function getTsFiles(language: string | undefined) {
 
 export async function getTsFiles2(language: string | undefined) {
   if (!language) return;
-  // const USER = "wkelly17";
-  // const REPO = "biel-tk-example";
-  const USER = "wa-biel";
-  const REPO = "biel-files";
+  const USER = "wkelly17";
+  const REPO = "new-biel-files";
+  // const USER = "wa-biel";
+  // const REPO = "biel-files";
   const endpoint = `https://api.github.com/repos/${USER}/${REPO}/git/trees/master?recursive=1`;
   console.log(endpoint);
   let cachedRes: Response | undefined;

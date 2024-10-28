@@ -165,6 +165,12 @@ export async function getLanguageContents({
   doBustCache,
 }: getLanguageContentsArgs) {
   const query = `query LangContents {
+  localization(
+    where: {category: {_eq: "resource_type"}, ietf_code: {_eq: "${language}"}}
+  ) {
+    resourceTypeKey:key
+    value
+  }
   language(where: {ietf_code: {_eq: "${language}"}}) {
     national_name
     english_name
@@ -236,6 +242,13 @@ export async function getLanguageContents({
     }
   }
   const json = (await res.json()) as langContentReturn;
+  const resourceTypeToDisplayName = json.data.localization.reduce(
+    (acc: Map<string, string>, curr) => {
+      return acc.set(curr.resourceTypeKey, curr.value);
+    },
+    new Map()
+  );
+  console.log(resourceTypeToDisplayName);
   const lang = json.data.language[0];
   if (!lang) {
     throw new Error(`no language found for ${language}`);
@@ -263,6 +276,9 @@ export async function getLanguageContents({
 
     return {
       ...content,
+      displayName:
+        resourceTypeToDisplayName.get(content.resource_type) ||
+        `${lang.national_name} ${content.resource_type}`,
       rendered_contents: reduced,
     };
   });
@@ -290,7 +306,14 @@ export async function getLangsWithContentNames({
 }) {
   const query = `
 		query MyQuery {
-			language(
+    localization(
+    where: {category: {_eq: "resource_type"}}
+    ) {
+    resourceTypeKey:key
+    value
+    ietf_code
+     }
+    language(
 				where: {
 					contents_aggregate: {
 					count: {
@@ -333,19 +356,37 @@ export async function getLangsWithContentNames({
     body: JSON.stringify({query}),
   });
   const json = (await res.json()) as getLangsWithContentNamesReturn;
+  const resourceTypeToDisplayName = json.data.localization.reduce(
+    (acc: Map<string, string>, curr) => {
+      return acc.set(`${curr.ietf_code}-${curr.resourceTypeKey}`, curr.value);
+    },
+    new Map()
+  );
   json.data.language.forEach((lang) => {
     if (!lang.wa_language_metadata?.is_gateway) {
+      // @ts-ignore: I know that collateGatewayContent isn't going to set a displayName: I'm doing that below for all languages regardless of is gateway status
       lang.contents = collateGatewayContent({
         contents: lang.contents,
         langName: lang.national_name,
       });
     }
+    lang.contents.forEach((c) => {
+      c.displayName =
+        resourceTypeToDisplayName.get(c.resource_type) ||
+        c.title ||
+        `${lang.national_name} ${c.resource_type}`;
+    });
   });
   return json;
 }
 
 type getLangsWithContentNamesReturn = {
   data: {
+    localization: {
+      resourceTypeKey: string;
+      value: string;
+      ietf_code: string;
+    }[];
     language: {
       english_name: string;
       ietf_code: string;
@@ -355,6 +396,7 @@ type getLangsWithContentNamesReturn = {
       };
       contents: {
         title: string | undefined;
+        displayName: string;
         name: string;
         resource_type: string;
         type: string;
@@ -387,6 +429,10 @@ type ContentRow = {
 };
 type langContentReturn = {
   data: {
+    localization: Array<{
+      resourceTypeKey: string;
+      value: string;
+    }>;
     language: {
       national_name: string;
       english_name: string;
@@ -416,7 +462,9 @@ type contentCommon = {
   name: string;
   type: string;
   resource_type: string;
+  // title comes from db directly and is manifest.yaml|json derived. DisplayName is form manually curated localization of resource types
   title: string | undefined;
+  displayName: string;
   gitRepo?: {
     url: string;
   };

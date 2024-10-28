@@ -10,7 +10,7 @@ type LangPickerProps = {
 
 export function LanguagePicker(props: LangPickerProps) {
   return (
-    <DropdownMenu>
+    <DropdownMenu placement="bottom-end" flip={false}>
       <DropdownMenu.Trigger class="flex  gap-2 items-center p-4 border-1 border-surface-border rounded-2xl! text-onSurface-secondary fill-onSurface-secondary hover:(bg-surface-invert! text-onSurface-invert! fill-onSurface-invert) data-[expanded]:(bg-surface-invert! text-onSurface-invert! fill-onSurface-invert)">
         <DropdownMenu.Icon class="flex gap-2 items-center ">
           {/* <ChevronDownIcon /> */}
