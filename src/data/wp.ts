@@ -80,7 +80,7 @@ export async function getLanguagesPageSlugs({gqlUrl}: {gqlUrl: string}) {
       };
     };
   };
-  // todo: change these to all languages in routes.json
+  // todo: change these to all languages in routes.json. Double check all of routes.json actuall
   /* 
     { languageCode: 'es', slug: 'recursos', title: 'Recursos' },
     { languageCode: 'fa', slug: 'منابع', title: 'منابع' },
