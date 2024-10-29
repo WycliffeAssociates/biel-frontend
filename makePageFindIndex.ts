@@ -125,14 +125,15 @@ const requests = Object.values(langs)
       return pubDataResourceLanguage.contents.map((c) => {
         const resourcePageSlug =
           wpmlLang.code === "en"
-            ? "/resources"
+            ? "/resources/languages"
             : resourcePageSlugs.data.page.translations.find(
                 (t) => t.languageCode === wpmlLang.code
-              )?.slug!;
+              )?.uri!;
         const baseUrl =
           wpmlLang.code === "en"
             ? `${resourcePageSlug}/${pubDataResourceLanguage.ietf_code}`
-            : `/${wpmlLang.code}/${resourcePageSlug}/${pubDataResourceLanguage.ietf_code}`;
+            : // uri comes with trailing slash from wp
+              `${resourcePageSlug}${pubDataResourceLanguage.ietf_code}`;
         function insertEnglishNameIfDifferent() {
           if (
             pubDataResourceLanguage.english_name !==
