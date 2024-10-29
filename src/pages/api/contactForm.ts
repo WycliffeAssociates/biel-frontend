@@ -56,7 +56,7 @@ export const POST: APIRoute = async ({request, site, url, locals}) => {
   });
 
   const outcome = await result.json();
-  console.log(outcome);
+
   if (outcome.success) {
     const formFields = [
       {
@@ -77,7 +77,7 @@ export const POST: APIRoute = async ({request, site, url, locals}) => {
       devEmail: locals.runtime.env.CONTACT_DEV_EMAIL || "noop",
       formFields,
     };
-    console.log({processingBody});
+
     const res = await fetch(CONTACT_FORM_PROCESSING_URL, {
       method: "POST",
       headers: {
@@ -85,9 +85,7 @@ export const POST: APIRoute = async ({request, site, url, locals}) => {
       },
       body: JSON.stringify(processingBody),
     });
-    console.log({
-      ...res,
-    });
+
     if ([200, 202].includes(res.status)) {
       return new Response(JSON.stringify({success: true}), {
         status: 200,

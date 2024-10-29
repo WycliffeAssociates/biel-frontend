@@ -14,6 +14,7 @@ export function ResourceWrapper(props: ContentListingProps) {
       englishName={props.language.englishName}
       i18nDict={props.i18nDict}
       docUiUrl={props.docUiUrl}
+      tsFiles={props.tsFiles}
     >
       <div class="h-max grid items-stretch  md:(gap-x-40 gap-y-4 justify-center  grid-cols-[max-content_85ch] items-start justify-between grid-rows-[auto_1fr])">
         <SearchBar classes="hidden md:block" />

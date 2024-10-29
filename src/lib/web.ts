@@ -1,4 +1,5 @@
-import type {ZipSrcBodyReq} from "@customTypes/types";
+import type {tsFilesToDownload} from "@components/ResourceSingle/ResourceSingleContext";
+import type {TsDirectoryFile, ZipSrcBodyReq} from "@customTypes/types";
 import {makeZip} from "client-zip";
 
 export const bielExternalCacheName = "biel-external";
@@ -62,4 +63,31 @@ export async function storeCloneInSwCache(
 ) {
   const cache = await caches.open(bielExternalCacheName);
   await cache.put(cacheKey, response.clone());
+}
+
+export function getTsFilesPayload(
+  files: TsDirectoryFile[],
+  folderName = "Biel Download"
+) {
+  type accType = {
+    zipPayload: {
+      name: string;
+      payload: Omit<TsDirectoryFile, "fileType">[];
+    };
+    size: number;
+  };
+  return files.reduce(
+    (acc: accType, cur) => {
+      acc.zipPayload.payload.push(cur);
+      acc.size += cur.size;
+      return acc;
+    },
+    {
+      zipPayload: {
+        payload: [],
+        name: folderName,
+      },
+      size: 0,
+    }
+  );
 }

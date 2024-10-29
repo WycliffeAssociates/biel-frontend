@@ -28,8 +28,6 @@ export const POST: APIRoute = async ({url, locals, request}) => {
     });
   }
   const {payload, name} = parsed;
-  // const {payload, name} = body;
-  console.log({name});
   const originUrl = new URL(request.url);
 
   if (payload.type === "gateway") {

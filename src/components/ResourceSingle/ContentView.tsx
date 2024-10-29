@@ -23,7 +23,7 @@ export function ContentView(props: ContentViewProps) {
     tsFolders,
     tsFilesToDownload,
   } = useResourceSingleContext();
-  const numTSFileToDownload = () => tsFilesToDownload().size;
+
   return (
     <Suspense>
       <Show when={viewType() === "readable"}>
@@ -55,16 +55,20 @@ function DownloadableView(props: {
     | undefined;
   loopIter?: number;
 }) {
-  const {tsFilesToDownload, setTsFilesToDownload} = useResourceSingleContext();
-  const [wholeFolderChecked, setWholeFolderChecked] = createSignal(false);
-
+  const {tsFilesToDownload, setTsFilesToDownload, downloadableSearchTerm} =
+    useResourceSingleContext();
+  // const [wholeFolderChecked, setWholeFolderChecked] = createSignal(false);
+  const wholeChecked = () => {
+    return props.tsTree?.subTree.files.every((file) =>
+      tsFilesToDownload().has(file)
+    );
+  };
   if (!props.tsTree) {
     return null;
   }
   const isChecked = (file: TsDirectoryFile) => tsFilesToDownload().has(file);
 
   const toggle = (file: TsDirectoryFile) => {
-    console.log("toggle", file);
     if (isChecked(file)) {
       setTsFilesToDownload((prev) => {
         prev.delete(file);
@@ -77,15 +81,24 @@ function DownloadableView(props: {
       });
     }
   };
-  const selectSubTree = (files: TsDirectoryFile[]) => {
+  const selectSubTree = (wholeChecked: boolean, files: TsDirectoryFile[]) => {
     setTsFilesToDownload((prev) => {
       files.forEach((file) => {
-        wholeFolderChecked() ? prev.delete(file) : prev.add(file);
+        wholeChecked ? prev.delete(file) : prev.add(file);
       });
-      setWholeFolderChecked(!wholeFolderChecked());
+      // setWholeFolderChecked(!wholeFolderChecked());
       return new Set(prev);
     });
   };
+
+  const filterFilesAgainstSearch = (files: TsDirectoryFile[]) => {
+    const searchTerm = downloadableSearchTerm().toLowerCase();
+    if (!searchTerm) return files;
+    return files.filter((file) => {
+      return file.fileName.toLowerCase().includes(searchTerm);
+    });
+  };
+
   const marginInline = props.loopIter ? props.loopIter * 12 : 0;
   return (
     <div
@@ -102,10 +115,17 @@ function DownloadableView(props: {
         }}
         class="font-600 text-xl sticky top-0 bg-surface-primary  pb-2 text-onSurface-primary"
       >
-        <Show when={props.tsTree.subTree.files.length}>
+        <Show
+          when={filterFilesAgainstSearch(props.tsTree.subTree.files).length}
+        >
           <Checkbox
-            checked={wholeFolderChecked()}
-            onChange={() => selectSubTree(props.tsTree!.subTree.files)}
+            checked={wholeChecked()}
+            onChange={() =>
+              selectSubTree(
+                wholeChecked() || false,
+                filterFilesAgainstSearch(props.tsTree!.subTree.files)
+              )
+            }
             class="flex items-center gap-2"
           >
             <Checkbox.Input />
@@ -120,11 +140,13 @@ function DownloadableView(props: {
             </Checkbox.Label>
           </Checkbox>
         </Show>
-        <Show when={!props.tsTree.subTree.files.length}>
+        <Show
+          when={!filterFilesAgainstSearch(props.tsTree.subTree.files).length}
+        >
           {props.tsTree.folderName}
         </Show>
       </h2>
-      <Show when={props.tsTree.subTree.files.length}>
+      <Show when={filterFilesAgainstSearch(props.tsTree.subTree.files).length}>
         <ul
           style={{
             "padding-inline-start": `${marginInline}px`,
@@ -132,7 +154,7 @@ function DownloadableView(props: {
           }}
           class="flex flex-col gap-2 text-onSurface-secondary"
         >
-          <For each={props.tsTree.subTree.files}>
+          <For each={filterFilesAgainstSearch(props.tsTree.subTree.files)}>
             {(file) => (
               <li
                 class={`relative pis-0px ${

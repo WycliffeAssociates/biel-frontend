@@ -5,11 +5,17 @@ import type {
 } from "@customTypes/types";
 import {Dialog} from "@kobalte/core/dialog";
 import type {contentsForLang} from "@src/data/pubDataApi";
-import {For, Show, createSignal, type Setter} from "solid-js";
+import {For, Show, createSignal, type Accessor, type Setter} from "solid-js";
 import type {SetStoreFunction} from "solid-js/store";
 import {DownloadOptions} from "./DownloadOptions";
-import {useResourceSingleContext} from "./ResourceSingleContext";
+import {
+  useResourceSingleContext,
+  type tsFolderState,
+} from "./ResourceSingleContext";
 import {contentContainsSearch, isScriptural} from "./lib";
+import {getTsFilesPayload} from "@lib/web";
+import type {tsFilesToDownload} from "./ResourceSingleContext";
+import {formatBytes} from "@src/utils";
 
 type AvailableResourcesProps = {
   classes?: string;
@@ -25,6 +31,8 @@ export function AvailableResources(props: AvailableResourcesProps) {
     i18nDict,
     setTsFolders,
     setViewType,
+    tsFolders,
+    viewType,
   } = useResourceSingleContext();
 
   return (
@@ -42,6 +50,7 @@ export function AvailableResources(props: AvailableResourcesProps) {
                 setActiveContent={setActiveContent}
                 content={row}
                 activeContent={activeContent}
+                viewType={viewType}
               />
             )}
           </For>
@@ -50,17 +59,19 @@ export function AvailableResources(props: AvailableResourcesProps) {
         <Show when={props.tsFiles}>
           <hr class="border-none h-2px text-[#e6e6e6] bg-[#e6e6e6]" />
           <div>
-            <h3 class="text-brand-dark font-bold pis-2">
+            <h3 class="text-brand-dark font-700 font-step-0 mbe-2">
               {i18nDict.ls_AvailableForDownload}
             </h3>
-            <ul>
+            <ul class="flex flex-col gap-4">
               <For each={Object.entries(props.tsFiles!.folders)}>
                 {([key, value]) => (
                   <TsFileDownload
+                    tsFolders={tsFolders}
                     setViewType={setViewType}
                     setTsFolders={setTsFolders}
                     topLevelFolder={key}
                     subTree={value}
+                    viewType={viewType}
                   />
                 )}
               </For>
@@ -84,11 +95,12 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
     setTsFolders,
     viewType,
     tsFolders,
+    tsFilesToDownload,
   } = useResourceSingleContext();
 
   return (
     <div
-      class={`flex flex-col w-full sticky top-0 bg-surface-primary mx-auto gap-1 items-center z-5 ${
+      class={`flex flex-col w-full sticky top-0 bg-surface-primary mx-auto gap-4 items-center z-5 ${
         props.classes || ""
       }`}
     >
@@ -133,6 +145,7 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
                     content={row}
                     activeContent={activeContent}
                     additionalOnClick={() => setOpen(false)}
+                    viewType={viewType}
                   />
                 )}
               </For>
@@ -147,11 +160,13 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
                   <For each={Object.entries(props.tsFiles!.folders)}>
                     {([key, value]) => (
                       <TsFileDownload
+                        tsFolders={tsFolders}
                         setViewType={setViewType}
                         setTsFolders={setTsFolders}
                         topLevelFolder={key}
                         subTree={value}
                         additionalOnClick={() => setOpen(false)}
+                        viewType={viewType}
                       />
                     )}
                   </For>
@@ -162,9 +177,27 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
         </Dialog.Portal>
       </Dialog>
       <Show when={viewType() === "downloadable" && !open()}>
-        <button type="button" class="fixed bottom-4 bg-brand-base end-4">
-          btn to download selections
-        </button>
+        <form action="/api/downloadTsFiles" method="post">
+          <label class="flex gap-2 items-center">
+            <input
+              type="hidden"
+              name="zipPayload"
+              value={JSON.stringify(
+                getTsFilesPayload(Array.from(tsFilesToDownload())).zipPayload
+              )}
+            />
+            <button
+              type="submit"
+              class="fixed bottom-4 end-4 p-2 bg-brand-light text-brand-base rounded-xl focus:(bg-brand-base ring-4 ring-offset-6) hover:(bg-brand-base text-onSurface-invert)  "
+            >
+              {i18nDict.ls_DownloadButton}
+              {i18nDict.ls_DownloadButton}{" "}
+              {`(${formatBytes(
+                getTsFilesPayload(Array.from(tsFilesToDownload())).size
+              )})`}
+            </button>
+          </label>
+        </form>
       </Show>
     </div>
   );
@@ -195,6 +228,7 @@ type AvailableResourceProps = {
   activeContent: ScriptureStoreState;
   additionalOnClick?: () => void;
   setViewType: Setter<"readable" | "downloadable">;
+  viewType: () => "readable" | "downloadable";
 };
 export function AvailableResource(props: AvailableResourceProps) {
   const isSelected = () => {
@@ -238,7 +272,9 @@ export function AvailableResource(props: AvailableResourceProps) {
           if (props.additionalOnClick) props.additionalOnClick();
         }}
         class={`w-full text-left p-2  rounded-lg inline-flex justify-between hover:bg-brand-light ${
-          isSelected() ? "bg-brand-light text-brand-base" : ""
+          isSelected() && props.viewType() === "readable"
+            ? "bg-brand-light! text-brand-base!"
+            : ""
         }`}
       >
         {props.content.displayName || props.content.title || props.content.name}
@@ -258,24 +294,31 @@ function TsFileDownload(props: {
       }
     | undefined
   >;
+  tsFolders: Accessor<tsFolderState | undefined>;
   setViewType: Setter<"readable" | "downloadable">;
   additionalOnClick?: () => void;
+  viewType: () => "readable" | "downloadable";
 }) {
-  // const [category, {files}] = props.tsFile;
-
-  // const formPayload = {
-  //   payload: files,
-  //   name: category,
-  // };
   return (
     <li>
       <button
+        class={`text-left p-2  rounded-lg inline-flex justify-between hover:bg-brand-light ${
+          props.tsFolders()?.folderName === props.topLevelFolder &&
+          props.viewType() === "downloadable"
+            ? "bg-brand-light! text-brand-base!"
+            : ""
+        } `}
         onClick={() => {
           props.setTsFolders({
             folderName: props.topLevelFolder,
             subTree: props.subTree,
           });
           props.setViewType("downloadable");
+          window.history.replaceState(
+            null,
+            "",
+            `?download=${props.topLevelFolder}`
+          );
           if (props.additionalOnClick) props.additionalOnClick();
         }}
         type="button"

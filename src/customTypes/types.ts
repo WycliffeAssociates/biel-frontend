@@ -212,6 +212,7 @@ export type ContentListingProps = {
     resource: string | null;
     book: string | null;
     chapter: string | null;
+    download: string | null;
   };
   docUiUrl: string;
 };

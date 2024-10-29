@@ -349,8 +349,14 @@ const bibleBookSortOrder = Object.values(BibleBookCategories)
     return acc;
   }, {});
 export {bibleBookSortOrder};
-// Generic pipe function with constraints
 
-/* 
-This type parameter might need an `extends (x: T) => U` constraint.
-*/
+export function formatBytes(bytes: number) {
+  const units = ["bytes", "KB", "MB", "GB"];
+  let index = 0;
+  let finalBytes = bytes;
+  while (finalBytes >= 1000 && index < units.length - 1) {
+    finalBytes /= 1000;
+    index++;
+  }
+  return `${Math.round(finalBytes)} ${units[index]}`;
+}

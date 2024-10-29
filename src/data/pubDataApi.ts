@@ -248,7 +248,7 @@ export async function getLanguageContents({
     },
     new Map()
   );
-  console.log(resourceTypeToDisplayName);
+
   const lang = json.data.language[0];
   if (!lang) {
     throw new Error(`no language found for ${language}`);
@@ -263,6 +263,13 @@ export async function getLanguageContents({
     const domainOrder = ["scripture", "gloss", "parascriptural", "peripheral"];
     const aIndex = domainOrder.indexOf(a.domain);
     const bIndex = domainOrder.indexOf(b.domain);
+
+    if (a.resource_type === "udb") {
+      return 1;
+    }
+    if (b.resource_type === "udb") {
+      return -1;
+    }
     return aIndex - bIndex;
   });
 

@@ -136,12 +136,10 @@ export function Search(props: SearchProps) {
       setIsTyping(true);
       const curTimeout = isTypingTimeout();
       if (curTimeout) {
-        console.log("clearning timout");
         clearTimeout(curTimeout);
         setIsTypingTimeout(null);
       }
       const to = setTimeout(() => {
-        console.log("setting false");
         setIsTyping(false);
         setIsTypingTimeout(null);
       }, 450);
@@ -171,7 +169,7 @@ export function Search(props: SearchProps) {
       // Add the new results
       // biome-ignore lint/suspicious/noExplicitAny: <not sure on pagefind type>
       const res: any[] = [];
-      console.log(search);
+
       if (!search?.results.length) {
         setResults(null);
         return;

@@ -46,6 +46,8 @@ const ResourceSingleContext = createContext<{
   setTsFolders: Setter<tsFolderState | undefined>;
   tsFilesToDownload: Accessor<tsFilesToDownload>;
   setTsFilesToDownload: Setter<tsFilesToDownload>;
+  downloadableSearchTerm: Accessor<string>;
+  setDownloadableSearchTerm: Setter<string>;
 }>();
 export type tsFolderState = {
   folderName: string;
@@ -73,16 +75,29 @@ type ResourceSingleProviderProps = {
   queryParams: ContentListingProps["queryParams"];
   englishName: string;
   docUiUrl: string;
-  // tsFiles: ContentListingProps["tsFiles"];
+  tsFiles: TsDirectoryLang | undefined;
 };
 export const ResourceSingleProvider = (props: ResourceSingleProviderProps) => {
   const isBig = createMediaQuery("(min-width: 768px)", true);
   const [resourcesSearchTerm, setResourcesSearchTerm] = createSignal("");
   const [menuSearchTerm, setMenuSearchTerm] = createSignal("");
+  const [downloadableSearchTerm, setDownloadableSearchTerm] = createSignal("");
   const [viewType, setViewType] = createSignal<"readable" | "downloadable">(
-    "readable"
+    props.queryParams.download ? "downloadable" : "readable"
   );
-  const [tsFolders, setTsFolders] = createSignal<tsFolderState>();
+  function getDefaultTsFolderShown() {
+    if (!props.tsFiles || !props.queryParams.download) return;
+    const def = props.tsFiles.folders[props.queryParams.download];
+    if (!def) return;
+    return {
+      folderName: props.queryParams.download,
+      subTree: def,
+    };
+  }
+  const [tsFolders, setTsFolders] = createSignal<tsFolderState | undefined>(
+    getDefaultTsFolderShown()
+  );
+
   const [tsFilesToDownload, setTsFilesToDownload] =
     createSignal<tsFilesToDownload>(new Set());
   const resourceFromQpOrDefault =
@@ -239,6 +254,8 @@ export const ResourceSingleProvider = (props: ResourceSingleProviderProps) => {
         setTsFolders,
         setTsFilesToDownload,
         tsFilesToDownload,
+        downloadableSearchTerm,
+        setDownloadableSearchTerm,
       }}
     >
       {props.children}

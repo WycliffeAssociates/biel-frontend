@@ -50,10 +50,12 @@ const en = {
   ls_IncludeTranslationNotes: "Include Translation Notes",
   ls_GeneratingDocMessage: "Generating your file, please wait",
   ls_Cancel: "Cancel",
+  ls_SearchFilesByName: "Search for files",
   ls_DocErredMsg:
     "Something went wrong. Your file couldn't be generated. You may try again or contact us",
   ls_Navigate: "Navigate",
   ls_AvailableForDownload: "Available for download",
+  ls_SelectAll: "Select All",
   rl_ChooseALanguage: "Choose a language",
   rl_SearchPlaceholder: "Search by Name, Code, etc...",
   rl_Filter: "Filter",
