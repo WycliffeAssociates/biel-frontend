@@ -4,8 +4,9 @@ import {HeaderMenu} from "@components/HeaderMenu";
 import ResourceSingle from "@components/ResourceSingle/ResourceSingle.astro";
 import {BreadCrumbs} from "@components/BreadCrumbs";
 import Layout from "@layouts/LayoutNoFooter.astro";
-import {getMenus, getResourcePageSlugs, getWpmlLanguages} from "@src/data/wp";
+import {getMenus, getLanguagesPageSlugs, getWpmlLanguages} from "@src/data/wp";
 import {getDict} from "@src/i18n/strings";
+import {capitalizeFirstLetter} from "@src/utils";
 const {resourceLang} = Astro.params;
 if (!resourceLang) return Astro.redirect("/404");
 const gqlUrl =
@@ -15,28 +16,28 @@ const restUrl =
   import.meta.env.WORDPRESS_REST_MENU_ENDPOINT ||
   Astro.locals.runtime.env?.WORDPRESS_REST_MENU_ENDPOINT;
 
-const [wpmlLangDict, menus, resourceSlugs] = await Promise.all([
+const [wpmlLangDict, menus, languagePageSlugs] = await Promise.all([
   getWpmlLanguages({gqlUrl}),
   getMenus({restUrl}),
-  getResourcePageSlugs({gqlUrl}),
+  getLanguagesPageSlugs({gqlUrl}),
 ]);
 
 const parts = resourceLang.split("/");
-const isEnglishDetailPage = parts[0] === "resources" && parts.length === 2;
-const isDetailPageOther = parts.length === 3;
+const isEnglishDetailPage = parts[0] === "resources" && parts.length === 3;
+const isDetailPageOther = parts.length === 4;
 const thisLang = isEnglishDetailPage ? "en" : parts[0];
 if (!thisLang) return Astro.redirect("/404");
 const i18nDict = getDict(thisLang, true);
 const pubDataIetf = parts[parts.length - 1];
 if (!pubDataIetf) return Astro.redirect("/404");
-const thisTranslation = resourceSlugs.data.page.translations.find(
+const thisTranslation = languagePageSlugs.data.page.translations.find(
   (t) => t.languageCode === thisLang
 );
 
 const isReqForResources =
-  thisTranslation?.slug === parts[1] ||
+  thisTranslation?.slug === parts[2] ||
   isEnglishDetailPage ||
-  (isDetailPageOther && thisTranslation?.slug === parts[2]);
+  (isDetailPageOther && thisTranslation?.slug === parts[3]);
 
 if (!isReqForResources) Astro.redirect("/404");
 
@@ -54,14 +55,14 @@ const langSwitcherList = Object.values(wpmlLangDict)
   .map((lang) => {
     // Don't mutate the original dict item
     const copy = {...lang};
-    const matchingSlug = resourceSlugs.data.page.translations.find(
+    const matchingSlug = languagePageSlugs.data.page.translations.find(
       (t) => t.languageCode === lang.code
     );
 
     if (lang.code === "en") {
-      copy.localizedUrl = `/resources/${pubDataIetf}`;
+      copy.localizedUrl = `/resources/languages/${pubDataIetf}`;
     } else {
-      copy.localizedUrl = `/${lang.code}/${matchingSlug?.slug}/${pubDataIetf}`;
+      copy.localizedUrl = `${matchingSlug?.uri}/${pubDataIetf}`;
     }
     // resource/en or es/recursos/lang
 
@@ -71,12 +72,13 @@ const nodes = [
   {
     uri: isEnglishDetailPage ? "/" : `/${thisLang}`,
     slug: "",
-    title: "Home",
+    title: i18nDict!.home,
   },
 ];
+console.log({parts});
 switch (parts.length) {
   case 2:
-    // resource and resources/en
+    // resource/languages/en
     isEnglishDetailPage &&
       nodes.push(
         {
@@ -85,25 +87,30 @@ switch (parts.length) {
           title: "Resources",
         },
         {
-          uri: `/resources/${parts[1]!}`,
+          uri: "/resources/languages",
           slug: "",
-          title: parts[1]!,
+          title: parts[1]!.toUpperCase()!,
         }
       );
     break;
-  case 3:
-    // es/recursos/fr
+  case 4:
+    // es/recursos/idiomas/fr
     isDetailPageOther &&
       nodes.push(
         {
           slug: thisTranslation?.slug!,
-          title: thisTranslation?.title!,
+          title: capitalizeFirstLetter(parts[1]!),
           uri: `/${parts[0]!}/${parts[1]!}`,
         },
         {
           slug: "",
-          title: parts[2]!,
+          title: capitalizeFirstLetter(thisTranslation?.title!),
           uri: `/${parts[0]!}/${parts[1]!}/${parts[2]!}`,
+        },
+        {
+          slug: "",
+          title: capitalizeFirstLetter(parts[3]!),
+          uri: `/${parts[0]!}/${parts[1]!}/${parts[2]!}/${parts[3]!}`,
         }
       );
     break;
@@ -113,12 +120,13 @@ switch (parts.length) {
 const crumbs = {
   nodes: nodes,
 };
+console.log(crumbs);
 ---
 
 <Layout
   title={parts.join(" ")}
   inlineCss={[]}
-  description="Resources Page"
+  description={`${parts[parts.length - 1]} - BIEL`}
   langInfo={langInfo}
   langSwitcher={langSwitcherList}
   langDirection="ltr"

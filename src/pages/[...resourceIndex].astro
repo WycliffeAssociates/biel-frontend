@@ -2,7 +2,7 @@
 import {getDict, type i18nDictType} from "@src/i18n/strings";
 import Layout from "@layouts/Layout.astro";
 import {HeaderMenu} from "@components/HeaderMenu";
-import {getMenus, getResourcePageSlugs, getWpmlLanguages} from "@src/data/wp";
+import {getMenus, getLanguagesPageSlugs, getWpmlLanguages} from "@src/data/wp";
 import ResourceIndex from "@components/ResourcesPage/ResourcesPage.astro";
 import type {languageType, Menu} from "@customTypes/types";
 
@@ -21,10 +21,10 @@ export async function getStaticPaths() {
   const restUrl: string =
     import.meta.env.WORDPRESS_REST_MENU_ENDPOINT ||
     Astro.locals.runtime.env?.WORDPRESS_REST_MENU_ENDPOINT;
-  const [wpmlLangDict, menus, resourceSlugs] = await Promise.all([
+  const [wpmlLangDict, menus, languagePageSlugs] = await Promise.all([
     getWpmlLanguages({gqlUrl}),
     getMenus({restUrl}),
-    getResourcePageSlugs({gqlUrl}),
+    getLanguagesPageSlugs({gqlUrl}),
   ]);
   const nonHiddenLanguages = new Set(Object.keys(menus));
 
@@ -34,32 +34,32 @@ export async function getStaticPaths() {
     })
     .map((lang) => {
       const copy = {...lang};
-      const matchingSlug = resourceSlugs.data.page.translations.find(
+      const matchingSlug = languagePageSlugs.data.page.translations.find(
         (t) => t.languageCode === lang.code
       );
       if (lang.code === "en") {
-        copy.localizedUrl = "/resources";
+        copy.localizedUrl = "/resources/languages";
       } else {
-        copy.localizedUrl = `/${lang.code}/${matchingSlug?.slug}`;
+        copy.localizedUrl = `${matchingSlug?.uri}`;
       }
       return copy;
     });
-  resourceSlugs.data.page.translations.push({
+  languagePageSlugs.data.page.translations.push({
     languageCode: "en",
-    slug: resourceSlugs.data.page.slug,
-    title: resourceSlugs.data.page.title,
+    slug: languagePageSlugs.data.page.slug,
+    title: languagePageSlugs.data.page.title,
+    uri: languagePageSlugs.data.page.uri,
   });
-  const pageData = resourceSlugs.data.page.translations
+  const pageData = languagePageSlugs.data.page.translations
     .filter((t) => nonHiddenLanguages.has(t.languageCode))
     .map((t) => {
-      const slug =
-        t.languageCode === "en" ? `${t.slug}` : `/${t.languageCode}/${t.slug}`;
+      const slug = t.uri;
+      // t.languageCode === "en" ? `${t.slug}` : `/${t.languageCode}/${t.slug}`;
 
       const langInfo = wpmlLangDict[t.languageCode] || wpmlLangDict.en!;
       const headerMenu =
         menus[langInfo.language_code]?.["header-menu"] ||
         menus.en?.["header-menu"]!;
-
       return {
         params: {
           resourceIndex: slug,
@@ -73,6 +73,7 @@ export async function getStaticPaths() {
         },
       };
     });
+
   return pageData;
 }
 
@@ -81,10 +82,11 @@ const {title, allLangs, langInfo, headerMenu, pageDict} = Astro.props;
 const {resourceIndex: prefix} = Astro.params;
 ---
 
+<!-- todo: the description  -->
 <Layout
   title={title}
   inlineCss={[]}
-  description="Resources Page"
+  description="Resources Languages Page"
   langInfo={langInfo}
   langSwitcher={allLangs}
   langDirection="ltr"

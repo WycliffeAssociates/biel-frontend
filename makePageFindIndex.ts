@@ -1,5 +1,5 @@
 import * as pagefind from "pagefind";
-import {getWpmlLanguages, getResourcePageSlugs, getPage} from "./src/data/wp";
+import {getWpmlLanguages, getLanguagesPageSlugs, getPage} from "./src/data/wp";
 import {getLangsWithContentNames} from "./src/data/pubDataApi";
 import {getDict, nonHiddenLanguageCodes} from "./src/i18n/strings";
 import {DOMParser} from "linkedom/worker";
@@ -23,7 +23,7 @@ const langs = await getWpmlLanguages({gqlUrl: wpInstanceUrl});
 const pubDataResource = await getLangsWithContentNames({
   pubDataUrl: pubDataUrl,
 });
-const resourcePageSlugs = await getResourcePageSlugs({
+const resourcePageSlugs = await getLanguagesPageSlugs({
   gqlUrl: wpInstanceUrl,
 });
 

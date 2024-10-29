@@ -43,16 +43,18 @@ export async function getHomePage({gqlUrl}: {gqlUrl: string}) {
 
   return json.data;
 }
-export async function getResourcePageSlugs({gqlUrl}: {gqlUrl: string}) {
+export async function getLanguagesPageSlugs({gqlUrl}: {gqlUrl: string}) {
   const query = `
   query resourcesSlugsQuery {
-  page(id: "resources", idType: URI) {
+  page(id: "languages", idType: URI) {
     slug
     title
+    uri
     translations {
       languageCode
       slug
       title
+      uri
     }
   }
 }
@@ -68,12 +70,19 @@ export async function getResourcePageSlugs({gqlUrl}: {gqlUrl: string}) {
       page: {
         slug: string;
         title: string;
-        translations: {languageCode: string; slug: string; title: string}[];
+        uri: string;
+        translations: {
+          languageCode: string;
+          slug: string;
+          title: string;
+          uri: string;
+        }[];
       };
     };
   };
+  // todo: change these to all languages in routes.json
   /* 
- { languageCode: 'es', slug: 'recursos', title: 'Recursos' },
+    { languageCode: 'es', slug: 'recursos', title: 'Recursos' },
     { languageCode: 'fa', slug: 'منابع', title: 'منابع' },
     { languageCode: 'fr', slug: 'ressources', title: 'Les ressources' },
     { languageCode: 'hi', slug: 'संसाधनों', title: 'संसाधनों' },
@@ -330,9 +339,9 @@ export async function getAllPages({gqlUrl}: {gqlUrl: string}) {
   > = {
     en: {},
   };
-  // resources is ssr, not static.
+  // languages is ssr, not static.
   const filteredNodes = pages.nodes.filter((p) => {
-    return p.title.toLowerCase() !== "resources";
+    return p.title.toLowerCase() !== "languages";
   });
 
   for (let i = 0; i < filteredNodes.length; i++) {
@@ -441,7 +450,7 @@ export async function getAllPages({gqlUrl}: {gqlUrl: string}) {
 }
 
 /**
- * Get a map of English URIs to their translations. When wpml acts up, you can strings replace all /resources with /es/recursos on a page as needed.
+ * Get a map of English URIs to their translations. When wpml acts up, you can strings replace all /languages with /es/recursos on a page as needed.
  * @returns A Promise that resolves to an object with an `englishUriMap` property. The `englishUriMap` property is an object where the keys are the translated URIs and the values are the URIs of the English version of the page.
  */
 export async function getEnglishUriMap({gqlUrl}: {gqlUrl: string}) {
