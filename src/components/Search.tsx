@@ -170,7 +170,7 @@ export function Search(props: SearchProps) {
       // biome-ignore lint/suspicious/noExplicitAny: <not sure on pagefind type>
       const res: any[] = [];
 
-      if (!search?.results.length) {
+      if (search?.results && !search?.results?.length) {
         setResults(null);
         return;
       }
