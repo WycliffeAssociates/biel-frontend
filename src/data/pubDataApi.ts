@@ -49,6 +49,12 @@ query MyQuery {
     wa_language_metadata {
       is_gateway
     }
+    contents(
+      where: {wa_content_metadata: {${bielFilter}}}
+      distinct_on: resource_type
+    ) {
+      resource_type
+    }
   }
 }
 `;
@@ -95,6 +101,9 @@ query MyQuery {
         );
       }
       json = (await match.json()) as queryReturn;
+      json.data.language.forEach((l) => {
+        l.resourceTypesAvailable = l.contents.map((c) => c.resource_type);
+      });
       return {data: json, wasCached: !!match};
     }
 
@@ -137,6 +146,8 @@ export type queryReturnLanguage = {
   wa_language_metadata: {
     is_gateway: boolean;
   } | null;
+  resourceTypesAvailable: string[];
+  // todo: this isn't right
   contents: {
     resource_type: string;
     name: string;
@@ -517,6 +528,7 @@ function collateGatewayContent({
       `${content.domain}-${content.resource_type}-${content.type}`,
     contents
   );
+
   const contentReduced = Object.entries(byDomain)
     .map(([key, value]) => {
       if (
@@ -526,11 +538,11 @@ function collateGatewayContent({
       ) {
         // single vlaue to merge into
         const content: (typeof contents)[number] = {
-          domain: contents[0]!.domain,
-          title: contents[0]!.title,
-          type: contents[0]!.type,
-          resource_type: contents[0]!.resource_type,
-          name: `${langName} ${contents[0]!.resource_type}`,
+          domain: byDomain[key]![0]!.domain,
+          title: byDomain[key]![0]!.title,
+          type: byDomain[key]![0]!.type,
+          resource_type: byDomain[key]![0]!.resource_type,
+          name: `${langName} ${byDomain[key]![0]!.resource_type}`,
           // usfmSources: contents.map((c) => c.gitRepo?.url),
           rendered_contents: [],
         };
