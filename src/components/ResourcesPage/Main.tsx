@@ -3,6 +3,7 @@ import type {queryReturn, queryReturnLanguage} from "@src/data/pubDataApi";
 import type {i18nDictType} from "@src/i18n/strings";
 import {filter, flow, map, sort, when} from "ramda";
 import {type Accessor, For, type Setter, Show, createSignal} from "solid-js";
+import {Select} from "@kobalte/core/select";
 
 type validSorts =
   | "CODE_AZ"
@@ -15,6 +16,8 @@ type ResourceIndexArgs = {
   languages: queryReturn["data"]["language"];
   detailPrefix: string;
   i18nDict: i18nDictType;
+  resourceTypeToDisplayName: Record<string, string>;
+  resourceTypeArrQps: string[];
 };
 
 export function ResourceIndex(props: ResourceIndexArgs) {
@@ -25,13 +28,23 @@ export function ResourceIndex(props: ResourceIndexArgs) {
     "national_name",
   ] as const;
   const [filters, setFilter] = createSignal<{
-    [key: string]: boolean;
+    [key: string]: boolean | string[];
     gateway: boolean;
     heart: boolean;
+    resourceTypes: string[];
   }>({
     gateway: true,
     heart: true,
+    resourceTypes: props.resourceTypeArrQps,
   });
+
+  const allResourceTypes = Array.from(
+    new Set(
+      props.languages.flatMap((x) =>
+        x.resourceTypesAvailable.map((rType) => rType.toLowerCase())
+      )
+    )
+  );
 
   const [sortOrder, setSetOrder] = createSignal<validSorts>("NAME_AZ");
   const adjustForCompare = (val: string) =>
@@ -66,26 +79,33 @@ export function ResourceIndex(props: ResourceIndexArgs) {
     };
     return sort(sorters[sortOrder()], langs);
   };
+
+  function filterByResourceTypes(lang: queryReturnLanguage) {
+    return (
+      filters().resourceTypes.length === 0 ||
+      filters().resourceTypes.some((rType) =>
+        lang.resourceTypesAvailable.includes(rType)
+      )
+    );
+  }
   function filterByStatus(lang: queryReturnLanguage) {
-    if (Object.values(filters()).every((v) => v === true)) {
-      return true;
-    }
     const filterFns: Record<
       keyof ReturnType<typeof filters>,
       (lang: queryReturnLanguage) => boolean
     > = {
       gateway: (lang: queryReturnLanguage) => {
         if (!lang.wa_language_metadata) return true; //default inclusive
-        return lang.wa_language_metadata.is_gateway;
+        return lang.wa_language_metadata.is_gateway && filters().gateway;
       },
       heart: (lang: queryReturnLanguage) => {
         if (!lang.wa_language_metadata) return true; //default inclusive
-        return !lang.wa_language_metadata.is_gateway;
+        return !lang.wa_language_metadata.is_gateway && filters().heart;
       },
     };
-    return Object.entries(filterFns).some(
+    // resource types isn't in this function because if gateway + heart is chosen, all will be true, but we want a disjunction on the resource types
+    return Object.values(filterFns).some(
       // onlly apply the filters that are true from ui in filters().
-      ([k, fn]) => filters()[k] === true && fn(lang)
+      (fn) => fn(lang)
     );
   }
 
@@ -93,9 +113,10 @@ export function ResourceIndex(props: ResourceIndexArgs) {
     flow(props.languages, [
       when(() => searchTerm().length >= 2, filter(includesSearch)),
       filter(filterByStatus),
+      filter(filterByResourceTypes),
       sortLangs,
-    ]);
-
+    ]) as queryReturnLanguage[];
+  //
   return (
     <div class="contain py-8">
       <div class="flex flex-col gap-8 pbe-4 md:(flex-row justify-between w-full items-center) ">
@@ -112,6 +133,8 @@ export function ResourceIndex(props: ResourceIndexArgs) {
             i18nDict={props.i18nDict}
             filters={filters}
             setFilters={setFilter}
+            allResourceTypes={allResourceTypes}
+            resourceTypeToDisplayName={props.resourceTypeToDisplayName}
           />
           <SortDetails
             i18nDict={props.i18nDict}
@@ -230,14 +253,26 @@ type FilterProps = {
   filters: Accessor<{
     gateway: boolean;
     heart: boolean;
+    resourceTypes: string[];
   }>;
   setFilters: Setter<{
     gateway: boolean;
     heart: boolean;
+    resourceTypes: string[];
   }>;
   i18nDict: i18nDictType;
+  allResourceTypes: string[];
+  resourceTypeToDisplayName: Record<string, string>;
 };
 function FilterDetails(props: FilterProps) {
+  const updateFilters = (values: string[]) => {
+    props.setFilters((prev) => {
+      return {
+        ...prev,
+        resourceTypes: values,
+      };
+    });
+  };
   return (
     <div>
       <details open class="group">
@@ -280,6 +315,96 @@ function FilterDetails(props: FilterProps) {
             />
             {props.i18nDict.rl_HeartLanguage}
           </label>
+
+          <Select<string>
+            multiple
+            placement="bottom"
+            value={props.filters().resourceTypes}
+            options={props.allResourceTypes}
+            onChange={updateFilters}
+            placeholder={props.i18nDict.rl_FilterByResourceType}
+            itemComponent={(selectProps) => (
+              <Select.Item
+                item={selectProps.item}
+                data-name="select_item"
+                class="flex items-center justify-between p-2 data-[highlighted]:(bg-brand-base text-onSurface-invert) rounded-md group"
+              >
+                <Select.ItemLabel class="flex gap-2">
+                  {props.resourceTypeToDisplayName[selectProps.item.rawValue] ||
+                    selectProps.item.rawValue}
+
+                  <Show
+                    when={
+                      props.resourceTypeToDisplayName[selectProps.item.rawValue]
+                    }
+                  >
+                    <span class="text-size-[var(--step--1)] text-onSurface-secondary group-data-[highlighted]:(text-inherit)">
+                      ({selectProps.item.rawValue.toUpperCase()})
+                    </span>
+                  </Show>
+                </Select.ItemLabel>
+                <Select.ItemIndicator>
+                  <span class="i-ph:check-bold w-1.5em h-1.5em" />
+                </Select.ItemIndicator>
+              </Select.Item>
+            )}
+          >
+            <Select.Trigger
+              aria-label="Fruits"
+              as="div"
+              data-name="select_trigger"
+              class="inline-flex items-center justify-between w-full rounded-lg border border-gray-300 bg-white text-gray-800 transition-colors duration-200"
+            >
+              <Select.Value<string>
+                class="flex items-center gap-2 justify-between p-2 w-full"
+                data-name="select_value"
+              >
+                {(state) => (
+                  <>
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <For each={state.selectedOptions()}>
+                        {(option) => (
+                          <div
+                            class="bg-brand-dark text-onSurface-invert rounded-md font-step--1 p-1 flex items-center gap-2"
+                            onPointerDown={(e) => e.stopPropagation()}
+                          >
+                            {option.toUpperCase()}
+                            <button
+                              type="button"
+                              onClick={() => state.remove(option)}
+                            >
+                              <span class="i-material-symbols:close w-1em h-1em" />
+                            </button>
+                          </div>
+                        )}
+                      </For>
+                    </div>
+                    <button
+                      type="button"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={state.clear}
+                    >
+                      <span class="i-ph:x w-1.5em h-1.5em" />
+                    </button>
+                  </>
+                )}
+              </Select.Value>
+              <Select.Icon>
+                <span class="i-material-symbols:chevron-down w-1.5em h-1.5em" />
+              </Select.Icon>
+            </Select.Trigger>
+            <Select.Portal>
+              <Select.Content
+                data-name="select_content"
+                class="bg-surface-primary shadow-md rounded-xl origin-[var(--kb-select-content-transform-origin)] animate-[fadeOut_0.2s_ease-in_1] data-[expanded]:animate-[fadeIn_0.2s_ease-out_1]"
+              >
+                <Select.Listbox
+                  class="max-h-280px overflow-y-scroll"
+                  data-name="slect_listbox"
+                />
+              </Select.Content>
+            </Select.Portal>
+          </Select>
         </div>
       </details>
     </div>

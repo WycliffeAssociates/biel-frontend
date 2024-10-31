@@ -13,18 +13,28 @@ type getLanguagesWithContentForBielArgs = {
   ctx: ExecutionContext;
   pubDataApiUrl: string;
   doBustCache: boolean;
+  siteLanguage: string;
 };
 export async function getLanguagesWithContentForBiel({
   cache,
   ctx,
   pubDataApiUrl,
   doBustCache,
+  siteLanguage,
 }: getLanguagesWithContentForBielArgs): Promise<{
   data: queryReturn | null;
   wasCached: boolean;
+  resourceTypeToDisplayName: Record<string, string>;
 }> {
+  const siteLanguageException = siteLanguage === "es" ? "es-419" : siteLanguage;
   const query = `
 query MyQuery {
+  localization(
+    where: {category: {_eq: "resource_type"}, ietf_code: {_eq: "${siteLanguageException}"}}
+  ) {
+    resourceTypeKey:key
+    value
+  }
   language(
     where: {
       contents_aggregate: {
@@ -101,15 +111,26 @@ query MyQuery {
         );
       }
       json = (await match.json()) as queryReturn;
+      const resourceTypeToDisplayName = json.data.localization.reduce(
+        (acc: Record<string, string>, curr) => {
+          acc[curr.resourceTypeKey] = curr.value;
+          return acc;
+        },
+        {}
+      );
       json.data.language.forEach((l) => {
         l.resourceTypesAvailable = l.contents.map((c) => c.resource_type);
       });
-      return {data: json, wasCached: !!match};
+
+      return {data: json, wasCached: !!match, resourceTypeToDisplayName};
     }
 
     const res = await fetch(requestToMake());
     if (res?.ok) {
       json = (await res.json()) as queryReturn;
+      json.data.language.forEach((l) => {
+        l.resourceTypesAvailable = l.contents.map((c) => c.resource_type);
+      });
       ctx.waitUntil(
         refreshCfCache({
           cache,
@@ -118,9 +139,17 @@ query MyQuery {
           requestToMake: requestToMake(),
         })
       );
+      const resourceTypeToDisplayName = json.data.localization.reduce(
+        (acc: Record<string, string>, curr) => {
+          acc[curr.resourceTypeKey] = curr.value;
+          return acc;
+        },
+        {}
+      );
       return {
         data: json,
         wasCached: !!match,
+        resourceTypeToDisplayName,
       };
     }
     throw new Error("No response");
@@ -129,12 +158,18 @@ query MyQuery {
     return {
       data: null,
       wasCached: false,
+      resourceTypeToDisplayName: {},
     };
   }
 }
 
 export type queryReturn = {
   data: {
+    localization: {
+      resourceTypeKey: string;
+      value: string;
+      ietf_code: string;
+    }[];
     language: queryReturnLanguage[];
   };
 };
@@ -147,7 +182,7 @@ export type queryReturnLanguage = {
     is_gateway: boolean;
   } | null;
   resourceTypesAvailable: string[];
-  // todo: this isn't right
+  // todo: this isn't right for all queries
   contents: {
     resource_type: string;
     name: string;
@@ -174,7 +209,9 @@ export async function getLanguageContents({
   language,
   pubDataApiUrl,
   doBustCache,
+  siteLanguage,
 }: getLanguageContentsArgs) {
+  // todo: decide whether to use siteLanguage or resources language for css
   const query = `query LangContents {
   localization(
     where: {category: {_eq: "resource_type"}, ietf_code: {_eq: "${language}"}}
@@ -610,12 +647,21 @@ function sortHtmlChaptersCanonically(htmlChapters: RenderedContentRow[]) {
     return bookCompare || chapterCompare;
   });
   htmlChapters?.forEach((c) => {
+    //  Special cases for frontmatter.
+    // todo: would be nice to localize though
     if (
       c.scriptural_rendering_metadata &&
       !c.scriptural_rendering_metadata?.chapter &&
       c.url.includes("front.html")
     ) {
       c.scriptural_rendering_metadata.chapter = "front";
+    }
+    if (
+      c.scriptural_rendering_metadata &&
+      !c.scriptural_rendering_metadata?.chapter &&
+      c.url.includes("intro.html")
+    ) {
+      c.scriptural_rendering_metadata.chapter = "intro";
     }
   });
 }

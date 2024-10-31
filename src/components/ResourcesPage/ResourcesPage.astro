@@ -5,6 +5,7 @@ import {ResourceIndex} from "./Main";
 interface Props {
   detailPrefix: string;
   i18nDict: i18nDictType;
+  siteIetf: string;
 }
 const startTime = performance.now();
 const runtime = Astro.locals.runtime;
@@ -13,18 +14,24 @@ const referrerUrl = new URL(referrer);
 const doBustCache = !!referrerUrl.searchParams.get("cache-bust");
 // todo: use res type and add in UI on the languages index page for filtering by content types so that /resources can link to this
 const resourceType = referrerUrl.searchParams.get("resource-type");
-
+const resourceTypeArrQp = resourceType
+  ? resourceType.split("|").map((t) => t.trim().toLowerCase())
+  : [];
+console.log(`resourceType: ${resourceType}`);
 // note, cache is a noop in dev right now for cloudfalre adapter
 const cache = runtime.caches.default;
 const ctx = runtime.ctx;
 const pubDataApiUrl = runtime.env.PUBLIC_DATA_API;
-const {detailPrefix, i18nDict} = Astro.props;
-const {data, wasCached} = await getLanguagesWithContentForBiel({
-  cache,
-  ctx,
-  pubDataApiUrl,
-  doBustCache,
-});
+const {detailPrefix, i18nDict, siteIetf} = Astro.props;
+const {data, wasCached, resourceTypeToDisplayName} =
+  await getLanguagesWithContentForBiel({
+    cache,
+    ctx,
+    pubDataApiUrl,
+    doBustCache,
+    siteLanguage: siteIetf,
+  });
+
 if (!data) return Astro.redirect("/404");
 const endTime = performance.now();
 const totalTime = endTime - startTime;
@@ -40,5 +47,7 @@ console.log(
     i18nDict={i18nDict}
     languages={data.data.language}
     detailPrefix={detailPrefix}
+    resourceTypeToDisplayName={resourceTypeToDisplayName}
+    resourceTypeArrQps={resourceTypeArrQp}
   />
 </div>

@@ -101,7 +101,12 @@ const {resourceIndex: prefix} = Astro.params;
       client:load
     />
   </div>
-  <ResourceIndex server:defer i18nDict={pageDict} detailPrefix={prefix}>
+  <ResourceIndex
+    server:defer
+    i18nDict={pageDict}
+    detailPrefix={prefix}
+    siteIetf={langInfo.code}
+  >
     <div
       slot="fallback"
       class="min-h-screen w-full place-content-center text-center"

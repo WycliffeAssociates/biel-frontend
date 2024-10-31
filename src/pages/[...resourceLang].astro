@@ -75,7 +75,7 @@ const nodes = [
     title: i18nDict!.home,
   },
 ];
-console.log({parts});
+
 switch (parts.length) {
   case 2:
     // resource/languages/en
@@ -141,6 +141,10 @@ console.log(crumbs);
   <BreadCrumbs crumbs={crumbs} />
 
   <div class="md:pt-12 mx-auto h-full overflow-auto w-full contain contain-pad">
-    <ResourceSingle languageToFetch={pubDataIetf} i18nDict={i18nDict!} />
+    <ResourceSingle
+      languageToFetch={pubDataIetf}
+      i18nDict={i18nDict!}
+      siteLanguage={langInfo.code}
+    />
   </div>
 </Layout>
