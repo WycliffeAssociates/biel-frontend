@@ -27,7 +27,11 @@ export function ContentView(props: ContentViewProps) {
   return (
     <Suspense>
       <Show when={viewType() === "readable"}>
-        <div class={`${props.classes || ""}`}>
+        <div
+          data-name="contentView"
+          data-js="contentView"
+          class={`${props.classes || ""}`}
+        >
           <Show when={fitsScripturalSchema()}>
             <ScripturalView />
           </Show>
@@ -38,8 +42,12 @@ export function ContentView(props: ContentViewProps) {
       </Show>
       <Show when={viewType() === "downloadable"}>
         {/* <p>{tsFolders()}</p> */}
-        <div class={`${props.classes || ""} pb-16! `}>
-          <DownloadableView tsTree={selectedTsFolder()} loopIter={1} />
+        <div
+          data-name="contentView"
+          data-js="contentView"
+          class={`${props.classes || ""} pbe-16! `}
+        >
+          <DownloadableView tsTree={selectedTsFolder()} loopIter={0} />
         </div>
       </Show>
     </Suspense>
@@ -60,37 +68,36 @@ function DownloadableView(props: {
   // const [wholeFolderChecked, setWholeFolderChecked] = createSignal(false);
   const wholeChecked = () => {
     return props.tsTree?.subTree.files.every((file) =>
-      tsFilesToDownload().has(file)
+      tsFilesToDownload().has(file.path)
     );
   };
   if (!props.tsTree) {
     return null;
   }
   const isChecked = (file: TsDirectoryFile) => {
-    debugger;
-    return tsFilesToDownload().has(file);
+    return tsFilesToDownload().has(file.path);
   };
 
   const toggle = (file: TsDirectoryFile) => {
     if (isChecked(file)) {
       setTsFilesToDownload((prev) => {
-        prev.delete(file);
-        return new Set(prev);
+        prev.delete(file.path);
+        return new Map(prev);
       });
     } else {
       setTsFilesToDownload((prev) => {
-        prev.add(file);
-        return new Set(prev);
+        prev.set(file.path, file);
+        return new Map(prev);
       });
     }
   };
   const selectSubTree = (wholeChecked: boolean, files: TsDirectoryFile[]) => {
     setTsFilesToDownload((prev) => {
       files.forEach((file) => {
-        wholeChecked ? prev.delete(file) : prev.add(file);
+        wholeChecked ? prev.delete(file.path) : prev.set(file.path, file);
       });
       // setWholeFolderChecked(!wholeFolderChecked());
-      return new Set(prev);
+      return new Map(prev);
     });
   };
 
@@ -102,57 +109,53 @@ function DownloadableView(props: {
     });
   };
 
-  const marginInline = props.loopIter ? props.loopIter * 12 : 0;
+  const spaceInline = props.loopIter ? props.loopIter * 20 : 0;
   return (
-    <div
-      class={`${
-        props.loopIter && props.loopIter === 1
-          ? "border-s border-brand-dark"
-          : ""
-      }`}
-    >
-      <h2
-        style={{
-          "padding-inline-start": `${marginInline}px`,
-          "z-index": `${props.loopIter ? props.loopIter : 1}`,
-        }}
-        class="font-600 text-xl sticky top-0 bg-surface-primary  pb-2 text-onSurface-primary"
-      >
-        <Show
-          when={filterFilesAgainstSearch(props.tsTree.subTree.files).length}
+    <div>
+      <Show when={props.loopIter && props.loopIter > 0}>
+        <h2
+          style={{
+            "padding-inline-start": `${spaceInline}px`,
+            "z-index": `${props.loopIter ? props.loopIter : 1}`,
+          }}
+          class="font-600 text-xl sticky top-0 bg-surface-primary  pb-2 text-onSurface-primary"
         >
-          <Checkbox
-            checked={wholeChecked()}
-            onChange={() =>
-              selectSubTree(
-                wholeChecked() || false,
-                filterFilesAgainstSearch(props.tsTree!.subTree.files)
-              )
-            }
-            class="flex items-center gap-2"
+          <Show
+            when={filterFilesAgainstSearch(props.tsTree.subTree.files).length}
           >
-            <Checkbox.Input />
-            <Checkbox.Control class="h-4 w-4 rounded-2px border relative border-brand-base data-[checked]:(bg-brand-base text-onSurface-invert border-none)">
-              <Checkbox.Indicator class="">
-                <span class="i-material-symbols:check w-full h-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4" />
-              </Checkbox.Indicator>
-            </Checkbox.Control>
-            <Checkbox.Label class="data-[checked]:(text-brand-base) transition-colors transition-duration-25">
-              {" "}
-              {props.tsTree.folderName}
-            </Checkbox.Label>
-          </Checkbox>
-        </Show>
-        <Show
-          when={!filterFilesAgainstSearch(props.tsTree.subTree.files).length}
-        >
-          {props.tsTree.folderName}
-        </Show>
-      </h2>
+            <Checkbox
+              checked={wholeChecked()}
+              onChange={() =>
+                selectSubTree(
+                  wholeChecked() || false,
+                  filterFilesAgainstSearch(props.tsTree!.subTree.files)
+                )
+              }
+              class="flex items-center gap-2"
+            >
+              <Checkbox.Input />
+              <Checkbox.Control class="h-4 w-4 rounded-2px border relative border-brand-base data-[checked]:(bg-brand-base text-onSurface-invert border-none)">
+                <Checkbox.Indicator class="">
+                  <span class="i-material-symbols:check w-full h-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4" />
+                </Checkbox.Indicator>
+              </Checkbox.Control>
+              <Checkbox.Label class="data-[checked]:(text-brand-base) transition-colors transition-duration-25">
+                {" "}
+                {props.tsTree.folderName}
+              </Checkbox.Label>
+            </Checkbox>
+          </Show>
+          <Show
+            when={!filterFilesAgainstSearch(props.tsTree.subTree.files).length}
+          >
+            {props.tsTree.folderName}
+          </Show>
+        </h2>
+      </Show>
       <Show when={filterFilesAgainstSearch(props.tsTree.subTree.files).length}>
         <ul
           style={{
-            "padding-inline-start": `${marginInline}px`,
+            "padding-inline-start": `${spaceInline}px`,
             "z-index": `${props.loopIter ? props.loopIter : 1}`,
           }}
           class="flex flex-col gap-2 text-onSurface-secondary"
@@ -162,13 +165,13 @@ function DownloadableView(props: {
               <li
                 class={`relative pis-0px ${
                   props.loopIter && props.loopIter > 0
-                    ? 'before:(content-[""]  bg-brand-dark w-[var(--fileWidth)]  h-1px start-[var(--inlineStart)] absolute top-50% translate-y--50%) font-500 last:mbe-4'
+                    ? "font-500 last:mbe-4"
                     : ""
                 }
                 `}
                 style={{
-                  "--inlineStart": `-${marginInline}px`,
-                  "--fileWidth": `${marginInline - 2}px`,
+                  "--inlineStart": `-${spaceInline}px`,
+                  "--fileWidth": `${spaceInline - 2}px`,
                 }}
               >
                 <Checkbox

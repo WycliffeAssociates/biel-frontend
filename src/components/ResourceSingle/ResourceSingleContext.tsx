@@ -54,7 +54,7 @@ export type tsFolderState = {
   folderName: string;
   subTree: TsDirectoryLang;
 };
-export type tsFilesToDownload = Set<TsDirectoryFile>;
+export type tsFilesToDownload = Map<string, TsDirectoryFile>;
 export type twStateType = {
   menuList:
     | {
@@ -100,7 +100,7 @@ export const ResourceSingleProvider = (props: ResourceSingleProviderProps) => {
   >(getDefaultTsFolderShown());
 
   const [tsFilesToDownload, setTsFilesToDownload] =
-    createSignal<tsFilesToDownload>(new Set());
+    createSignal<tsFilesToDownload>(new Map());
   const resourceFromQpOrDefault =
     props.allLangContents.find((r) => r.name === props.queryParams.resource) ||
     props.allLangContents[0]!;

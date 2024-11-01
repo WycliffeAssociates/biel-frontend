@@ -183,7 +183,8 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
               type="hidden"
               name="zipPayload"
               value={JSON.stringify(
-                getTsFilesPayload(Array.from(tsFilesToDownload())).zipPayload
+                getTsFilesPayload(Array.from(tsFilesToDownload().values()))
+                  .zipPayload
               )}
             />
             <button
@@ -193,7 +194,7 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
               {i18nDict.ls_DownloadButton}
               {i18nDict.ls_DownloadButton}{" "}
               {`(${formatBytes(
-                getTsFilesPayload(Array.from(tsFilesToDownload())).size
+                getTsFilesPayload(Array.from(tsFilesToDownload().values())).size
               )})`}
             </button>
           </label>

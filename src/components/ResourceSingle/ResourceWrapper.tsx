@@ -16,18 +16,19 @@ export function ResourceWrapper(props: ContentListingProps) {
       docUiUrl={props.docUiUrl}
       tsFiles={props.tsFiles}
     >
-      <div class="h-full grid items-stretch  md:(gap-x-40 gap-y-4 justify-center  grid-cols-[max-content_85ch] items-start justify-between grid-rows-[auto_1fr])">
-        <SearchBar classes="hidden md:block" />
-        <Menu classes="self-start md:(mie-auto p-0 max-w-prose w-full)" />
-        <AvailableResources
-          classes={" md:(grid-row-start-2 h-full overflow-y-auto pb-12 w-full)"}
-          tsFiles={props.tsFiles}
-        />
-        <ContentView
-          classes={
-            "px-2 md:(mie-auto p-0 max-w-prose w-full h-full pb-12 overflow-y-auto)"
-          }
-        />
+      <div class="h-full grid items-stretch  md:(gap-x-40 gap-y-4 justify-center  grid-cols-[max-content_85ch] items-start justify-between grid-rows-[100%] )">
+        <div class="h-full md:(flex flex-col gap-4 overflow-y-scroll)">
+          <SearchBar classes="hidden md:block" />
+          <AvailableResources classes={""} tsFiles={props.tsFiles} />
+        </div>
+        <div class="h-full md:(flex flex-col gap-4)" data-name="rightCol">
+          <Menu classes="self-start md:(mie-auto p-0 max-w-prose w-full)" />
+          <ContentView
+            classes={
+              "px-2  md:(mie-auto p-0 max-w-prose w-full pb-12 overflow-y-auto)"
+            }
+          />
+        </div>
       </div>
     </ResourceSingleProvider>
   );

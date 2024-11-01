@@ -108,10 +108,9 @@ function DownloadLoadableTypeMenu(props: {
           selectAllFiles(isChecked, results, nestedFolder);
         });
       }
-      const asSet = new Set(results);
-      props.setTsFilesToDownload(asSet);
+      props.setTsFilesToDownload(new Map(results.map((f) => [f.path, f])));
     } else {
-      props.setTsFilesToDownload(new Set<TsDirectoryFile>());
+      props.setTsFilesToDownload(new Map<string, TsDirectoryFile>());
     }
   };
 
@@ -145,7 +144,8 @@ function DownloadLoadableTypeMenu(props: {
                 type="hidden"
                 name="zipPayload"
                 value={JSON.stringify(
-                  getTsFilesPayload(Array.from(props.tsFiles())).zipPayload
+                  getTsFilesPayload(Array.from(props.tsFiles().values()))
+                    .zipPayload
                 )}
               />
               <button

@@ -75,9 +75,9 @@ const nodes = [
     title: i18nDict!.home,
   },
 ];
-
+console.log(parts);
 switch (parts.length) {
-  case 2:
+  case 3:
     // resource/languages/en
     isEnglishDetailPage &&
       nodes.push(
@@ -89,7 +89,12 @@ switch (parts.length) {
         {
           uri: "/resources/languages",
           slug: "",
-          title: parts[1]!.toUpperCase()!,
+          title: capitalizeFirstLetter(parts[1]!),
+        },
+        {
+          uri: `/resources/languages/${pubDataIetf}`,
+          slug: "",
+          title: pubDataIetf,
         }
       );
     break;

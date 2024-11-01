@@ -80,17 +80,18 @@ export function HeaderMenu(props: HeaderMenuProps) {
                       <li class="group text-onSurface-secondary font-wdth-90">
                         {/* top level info */}
                         <span class="inline-block hover:bg-brand-light rounded-2xl">
-                          <a
-                            class="font-500 font-step-0  group-has-[:hover]:(text-brand-base) focus:(text-brand-base) inline-flex gap-2 items-center p-4"
+                          <button
+                            class="font-500 font-step-0  group-has-[:hover]:(text-brand-base) rounded-2xl focus:(text-brand-base) inline-flex gap-2 items-center p-4"
+                            type="button"
                             onFocus={() => setActiveIdx(index)}
-                            onMouseOver={() => setActiveIdx(index)}
-                            href={`${shapeLink(menuLink)}`}
+                            onClick={() => setActiveIdx(index)}
+                            // href={`${shapeLink(menuLink)}`}
                           >
                             {menuLink.title}
                             <Show when={isParent(menuLink)}>
                               <SmallArrowDown />
                             </Show>
-                          </a>
+                          </button>
                         </span>
                         {/* nested pane */}
                         <Show
@@ -106,9 +107,11 @@ export function HeaderMenu(props: HeaderMenuProps) {
                                       innerHTML={menuLink.icon}
                                     />
                                   </Show>
-                                  <h2 class="text-onSurface-primary font-size-[var(--step-1)] font-bold">
-                                    {menuLink.title}
-                                  </h2>
+                                  <a href={shapeLink(menuLink)}>
+                                    <h2 class="text-brand-base font-size-[var(--step-1)] font-bold underline flex gap-2px">
+                                      {menuLink.title}
+                                    </h2>
+                                  </a>
                                 </div>
                                 <p>{menuLink.parent_description}</p>
                               </div>

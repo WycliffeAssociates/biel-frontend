@@ -353,7 +353,7 @@ function FilterDetails(props: FilterProps) {
               aria-label="Fruits"
               as="div"
               data-name="select_trigger"
-              class="inline-flex items-center justify-between w-full rounded-lg border border-gray-300 bg-white text-gray-800 transition-colors duration-200"
+              class="inline-flex items-center justify-between w-full rounded-lg border bg-surface-secondary text-gray-800 transition-colors duration-200 px-1"
             >
               <Select.Value<string>
                 class="flex items-center gap-2 justify-between p-2 w-full"
@@ -362,22 +362,23 @@ function FilterDetails(props: FilterProps) {
                 {(state) => (
                   <>
                     <div class="flex items-center gap-2 flex-wrap">
-                      <For each={state.selectedOptions()}>
+                      <For each={state.selectedOptions().slice(0, 2)}>
                         {(option) => (
-                          <div
-                            class="bg-brand-dark text-onSurface-invert rounded-md font-step--1 p-1 flex items-center gap-2"
-                            onPointerDown={(e) => e.stopPropagation()}
+                          <button
+                            type="button"
+                            class="bg-surface-primary text-onSurface-secondary rounded-md font-step--1 p-1 flex items-center gap-2 hover:(bg-brand-base text-onSurface-invert)"
+                            onClick={() => state.remove(option)}
                           >
                             {option.toUpperCase()}
-                            <button
-                              type="button"
-                              onClick={() => state.remove(option)}
-                            >
-                              <span class="i-material-symbols:close w-1em h-1em" />
-                            </button>
-                          </div>
+                            <span class="i-majesticons:close-circle  w-1em h-1em" />
+                          </button>
                         )}
                       </For>
+                      <Show when={state.selectedOptions().length > 2}>
+                        <span class="bg-surface-primary text-onSurface-secondary rounded-md font-step--1 p-1 w-3ch grid place-items-center">
+                          {state.selectedOptions().slice(2).length}
+                        </span>
+                      </Show>
                     </div>
                     <button
                       type="button"
@@ -390,7 +391,7 @@ function FilterDetails(props: FilterProps) {
                 )}
               </Select.Value>
               <Select.Icon>
-                <span class="i-material-symbols:chevron-down w-1.5em h-1.5em" />
+                <span class="i-fluent:chevron-up-down-16-filled w-1em h-1em" />
               </Select.Icon>
             </Select.Trigger>
             <Select.Portal>

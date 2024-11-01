@@ -212,9 +212,10 @@ export async function getLanguageContents({
   siteLanguage,
 }: getLanguageContentsArgs) {
   // todo: decide whether to use siteLanguage or resources language for css
+  const siteLanguageException = siteLanguage === "es" ? "es-419" : siteLanguage;
   const query = `query LangContents {
   localization(
-    where: {category: {_eq: "resource_type"}, ietf_code: {_eq: "${language}"}}
+    where: {category: {_eq: "resource_type"}, ietf_code: {_eq: "${siteLanguageException}"}}
   ) {
     resourceTypeKey:key
     value
@@ -328,12 +329,24 @@ export async function getLanguageContents({
     const reduced = shapeRenderedContentsByType(content.rendered_contents);
 
     sortHtmlChaptersCanonically(reduced.htmlChapters);
-
+    const getDisplayName = () => {
+      let base = "";
+      const typeMap = resourceTypeToDisplayName.get(content.resource_type);
+      if (!lang.wa_language_metadata?.is_gateway) {
+        base += `${lang.national_name}`;
+        if (typeMap) {
+          base += ` ${typeMap}`;
+        }
+      } else if (typeMap) {
+        base = typeMap;
+      } else {
+        base = `${lang.national_name} ${content.resource_type}`;
+      }
+      return base;
+    };
     return {
       ...content,
-      displayName:
-        resourceTypeToDisplayName.get(content.resource_type) ||
-        `${lang.national_name} ${content.resource_type}`,
+      displayName: getDisplayName(),
       rendered_contents: reduced,
     };
   });

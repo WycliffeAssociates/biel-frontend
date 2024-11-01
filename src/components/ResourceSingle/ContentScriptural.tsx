@@ -50,7 +50,11 @@ export function ScripturalView() {
     refetch();
   });
   return (
-    <div class="flex flex-col gap-4">
+    <div
+      data-name="contentView"
+      data-js="contentView"
+      class="flex flex-col gap-4"
+    >
       <TextOfResource text={text} dict={i18nDict} />
 
       {/* wk: Yes, this is in the wrong "place" by name. Thomas chnaged the designs around on me while trying to get it out the door, so for now it's just in a weird spot w/ respect to names. September 26, 2024 */}
@@ -330,8 +334,13 @@ function NavAdjacentButton(props: NavAdjacentButtonProps) {
     });
     if (globalThis.document) {
       const theText = document.querySelector("[data-js='theText']");
+
+      const theContent = document.querySelector("[data-js='contentView']");
       if (theText) {
         theText.scrollTop = 0;
+      }
+      if (theContent) {
+        theContent.scrollTop = 0;
       }
     }
   };
@@ -378,7 +387,11 @@ function TextOfResource(props: {
   dict: i18nDictType;
 }) {
   return (
-    <div class="relative px-3 theText" data-css="theText" data-js="theText">
+    <div
+      class="relative px-3 theText max-h-60vh pb-16 overflow-y-auto md:(max-h-unset pb-auto)"
+      data-css="theText"
+      data-js="theText"
+    >
       <Suspense
         fallback={
           <div

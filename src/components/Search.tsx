@@ -40,7 +40,7 @@ export function Search(props: SearchProps) {
 
   const mobileClassNames = "mobile";
   const bigClassNames =
-    "absolute top-full  z-10 bg-white px-14 pbs-4 pbe-10 max-h-80vh overflow-auto w-[clamp(min(99vw,270px),50vw,500px)] right-0  ";
+    "absolute top-full  z-10 bg-white p-4 pbs-4 pbe-10 max-h-80vh overflow-auto w-[clamp(min(99vw,270px),50vw,500px)] right-0  ";
 
   onMount(async () => {
     // eagerly fetch this
@@ -314,29 +314,33 @@ export function Search(props: SearchProps) {
               />
               <ul class="list-none! flex flex-col gap-4">
                 <Show when={results()?.page}>
-                  <SearchSectionTitle title={dict.pages} />
-                  <ul class="list-none! flex flex-col gap-2">
-                    <For each={results()?.page?.slice(0, 5)}>
-                      {(item) => (
-                        <SearchItem escapeSearch={escapeSearch} item={item} />
-                      )}
-                    </For>
-                  </ul>
+                  <li>
+                    <SearchSectionTitle title={dict.pages} />
+                    <ul class="list-none! flex flex-col gap-4">
+                      <For each={results()?.page?.slice(0, 5)}>
+                        {(item) => (
+                          <SearchItem escapeSearch={escapeSearch} item={item} />
+                        )}
+                      </For>
+                    </ul>
+                  </li>
                 </Show>
                 <Show when={results()?.software}>
-                  <SearchSectionTitle title={dict.software} />
+                  <li>
+                    <SearchSectionTitle title={dict.software} />
 
-                  <ul class="list-none! flex flex-col gap-2">
-                    <For each={results()?.software}>
-                      {(item) => (
-                        <SearchItem escapeSearch={escapeSearch} item={item} />
-                      )}
-                    </For>
-                  </ul>
+                    <ul class="list-none! flex flex-col gap-4">
+                      <For each={results()?.software}>
+                        {(item) => (
+                          <SearchItem escapeSearch={escapeSearch} item={item} />
+                        )}
+                      </For>
+                    </ul>
+                  </li>
                 </Show>
                 <Show when={results()?.resource}>
                   <SearchSectionTitle title={dict.resources} />
-                  <ul class="list-none! flex flex-col gap-2">
+                  <ul class="list-none! flex flex-col gap-4">
                     <For each={results()?.resource?.slice(0, 5)}>
                       {(item) => (
                         <SearchItem escapeSearch={escapeSearch} item={item} />
@@ -516,6 +520,7 @@ function SearchAsPage(props: SearchAsPageProps) {
       <div class="relative">
         <input
           class={
+            // todo: remove 777 in places and white. use semantic
             "border border-surface-border! p-4 rounded-2xl bg-white! pis-10 placeholder:(text-#777 font-bold) w-full cursor-pointer"
           }
           id="search"
@@ -580,7 +585,7 @@ function SearchAsPage(props: SearchAsPageProps) {
           />
 
           {/* search results */}
-          <ul class="list-none! flex flex-col gap-2 pbs-4 min-h-screen searchResults">
+          <ul class="list-none! flex flex-col gap-4 pbs-4 min-h-screen searchResults">
             <Switch>
               <Match when={tabActive() === "PAGES"}>
                 <For each={props.results()?.page || []}>
