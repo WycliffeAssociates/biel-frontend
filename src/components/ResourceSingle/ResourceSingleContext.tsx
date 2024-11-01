@@ -42,12 +42,13 @@ const ResourceSingleContext = createContext<{
   prefetchAdjacent: (dir: "next" | "prev") => void;
   viewType: Accessor<"readable" | "downloadable">;
   setViewType: Setter<"readable" | "downloadable">;
-  tsFolders: Accessor<tsFolderState | undefined>;
-  setTsFolders: Setter<tsFolderState | undefined>;
+  selectedTsFolder: Accessor<tsFolderState | undefined>;
+  setSelectedTsFolder: Setter<tsFolderState | undefined>;
   tsFilesToDownload: Accessor<tsFilesToDownload>;
   setTsFilesToDownload: Setter<tsFilesToDownload>;
   downloadableSearchTerm: Accessor<string>;
   setDownloadableSearchTerm: Setter<string>;
+  allTsFiles: TsDirectoryLang | undefined;
 }>();
 export type tsFolderState = {
   folderName: string;
@@ -94,9 +95,9 @@ export const ResourceSingleProvider = (props: ResourceSingleProviderProps) => {
       subTree: def,
     };
   }
-  const [tsFolders, setTsFolders] = createSignal<tsFolderState | undefined>(
-    getDefaultTsFolderShown()
-  );
+  const [selectedTsFolder, setSelectedTsFolder] = createSignal<
+    tsFolderState | undefined
+  >(getDefaultTsFolderShown());
 
   const [tsFilesToDownload, setTsFilesToDownload] =
     createSignal<tsFilesToDownload>(new Set());
@@ -250,12 +251,13 @@ export const ResourceSingleProvider = (props: ResourceSingleProviderProps) => {
         prefetchAdjacent,
         viewType,
         setViewType,
-        tsFolders,
-        setTsFolders,
+        selectedTsFolder: selectedTsFolder,
+        setSelectedTsFolder: setSelectedTsFolder,
         setTsFilesToDownload,
         tsFilesToDownload,
         downloadableSearchTerm,
         setDownloadableSearchTerm,
+        allTsFiles: props.tsFiles,
       }}
     >
       {props.children}

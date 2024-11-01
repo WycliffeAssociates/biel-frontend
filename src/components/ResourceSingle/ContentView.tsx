@@ -20,7 +20,7 @@ export function ContentView(props: ContentViewProps) {
     activeContent,
     viewType,
     setViewType,
-    tsFolders,
+    selectedTsFolder,
     tsFilesToDownload,
   } = useResourceSingleContext();
 
@@ -39,7 +39,7 @@ export function ContentView(props: ContentViewProps) {
       <Show when={viewType() === "downloadable"}>
         {/* <p>{tsFolders()}</p> */}
         <div class={`${props.classes || ""} pb-16! `}>
-          <DownloadableView tsTree={tsFolders()} loopIter={1} />
+          <DownloadableView tsTree={selectedTsFolder()} loopIter={1} />
         </div>
       </Show>
     </Suspense>
@@ -66,7 +66,10 @@ function DownloadableView(props: {
   if (!props.tsTree) {
     return null;
   }
-  const isChecked = (file: TsDirectoryFile) => tsFilesToDownload().has(file);
+  const isChecked = (file: TsDirectoryFile) => {
+    debugger;
+    return tsFilesToDownload().has(file);
+  };
 
   const toggle = (file: TsDirectoryFile) => {
     if (isChecked(file)) {

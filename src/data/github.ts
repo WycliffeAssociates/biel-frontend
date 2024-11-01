@@ -1,93 +1,5 @@
 import type {DirectoryListing, TsDirectoryLang} from "@customTypes/types";
 
-export async function getBielFiles() {
-  try {
-    const USER = "wa-biel";
-    const REPO = "biel-files";
-    const endpoint = `https://api.github.com/repos/${USER}/${REPO}/git/trees/master?recursive=1`;
-    const res = await fetch(endpoint);
-
-    if (!res.ok) throw new Error("couldn't fetch biel files on github");
-    const json = (await res.json()) as githubReponse;
-
-    const supportedLanguages = Object.keys(reviewersGuideMeta);
-    const supportedFormats = ["zip", "pdf", "docx"];
-    const formatted = json.tree.reduce((acc: shaped, current) => {
-      if (current.type === "blob") {
-        const parts = current.path.split("/");
-        const langPart = parts?.[0];
-        if (langPart && supportedLanguages.includes(langPart)) {
-          const matchingMeta =
-            reviewersGuideMeta[langPart as keyof typeof reviewersGuideMeta];
-          if (
-            current.path.includes(matchingMeta.dir_name) &&
-            supportedFormats.some((format) =>
-              current.path.endsWith(`.${format}`)
-            )
-          ) {
-            const extensionsDelimiterIdx = current.path.lastIndexOf(".");
-            const extension = current.path.slice(extensionsDelimiterIdx);
-            const nameParts = current.path
-              .slice(0, extensionsDelimiterIdx)
-              .split("/");
-            const name = nameParts[nameParts.length - 1]!;
-            const url = current.url;
-            const book = Object.entries(matchingMeta.books).find(
-              ([bookName]) => {
-                return current.path.includes(bookName);
-              }
-            );
-            //
-            const category = book ? book[1].anth : "topics";
-            const sort = book ? book[1].num : null;
-            const resourceType = matchingMeta.dir_label;
-            if (!acc[langPart]) acc[langPart] = {};
-            if (!acc[langPart]![resourceType]) {
-              acc[langPart]![resourceType] = {};
-            }
-            if (!acc[langPart]![resourceType]![category]) {
-              acc[langPart]![resourceType]![category] = [];
-            }
-            const curEntry = acc[langPart]![resourceType]![category]!.find(
-              (entry) => entry.name === name
-            );
-            if (curEntry) {
-              curEntry.links.push({
-                format: extension,
-                url,
-              });
-            } else {
-              acc[langPart]![resourceType]![category]!.push({
-                name,
-                sort,
-                links: [
-                  {
-                    format: extension,
-                    url,
-                    download: `https://github.com/${USER}/${REPO}/raw/master/${current.path}`,
-                    // https://github.com/wa-biel/biel-files/raw/master/en/review-guide/Reviewers%27%20Guide%20PDF%20documents/Mark.pdf
-                  },
-                ],
-              });
-            }
-            acc[langPart]![resourceType]![category]!.sort((a, b) => {
-              if (a.sort && b.sort) {
-                return a.sort - b.sort;
-              }
-              return 0;
-            });
-          }
-        }
-      }
-      return acc;
-    }, {});
-    return formatted;
-  } catch (error) {
-    console.error(error);
-    return;
-  }
-}
-
 export async function getTsFiles(language: string | undefined) {
   if (!language) return;
   const USER = "wkelly17";
@@ -95,6 +7,7 @@ export async function getTsFiles(language: string | undefined) {
   // const USER = "wa-biel";
   // const REPO = "biel-files";
   const endpoint = `https://api.github.com/repos/${USER}/${REPO}/git/trees/master?recursive=1`;
+  const metadataDatesEngpoint = `https://raw.githubusercontent.com/${USER}/${REPO}/refs/heads/master/metadata.json`;
 
   let cachedRes: Response | undefined;
   let cachedEtag: string | undefined | null;
@@ -121,6 +34,15 @@ export async function getTsFiles(language: string | undefined) {
       },
     },
   });
+  const metaDataRes = await fetch(metadataDatesEngpoint, {
+    // @ts-ignore
+    cf: {
+      headers: {
+        "Cache-Control": "s-maxage=86400",
+      },
+    },
+  });
+
   // unmodified is ok. We handle below. This is an etag check
   if (!res.ok && res.status !== 304) throw new Error(res.statusText);
 
@@ -133,6 +55,10 @@ export async function getTsFiles(language: string | undefined) {
       ? ((await cachedRes!.json()) as githubReponse)
       : ((await res.json()) as githubReponse);
 
+  const metaDataJson = metaDataRes.ok
+    ? ((await metaDataRes.json()) as Record<string, string>)
+    : undefined;
+
   const blobsOnly = json.tree.filter((t) => {
     const parts = t.path.split("/");
     const lang = parts[0];
@@ -144,6 +70,7 @@ export async function getTsFiles(language: string | undefined) {
     const parts = file.path.split("/");
     const fileName = parts.pop()!;
     const fileType = fileName.split(".").pop()!;
+    const lastUpdated = metaDataJson?.[file.path] || null;
     let path = acc;
 
     parts.forEach((p, i) => {
@@ -162,9 +89,11 @@ export async function getTsFiles(language: string | undefined) {
       size: file.size!,
       path: file.path,
       fileType,
+      lastUpdated,
     });
     return acc;
   }, {});
+
   return folderStructure[language];
 }
 

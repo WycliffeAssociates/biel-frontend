@@ -231,6 +231,7 @@ export type TsDirectoryFile = {
   fileName: string;
   fileType: string;
   path: string;
+  lastUpdated: string | null;
 };
 export type TsDirectoryListing = Record<string, DirectoryListing>;
 export type ScriptureStoreState = ContentsForLang & {

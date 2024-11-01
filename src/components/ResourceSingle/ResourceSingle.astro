@@ -3,12 +3,13 @@ import type {i18nDictType} from "@src/i18n/strings";
 interface Props {
   languageToFetch: string;
   i18nDict: i18nDictType;
+  siteLanguage: string;
 }
 import {ResourceWrapper} from "@components/ResourceSingle/ResourceWrapper";
 import {getTsFiles} from "@src/data/github";
 import {getLanguageContents} from "@src/data/pubDataApi";
 
-const {languageToFetch, i18nDict} = Astro.props;
+const {languageToFetch, i18nDict, siteLanguage} = Astro.props;
 const startTime = performance.now();
 // todo: remove
 // const tsFiles = await getTsFiles(languageToFetch);
@@ -27,6 +28,7 @@ const data = await getLanguageContents({
   ctx,
   pubDataApiUrl,
   doBustCache,
+  siteLanguage,
 });
 const {data: languageData, wasCached} = data;
 

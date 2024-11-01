@@ -16,6 +16,8 @@ import type {i18nDictType} from "@src/i18n/strings";
 import {Checkbox} from "@kobalte/core/checkbox";
 import {getTsFilesPayload} from "@lib/web";
 import {formatBytes} from "@src/utils";
+import {DropdownMenu} from "@kobalte/core/dropdown-menu";
+import {DownloadablesFilterMenu} from "./TsDownloadables/FilterMenu";
 
 // No need to ship this to most folks langs that won't have a tw
 const TwMenu = lazy(() => import("./Tw/TwMenu"));
@@ -33,7 +35,7 @@ export function Menu(props: MenuProps) {
     i18nDict,
     viewType,
     tsFilesToDownload,
-    tsFolders,
+    selectedTsFolder,
     setTsFilesToDownload,
     downloadableSearchTerm,
     setDownloadableSearchTerm,
@@ -59,7 +61,7 @@ export function Menu(props: MenuProps) {
       <Show when={viewType() === "downloadable" && isBig()}>
         <DownloadLoadableTypeMenu
           tsFiles={tsFilesToDownload}
-          tsFolder={tsFolders}
+          tsFolder={selectedTsFolder}
           setTsFilesToDownload={setTsFilesToDownload}
           i18nDict={i18nDict}
           downloadableSearchTerm={downloadableSearchTerm}
@@ -114,49 +116,62 @@ function DownloadLoadableTypeMenu(props: {
   };
 
   return (
-    <div class="flex gap-4">
-      <Checkbox
-        // checked={wholeFolderChecked()}
-        onChange={(isChecked) => selectAllFiles(isChecked)}
-        class="flex items-center gap-2 font-500 "
-      >
-        <Checkbox.Input />
-        <Checkbox.Control class="h-4 w-4 rounded-2px border relative border-brand-base data-[checked]:(bg-brand-base text-onSurface-invert border-none)">
-          <Checkbox.Indicator class="">
-            <span class="i-material-symbols:check w-full h-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4" />
-          </Checkbox.Indicator>
-        </Checkbox.Control>
-        <Checkbox.Label class="data-[checked]:(text-brand-base) transition-colors transition-duration-25">
-          {props.i18nDict.ls_SelectAll}
-        </Checkbox.Label>
-      </Checkbox>
-      <input
-        type="text"
-        value={props.downloadableSearchTerm()}
-        onInput={(e) => props.setDownloadableSearchTerm(e.currentTarget.value)}
-        class="bg-surface-secondary px-6 py-2 rounded-lg border border-surface-border"
-        placeholder={props.i18nDict.ls_SearchFilesByName}
-      />
-      <form action="/api/downloadTsFiles" method="post">
-        <label class="flex gap-2 items-center">
-          <input
-            type="hidden"
-            name="zipPayload"
-            value={JSON.stringify(
-              getTsFilesPayload(Array.from(props.tsFiles())).zipPayload
-            )}
-          />
-          <button
-            type="submit"
-            class="p-2 bg-brand-light text-brand-base rounded-xl focus:bg-brand-base focus:ring-4 focus:ring-brand focus:ring-offset-6 md:aspect-auto md:bg-brand md:border-x-2 md:border-t-2 md:border-b-4 md:border-brand-darkest md:bg-brand-base md:text-onSurface-invert! md:flex md:gap-2 md:items-center md:hover:bg-brand-darkest md:active:bg-brand-darkest"
+    <div data-name="downloadable-menu-wrapper" class="flex flex-col gap-2">
+      <div class="flex justify-between align-center">
+        <div class="flex items-center gap-2">
+          <Checkbox
+            // checked={wholeFolderChecked()}
+            onChange={(isChecked) => selectAllFiles(isChecked)}
+            class="flex items-center gap-2 font-500 "
           >
-            {props.i18nDict.ls_DownloadButton}{" "}
-            {`(${formatBytes(
-              getTsFilesPayload(Array.from(props.tsFiles())).size
-            )})`}
-          </button>
-        </label>
-      </form>
+            <Checkbox.Input />
+            <Checkbox.Control class="h-4 w-4 rounded-2px border relative border-brand-base data-[checked]:(bg-brand-base text-onSurface-invert border-none)">
+              <Checkbox.Indicator class="">
+                <span class="i-material-symbols:check w-full h-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4" />
+              </Checkbox.Indicator>
+            </Checkbox.Control>
+            {/* <Checkbox.Label class="data-[checked]:(text-brand-base) transition-colors transition-duration-25">
+              {props.i18nDict.ls_SelectAll}
+            </Checkbox.Label> */}
+          </Checkbox>
+          <h2 class="font-700 font-step-1">{props.tsFolder()?.folderName}</h2>
+        </div>
+        <div data-name="downloadable-actions" class="flex gap-4 items-center">
+          <DownloadablesFilterMenu />
+
+          <form action="/api/downloadTsFiles" method="post">
+            <label class="flex gap-2 items-center">
+              <input
+                type="hidden"
+                name="zipPayload"
+                value={JSON.stringify(
+                  getTsFilesPayload(Array.from(props.tsFiles())).zipPayload
+                )}
+              />
+              <button
+                type="submit"
+                class="p-2 bg-brand-light text-brand-base rounded-xl focus:bg-brand-base focus:ring-4 focus:ring-brand focus:ring-offset-6 md:aspect-auto md:bg-brand md:border-x-2 md:border-t-2 md:border-b-4 md:border-brand-darkest md:bg-brand-base md:text-onSurface-invert! md:flex md:gap-2 md:items-center md:hover:bg-brand-darkest md:active:bg-brand-darkest"
+              >
+                {props.i18nDict.ls_DownloadButton}{" "}
+                <Show when={Array.from(props.tsFiles()).length}>
+                  {`(${Array.from(props.tsFiles()).length})`}
+                </Show>
+              </button>
+            </label>
+          </form>
+        </div>
+      </div>
+      <div data-name="downloadableSearch">
+        <input
+          type="text"
+          value={props.downloadableSearchTerm()}
+          onInput={(e) =>
+            props.setDownloadableSearchTerm(e.currentTarget.value)
+          }
+          class="bg-surface-secondary px-6 py-2 rounded-lg border border-surface-border w-5/6"
+          placeholder={props.i18nDict.ls_SearchFilesByName}
+        />
+      </div>
     </div>
   );
 }

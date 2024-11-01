@@ -29,16 +29,16 @@ export function AvailableResources(props: AvailableResourcesProps) {
     menuSearchTerm,
     allLangContents,
     i18nDict,
-    setTsFolders,
+    setSelectedTsFolder,
+    selectedTsFolder,
     setViewType,
-    tsFolders,
     viewType,
   } = useResourceSingleContext();
 
   return (
     <Show when={isBig()} fallback={<AvailableResourcesSmall {...props} />}>
       <div
-        class={`hidden md:(flex shrink-0 flex-col gap-2) ${
+        class={`hidden md:(flex shrink-0 flex-col gap-2 pie-4) ${
           props.classes || ""
         }`}
       >
@@ -66,9 +66,9 @@ export function AvailableResources(props: AvailableResourcesProps) {
               <For each={Object.entries(props.tsFiles!.folders)}>
                 {([key, value]) => (
                   <TsFileDownload
-                    tsFolders={tsFolders}
+                    tsFolders={selectedTsFolder}
                     setViewType={setViewType}
-                    setTsFolders={setTsFolders}
+                    setTsFolders={setSelectedTsFolder}
                     topLevelFolder={key}
                     subTree={value}
                     viewType={viewType}
@@ -92,9 +92,9 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
     mobileResourceTitle,
     i18nDict,
     setViewType,
-    setTsFolders,
+    setSelectedTsFolder,
+    selectedTsFolder,
     viewType,
-    tsFolders,
     tsFilesToDownload,
   } = useResourceSingleContext();
 
@@ -116,7 +116,7 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
         >
           {viewType() === "readable"
             ? activeContent.displayName
-            : tsFolders()?.folderName}
+            : selectedTsFolder()?.folderName}
           <span class="i-ic:round-arrow-drop-down" />
         </Dialog.Trigger>
         <Dialog.Portal>
@@ -160,9 +160,9 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
                   <For each={Object.entries(props.tsFiles!.folders)}>
                     {([key, value]) => (
                       <TsFileDownload
-                        tsFolders={tsFolders}
+                        tsFolders={selectedTsFolder}
                         setViewType={setViewType}
-                        setTsFolders={setTsFolders}
+                        setTsFolders={setSelectedTsFolder}
                         topLevelFolder={key}
                         subTree={value}
                         additionalOnClick={() => setOpen(false)}
