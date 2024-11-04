@@ -37,20 +37,22 @@ type adjustCmsDomLinksArgs = {
   stringToParse: string;
   englishUriMap?: Record<string, Record<string, string>>;
   currentLangCode?: string;
+  baseUrl?: string;
 };
 
 export function adjustCmsDomLinks({
   stringToParse,
   englishUriMap,
   currentLangCode,
+  baseUrl,
 }: adjustCmsDomLinksArgs) {
   const wrapped = `<div id="absolutizeWrapper">${stringToParse}</div>`;
   const dom = new DOMParser().parseFromString(wrapped, "text/html");
   const images: HTMLImageElement[] = Array.from(dom.querySelectorAll("img"));
-  const baseUrl = import.meta.env.CMS_URL;
+  const theBaseUrl = baseUrl ? baseUrl : import.meta.env.CMS_URL;
 
   images.forEach((img) => {
-    const ownServerUrl: string | undefined = baseUrl.split("//")?.[1];
+    const ownServerUrl: string | undefined = theBaseUrl.split("//")?.[1];
     const srcToUse = img.src;
     const srcSet = img.srcset;
     function needToHandleLocalHttpsErr(src: string) {

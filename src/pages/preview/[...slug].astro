@@ -5,7 +5,6 @@ import {BreadCrumbs} from "@components/BreadCrumbs";
 import ContactPage from "@components/ContactPage.astro";
 import {HeaderMenu} from "@components/HeaderMenu";
 import Hero from "@components/Hero.astro";
-import {injectSearch} from "@components/SearchInjectClientSide";
 import SearchPage from "@components/SearchPage.astro";
 import LayoutServer from "@layouts/LayoutServer.astro";
 import {blocksAreEmpty} from "@lib/web";
@@ -25,6 +24,7 @@ const gqlUrl =
 const restUrl =
   import.meta.env.WORDPRESS_REST_MENU_ENDPOINT ||
   Astro.locals.runtime.env?.WORDPRESS_REST_MENU_ENDPOINT;
+const cmsBaseUrl = import.meta.env.CMS_URL || Astro.locals.runtime.env?.CMS_URL;
 // style id=generateblocks-inline-css
 // const res = await fetch("http://bible-in-every-language.local/headless/");
 const {slug} = Astro.params;
@@ -156,6 +156,7 @@ page.editorBlocks
                     stringToParse: block.renderedHtml,
                     englishUriMap,
                     currentLangCode: langInfo.code,
+                    baseUrl: cmsBaseUrl,
                   })}
                 />
               );
@@ -196,6 +197,7 @@ page.editorBlocks
               stringToParse: ctaSection?.content!,
               currentLangCode: langInfo.code,
               englishUriMap,
+              baseUrl: cmsBaseUrl,
             })}
           />
         </div>

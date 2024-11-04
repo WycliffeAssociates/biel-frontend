@@ -291,7 +291,7 @@ export async function getLanguageContents({
     }
   }
   const json = (await res.json()) as langContentReturn;
-  console.log(json);
+
   const resourceTypeToDisplayName = json.data.localization.reduce(
     (acc: Map<string, string>, curr) => {
       return acc.set(curr.resourceTypeKey, curr.value);
