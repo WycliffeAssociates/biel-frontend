@@ -98,4 +98,3 @@ jobs:
           apiToken: ${{ env.CF_API_TOKEN }}
           accountId: ${{ env.CF_ACCOUNT_ID }}
           command: pages deploy dist --project-name=headless-biel --upload-source-maps=true
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}

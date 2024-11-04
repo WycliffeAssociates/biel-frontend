@@ -13,13 +13,16 @@ interface Props {
   isContactPage: boolean;
   langDirection: "ltr" | "rtl";
 }
-import {ViewTransitions} from "astro:transitions";
+
 import {adjustCmsDomLinks} from "@src/utils";
 const gqlUrl =
   import.meta.env.WORDPRESS_GQL_URL ||
   Astro.locals.runtime.env?.WORDPRESS_GQL_URL;
+const cmsBaseUrl = import.meta.env.CMS_URL || Astro.locals.runtime.env?.CMS_URL;
+
 const {title, inlineCss, langInfo, langSwitcher, isContactPage, langDirection} =
   Astro.props;
+
 // const forceRefresh = false;
 const footerData = await getFooter({langCode: langInfo.code, gqlUrl});
 const {footerInlineStyles, footer} = footerData
@@ -77,6 +80,7 @@ const {englishUriMap} = await getEnglishUriMap({gqlUrl});
           stringToParse: footer.content,
           englishUriMap,
           currentLangCode: langInfo.code,
+          baseUrl: cmsBaseUrl,
         })}
       />
     </footer>
