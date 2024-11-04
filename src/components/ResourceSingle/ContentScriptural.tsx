@@ -333,6 +333,7 @@ function NavAdjacentButton(props: NavAdjacentButtonProps) {
       setter: props.setActiveContent,
     });
     if (globalThis.document) {
+      // Which container is scrolling depends on viewport size, but scroll both back to top. Easier to break jsx flow and do it from here than pass a ref or somethign.
       const theText = document.querySelector("[data-js='theText']");
 
       const theContent = document.querySelector("[data-js='contentView']");

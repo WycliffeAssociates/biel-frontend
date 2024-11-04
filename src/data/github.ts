@@ -2,8 +2,8 @@ import type {DirectoryListing, TsDirectoryLang} from "@customTypes/types";
 
 export async function getTsFiles(language: string | undefined) {
   if (!language) return;
-  const USER = "wkelly17";
-  const REPO = "new-biel-files";
+  const USER = "WycliffeAssociates";
+  const REPO = "TS-biel-files";
   // const USER = "wa-biel";
   // const REPO = "biel-files";
   const endpoint = `https://api.github.com/repos/${USER}/${REPO}/git/trees/master?recursive=1`;
@@ -61,13 +61,14 @@ export async function getTsFiles(language: string | undefined) {
 
   const blobsOnly = json.tree.filter((t) => {
     const parts = t.path.split("/");
-    const lang = parts[0];
+    const lang = parts[1];
     return lang === language && t.type === "blob";
   });
   if (!blobsOnly.length) return undefined; // no files in this language
 
   const folderStructure = blobsOnly.reduce((acc: DirectoryListing, file) => {
     const parts = file.path.split("/");
+    const isTraining = parts[0] === "training";
     const fileName = parts.pop()!;
     const fileType = fileName.split(".").pop()!;
     const lastUpdated = metaDataJson?.[file.path] || null;
@@ -93,8 +94,9 @@ export async function getTsFiles(language: string | undefined) {
     });
     return acc;
   }, {});
-
-  return folderStructure[language];
+  const training = folderStructure.training?.folders[language];
+  const supplemental = folderStructure.supplemental?.folders[language];
+  return {trainingFiles: training, supplementalFiles: supplemental};
 }
 
 type shaped = {

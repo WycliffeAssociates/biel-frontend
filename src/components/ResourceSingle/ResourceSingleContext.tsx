@@ -48,7 +48,12 @@ const ResourceSingleContext = createContext<{
   setTsFilesToDownload: Setter<tsFilesToDownload>;
   downloadableSearchTerm: Accessor<string>;
   setDownloadableSearchTerm: Setter<string>;
-  allTsFiles: TsDirectoryLang | undefined;
+  allTsFiles:
+    | {
+        trainingFiles: TsDirectoryLang | undefined;
+        supplementalFiles: TsDirectoryLang | undefined;
+      }
+    | undefined;
 }>();
 export type tsFolderState = {
   folderName: string;
@@ -76,7 +81,12 @@ type ResourceSingleProviderProps = {
   queryParams: ContentListingProps["queryParams"];
   englishName: string;
   docUiUrl: string;
-  tsFiles: TsDirectoryLang | undefined;
+  tsFiles:
+    | {
+        trainingFiles: TsDirectoryLang | undefined;
+        supplementalFiles: TsDirectoryLang | undefined;
+      }
+    | undefined;
 };
 export const ResourceSingleProvider = (props: ResourceSingleProviderProps) => {
   const isBig = createMediaQuery("(min-width: 768px)", true);
@@ -87,8 +97,8 @@ export const ResourceSingleProvider = (props: ResourceSingleProviderProps) => {
     props.queryParams.download ? "downloadable" : "readable"
   );
   function getDefaultTsFolderShown() {
-    if (!props.tsFiles || !props.queryParams.download) return;
-    const def = props.tsFiles.folders[props.queryParams.download];
+    if (!props.tsFiles?.trainingFiles || !props.queryParams.download) return;
+    const def = props.tsFiles.trainingFiles.folders[props.queryParams.download];
     if (!def) return;
     return {
       folderName: props.queryParams.download,

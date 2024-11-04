@@ -43,9 +43,9 @@ export function ContentView(props: ContentViewProps) {
       <Show when={viewType() === "downloadable"}>
         {/* <p>{tsFolders()}</p> */}
         <div
-          data-name="contentView"
+          data-name="contentViewDownloadable"
           data-js="contentView"
-          class={`${props.classes || ""} pbe-16! `}
+          class={`${props.classes || ""} pbe-16! max-h-70vh! overflow-y-auto!`}
         >
           <DownloadableView tsTree={selectedTsFolder()} loopIter={0} />
         </div>
@@ -65,15 +65,16 @@ function DownloadableView(props: {
 }) {
   const {tsFilesToDownload, setTsFilesToDownload, downloadableSearchTerm} =
     useResourceSingleContext();
+  if (!props.tsTree) {
+    return null;
+  }
   // const [wholeFolderChecked, setWholeFolderChecked] = createSignal(false);
   const wholeChecked = () => {
     return props.tsTree?.subTree.files.every((file) =>
       tsFilesToDownload().has(file.path)
     );
   };
-  if (!props.tsTree) {
-    return null;
-  }
+
   const isChecked = (file: TsDirectoryFile) => {
     return tsFilesToDownload().has(file.path);
   };
@@ -108,6 +109,14 @@ function DownloadableView(props: {
       return file.fileName.toLowerCase().includes(searchTerm);
     });
   };
+
+  const dateFormatter = new Intl.DateTimeFormat(
+    window.navigator.language || "en",
+    {
+      year: "numeric",
+      month: "2-digit",
+    }
+  );
 
   const spaceInline = props.loopIter ? props.loopIter * 20 : 0;
   return (
@@ -185,8 +194,13 @@ function DownloadableView(props: {
                       <span class="i-material-symbols:check w-full h-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4" />
                     </Checkbox.Indicator>
                   </Checkbox.Control>
-                  <Checkbox.Label class="data-[checked]:(text-brand-base) ">
+                  <Checkbox.Label class="data-[checked]:(text-brand-base) inline-flex gap-2 items-center justify-between w-full pe-2">
                     {file.fileName}
+                    <Show when={file.lastUpdated}>
+                      <small class="font-step--2 font-600 tracking-wide">
+                        ({dateFormatter.format(new Date(file.lastUpdated!))})
+                      </small>
+                    </Show>
                   </Checkbox.Label>
                 </Checkbox>
               </li>

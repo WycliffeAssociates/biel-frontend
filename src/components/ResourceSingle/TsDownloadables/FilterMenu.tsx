@@ -7,7 +7,9 @@ import {
 import type {TsDirectoryFile, TsDirectoryLang} from "@customTypes/types";
 import {createEffect, createSignal, For} from "solid-js";
 
-type FilterMenuProps = unknown;
+type FilterMenuProps = {
+  isBig?: boolean;
+};
 
 export function DownloadablesFilterMenu(props: FilterMenuProps) {
   const {i18nDict, selectedTsFolder, setSelectedTsFolder, allTsFiles} =
@@ -37,9 +39,17 @@ export function DownloadablesFilterMenu(props: FilterMenuProps) {
     },
   ];
 
-  const uniqueFileTypesInThisFolder = () => {
+  const currentFolderFromAllTsFiles = () => {
     const pickedFolder =
-      allTsFiles?.folders[selectedTsFolder()?.folderName || ""];
+      allTsFiles?.trainingFiles?.folders[
+        selectedTsFolder()?.folderName || ""
+      ] ||
+      allTsFiles?.trainingFiles?.folders[selectedTsFolder()?.folderName || ""];
+    return pickedFolder;
+  };
+
+  const uniqueFileTypesInThisFolder = () => {
+    const pickedFolder = currentFolderFromAllTsFiles();
     if (!pickedFolder) return [];
 
     const getFileTypes = (node: TsDirectoryLang, files: Set<string>) => {
@@ -103,8 +113,7 @@ export function DownloadablesFilterMenu(props: FilterMenuProps) {
   };
   const callShortTreeDirect = () => {
     if (!allTsFiles) return;
-    const currentFolderAllFiles =
-      allTsFiles.folders[selectedTsFolder()?.folderName || ""];
+    const currentFolderAllFiles = currentFolderFromAllTsFiles();
     if (!currentFolderAllFiles) return;
     const copy = JSON.parse(
       JSON.stringify(currentFolderAllFiles)
@@ -118,8 +127,7 @@ export function DownloadablesFilterMenu(props: FilterMenuProps) {
 
   const filterFilesByType = () => {
     if (!allTsFiles) return;
-    const currentFolderAllFiles =
-      allTsFiles.folders[selectedTsFolder()?.folderName || ""];
+    const currentFolderAllFiles = currentFolderFromAllTsFiles();
     if (!currentFolderAllFiles) return;
     const copy = JSON.parse(
       JSON.stringify(currentFolderAllFiles)
@@ -162,8 +170,14 @@ export function DownloadablesFilterMenu(props: FilterMenuProps) {
 
   return (
     <DropdownMenu placement="bottom-end">
-      <DropdownMenu.Trigger>
-        <span class="i-ic:round-filter-alt w-1em h-1em:" />
+      <DropdownMenu.Trigger
+        class={`${
+          props.isBig
+            ? "bg-surface-secondary rounded-lg size-10 aspect-square"
+            : ""
+        }`}
+      >
+        <span class={"i-ic:round-filter-alt w-1em h-1em"} />
       </DropdownMenu.Trigger>
       <DropdownMenu.Portal>
         <DropdownMenu.Content

@@ -16,7 +16,7 @@ export function ResourceWrapper(props: ContentListingProps) {
       docUiUrl={props.docUiUrl}
       tsFiles={props.tsFiles}
     >
-      <div class="h-full grid items-stretch  md:(gap-x-40 gap-y-4 justify-center  grid-cols-[max-content_85ch] items-start justify-between grid-rows-[100%] )">
+      <div class="h-full grid items-stretch grid-auto-rows-[max-content]  md:(gap-x-40 gap-y-4 justify-center  grid-cols-[max-content_85ch] items-start justify-between grid-rows-[100%] )">
         <div class="h-full md:(flex flex-col gap-4 overflow-y-scroll)">
           <SearchBar classes="hidden md:block" />
           <AvailableResources classes={""} tsFiles={props.tsFiles} />

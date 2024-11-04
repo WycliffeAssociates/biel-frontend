@@ -54,7 +54,9 @@ const en = {
   ls_DocErredMsg:
     "Something went wrong. Your file couldn't be generated. You may try again or contact us",
   ls_Navigate: "Navigate",
-  ls_AvailableForDownload: "Available for download",
+  ls_TranslationResources: "Translation Resources",
+  ls_AvailableForDownload: "Also Available for Download",
+  ls_TrainingMaterials: "Training Resources",
   ls_SelectAll: "Select All",
   rl_ChooseALanguage: "Choose a language",
   rl_SearchPlaceholder: "Search by Name, Code, etc...",
@@ -154,8 +156,10 @@ const es: Record<i18nKeysType, string> = {
   ls_GeneratingDocMessage: "Generando su archivo, por favor espere",
   ls_Cancel: "Cancelar",
   ls_DocErredMsg:
-    "Something ha ido mal. No se ha podido generar su archivo. Puede intentarlo de nuevo o ponerse en contacto con nosotros",
+    "Algo ha ido mal. No se ha podido generar su archivo. Puede intentarlo de nuevo o ponerse en contacto con nosotros",
   ls_Navigate: "Navegar",
+  ls_TranslationResources: "Recursos de Traducción",
+  ls_TrainingMaterials: "Recursos de formación",
   ls_AvailableForDownload: "Disponible para descarga",
   rl_ChooseALanguage: "Elige un idioma",
   rl_SearchPlaceholder: "Buscar por nombre, código, etc...",

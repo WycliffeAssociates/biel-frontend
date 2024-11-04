@@ -291,6 +291,7 @@ export async function getLanguageContents({
     }
   }
   const json = (await res.json()) as langContentReturn;
+  console.log(json);
   const resourceTypeToDisplayName = json.data.localization.reduce(
     (acc: Map<string, string>, curr) => {
       return acc.set(curr.resourceTypeKey, curr.value);
@@ -424,6 +425,7 @@ export async function getLangsWithContentNames({
     body: JSON.stringify({query}),
   });
   const json = (await res.json()) as getLangsWithContentNamesReturn;
+  console.log(json);
   const resourceTypeToDisplayName = json.data.localization.reduce(
     (acc: Map<string, string>, curr) => {
       return acc.set(`${curr.ietf_code}-${curr.resourceTypeKey}`, curr.value);

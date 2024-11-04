@@ -16,10 +16,16 @@ import {contentContainsSearch, isScriptural} from "./lib";
 import {getTsFilesPayload} from "@lib/web";
 import type {tsFilesToDownload} from "./ResourceSingleContext";
 import {formatBytes} from "@src/utils";
+import {DownloadablesFilterMenu} from "./TsDownloadables/FilterMenu";
 
 type AvailableResourcesProps = {
   classes?: string;
-  tsFiles: TsDirectoryLang | undefined;
+  tsFiles:
+    | {
+        trainingFiles: TsDirectoryLang | undefined;
+        supplementalFiles: TsDirectoryLang | undefined;
+      }
+    | undefined;
 };
 export function AvailableResources(props: AvailableResourcesProps) {
   const {
@@ -42,28 +48,57 @@ export function AvailableResources(props: AvailableResourcesProps) {
           props.classes || ""
         }`}
       >
-        <ul class="flex flex-col gap-4">
-          <For each={contentContainsSearch(menuSearchTerm, allLangContents)}>
-            {(row) => (
-              <AvailableResource
-                setViewType={setViewType}
-                setActiveContent={setActiveContent}
-                content={row}
-                activeContent={activeContent}
-                viewType={viewType}
-              />
-            )}
-          </For>
-        </ul>
+        <div class="flex flex-col gap-2">
+          <h3 class="text-brand-dark font-700 font-step-0 mbe-2">
+            {i18nDict.ls_TranslationResources}
+          </h3>
+          <ul class="flex flex-col gap-4">
+            <For each={contentContainsSearch(menuSearchTerm, allLangContents)}>
+              {(row) => (
+                <AvailableResource
+                  setViewType={setViewType}
+                  setActiveContent={setActiveContent}
+                  content={row}
+                  activeContent={activeContent}
+                  viewType={viewType}
+                />
+              )}
+            </For>
+          </ul>
+        </div>
 
-        <Show when={props.tsFiles}>
+        <Show when={props.tsFiles?.trainingFiles}>
+          <hr class="border-none h-2px text-[#e6e6e6] bg-[#e6e6e6]" />
+          <div>
+            <h3 class="text-brand-dark font-700 font-step-0 mbe-2">
+              {i18nDict.ls_TrainingMaterials}
+            </h3>
+            <ul class="flex flex-col gap-4">
+              <For each={Object.entries(props.tsFiles!.trainingFiles!.folders)}>
+                {([key, value]) => (
+                  <TsFileDownload
+                    tsFolders={selectedTsFolder}
+                    setViewType={setViewType}
+                    setTsFolders={setSelectedTsFolder}
+                    topLevelFolder={key}
+                    subTree={value}
+                    viewType={viewType}
+                  />
+                )}
+              </For>
+            </ul>
+          </div>
+        </Show>
+        <Show when={props.tsFiles?.supplementalFiles}>
           <hr class="border-none h-2px text-[#e6e6e6] bg-[#e6e6e6]" />
           <div>
             <h3 class="text-brand-dark font-700 font-step-0 mbe-2">
               {i18nDict.ls_AvailableForDownload}
             </h3>
             <ul class="flex flex-col gap-4">
-              <For each={Object.entries(props.tsFiles!.folders)}>
+              <For
+                each={Object.entries(props.tsFiles!.supplementalFiles!.folders)}
+              >
                 {([key, value]) => (
                   <TsFileDownload
                     tsFolders={selectedTsFolder}
@@ -96,10 +131,13 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
     selectedTsFolder,
     viewType,
     tsFilesToDownload,
+    downloadableSearchTerm,
+    setDownloadableSearchTerm,
   } = useResourceSingleContext();
 
   return (
     <div
+      data-name="AvailableResourcesSmall"
       class={`flex flex-col w-full sticky top-0 bg-surface-primary mx-auto gap-4 items-center z-5 ${
         props.classes || ""
       }`}
@@ -150,14 +188,43 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
                 )}
               </For>
             </ul>
-            <Show when={props.tsFiles}>
+            <Show when={props.tsFiles?.trainingFiles}>
+              <hr class="border-none h-2px text-[#e6e6e6] bg-[#e6e6e6]" />
+              <div>
+                <h3 class="text-brand-dark font-bold pis-2">
+                  {i18nDict.ls_TrainingMaterials}
+                </h3>
+                <ul>
+                  <For
+                    each={Object.entries(props.tsFiles!.trainingFiles!.folders)}
+                  >
+                    {([key, value]) => (
+                      <TsFileDownload
+                        tsFolders={selectedTsFolder}
+                        setViewType={setViewType}
+                        setTsFolders={setSelectedTsFolder}
+                        topLevelFolder={key}
+                        subTree={value}
+                        additionalOnClick={() => setOpen(false)}
+                        viewType={viewType}
+                      />
+                    )}
+                  </For>
+                </ul>
+              </div>
+            </Show>
+            <Show when={props.tsFiles?.supplementalFiles}>
               <hr class="border-none h-2px text-[#e6e6e6] bg-[#e6e6e6]" />
               <div>
                 <h3 class="text-brand-dark font-bold pis-2">
                   {i18nDict.ls_AvailableForDownload}
                 </h3>
                 <ul>
-                  <For each={Object.entries(props.tsFiles!.folders)}>
+                  <For
+                    each={Object.entries(
+                      props.tsFiles!.supplementalFiles!.folders
+                    )}
+                  >
                     {([key, value]) => (
                       <TsFileDownload
                         tsFolders={selectedTsFolder}
@@ -177,6 +244,18 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
         </Dialog.Portal>
       </Dialog>
       <Show when={viewType() === "downloadable" && !open()}>
+        <div class="flex justify-between w-full gap-4 items-stretch">
+          <input
+            type="text"
+            value={downloadableSearchTerm()}
+            onInput={(e) => setDownloadableSearchTerm(e.currentTarget.value)}
+            data-name="downloadableSearchSmall"
+            class="bg-surface-secondary px-6 py-2 rounded-lg border border-surface-border w-full"
+            placeholder={i18nDict.ls_SearchFilesByName}
+          />
+          <DownloadablesFilterMenu isBig={true} />
+        </div>
+
         <form action="/api/downloadTsFiles" method="post">
           <label class="flex gap-2 items-center">
             <input
@@ -187,16 +266,18 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
                   .zipPayload
               )}
             />
-            <button
-              type="submit"
-              class="fixed bottom-4 end-4 p-2 bg-brand-light text-brand-base rounded-xl focus:(bg-brand-base ring-4 ring-offset-6) hover:(bg-brand-base text-onSurface-invert)  "
-            >
-              {i18nDict.ls_DownloadButton}
-              {i18nDict.ls_DownloadButton}{" "}
-              {`(${formatBytes(
-                getTsFilesPayload(Array.from(tsFilesToDownload().values())).size
-              )})`}
-            </button>
+            <div class="fixed w-full bottom-0 start-0 contain-pad bg-surface-primary z-10 py-2">
+              <button
+                type="submit"
+                class="p-2 bg-brand-base text-onSurface-invert  rounded-xl focus:(ring-4 ring-offset-6)"
+              >
+                {i18nDict.ls_DownloadButton}
+                <Show when={Array.from(tsFilesToDownload()).length}>
+                  {" "}
+                  {`(${Array.from(tsFilesToDownload()).length})`}
+                </Show>
+              </button>
+            </div>
           </label>
         </form>
       </Show>

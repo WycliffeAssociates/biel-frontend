@@ -206,7 +206,12 @@ export type GlobalWpType = {
 export type ContentListingProps = {
   contents: ContentsForLang[];
   language: LanguageForClient;
-  tsFiles: TsDirectoryLang | undefined;
+  tsFiles:
+    | {
+        trainingFiles: TsDirectoryLang | undefined;
+        supplementalFiles: TsDirectoryLang | undefined;
+      }
+    | undefined;
   i18nDict: i18nDictType;
   queryParams: {
     resource: string | null;
