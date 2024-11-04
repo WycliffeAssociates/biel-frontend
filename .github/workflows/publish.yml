@@ -93,11 +93,9 @@ jobs:
             WORDPRESS_GQL_URL:  ${{ env.WORDPRESS_GQL_URL }}
             PUBLIC_DATA_API_URL: ${{ env.PUBLIC_DATA_API_URL }}
       - name: Publish
-        uses: cloudflare/pages-action@1
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ env.CF_API_TOKEN }}
           accountId: ${{ env.CF_ACCOUNT_ID }}
-          projectName: headless-biel
-          directory: dist # e.g. 'dist'
-          # automatically provided by ga
+          command: pages deploy dist --project-name=headless-biel --upload-source-maps=true
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
