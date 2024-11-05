@@ -3,7 +3,7 @@ import type {APIRoute} from "astro";
 
 type remotePayloadType = {
   env: string;
-  devEmail?: string;
+  addresses: string[];
   formFields: Array<{
     field: string;
     value: string;
@@ -31,8 +31,13 @@ export const POST: APIRoute = async ({request, site, url, locals}) => {
   const email = data.get("email")?.toString();
   const helpMethod = data.get("method")?.toString();
   const message = data.get("message")?.toString() || "";
-
-  if (!email || !helpMethod) {
+  const approvedHelpMethods = [
+    "Scripture Engagement",
+    "Tech Support",
+    "Translation Support",
+    "Other",
+  ];
+  if (!email || !helpMethod || !approvedHelpMethods.includes(helpMethod)) {
     return new Response(null, {
       status: 400,
     });
@@ -60,21 +65,35 @@ export const POST: APIRoute = async ({request, site, url, locals}) => {
   if (outcome.success) {
     const formFields = [
       {
-        field: "email",
+        field: "Form Name",
+        value: "Biel General Contact Form",
+      },
+      {
+        field: "Environment",
+        value: locals.runtime.env.CONTACT_ENV || "local",
+      },
+      {
+        field: "Submitter Email",
         value: email,
       },
       {
-        field: "method of help request",
+        field: "Method of Help Requested",
         value: helpMethod,
       },
       {
-        field: "message",
+        field: "Message",
         value: message,
       },
     ];
+    const emailAddresses = matchHelpMethodToEmailList(
+      helpMethod,
+      locals.runtime.env.CONTACT_FORM_EMAILS || "{}",
+      locals.runtime.env.CONTACT_ENV || "local"
+    );
+    console.log(emailAddresses);
     const processingBody: remotePayloadType = {
       env: locals.runtime.env.CONTACT_ENV || "local",
-      devEmail: locals.runtime.env.CONTACT_DEV_EMAIL || "noop",
+      addresses: emailAddresses,
       formFields,
     };
 
@@ -102,33 +121,44 @@ export const POST: APIRoute = async ({request, site, url, locals}) => {
         "Access-Control-Allow-Origin": "*",
       },
     });
-    // SEND FOR PROCESSING
-    // return new Response(body, {
-    //   status: 200,
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //     "Access-Control-Allow-Origin": "*",
-    //   },
-    // });
   }
   return new Response(null, {
     status: 403,
   });
-
-  // Validate the data - you'll probably want to do more than this
-  // if (!name || !email || !message) {
-  //   return new Response(
-  //     JSON.stringify({
-  //       message: "Missing required fields",
-  //     }),
-  //     { status: 400 }
-  //   );
-  // }
-  // Do something with the data, then return a success response
-  // return new Response(
-  //   JSON.stringify({
-  //     message: "Success!"
-  //   }),
-  //   { status: 200 }
-  // );
 };
+
+function matchHelpMethodToEmailList(
+  helpMethod: string,
+  emailJson: string,
+  isDev: boolean
+) {
+  // don't worry about try catch here. We want to bubble and throw if not valid
+  const emailMap = JSON.parse(emailJson) as {
+    tech: string;
+    engagement: string;
+    dev: string;
+    translationSupport: string;
+    other: string;
+  };
+
+  function splitOnCommaAndFilter(str: string) {
+    return str
+      .split(",")
+      .filter((s: string) => s.includes("@wycliffeassociates.org"));
+  }
+  if (isDev) {
+    return splitOnCommaAndFilter(emailMap.dev);
+  }
+  switch (helpMethod) {
+    case "Scripture Engagement":
+      return splitOnCommaAndFilter(emailMap.engagement);
+    case "Tech Support":
+      return splitOnCommaAndFilter(emailMap.tech);
+    case "Translation Support":
+      return splitOnCommaAndFilter(emailMap.translationSupport);
+    case "Other":
+      return splitOnCommaAndFilter(emailMap.other);
+    default:
+      return [];
+  }
+}

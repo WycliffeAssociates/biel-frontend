@@ -111,7 +111,7 @@ function DownloadableView(props: {
   };
 
   const dateFormatter = new Intl.DateTimeFormat(
-    window.navigator.language || "en",
+    (typeof window !== "undefined" && window.navigator.language) || "en",
     {
       year: "numeric",
       month: "2-digit",

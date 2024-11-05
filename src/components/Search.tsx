@@ -232,7 +232,7 @@ export function Search(props: SearchProps) {
         >
           <input
             class={
-              "border border-surface-border! p-4  rounded-2xl bg-white!  placeholder:(text-#777 font-bold) w-full"
+              "border border-surface-border! p-4  rounded-2xl bg-white!  placeholder:(text-onSurface-tertiary font-italic) w-full"
             }
             onFocus={() => {
               setSearchFocused(true);
@@ -520,8 +520,7 @@ function SearchAsPage(props: SearchAsPageProps) {
       <div class="relative">
         <input
           class={
-            // todo: remove 777 in places and white. use semantic
-            "border border-surface-border! p-4 rounded-2xl bg-white! pis-10 placeholder:(text-#777 font-bold) w-full cursor-pointer"
+            "border border-surface-border! p-4 rounded-2xl bg-surface-primary! pis-10 placeholder:(text-onSurface-tertiary font-italic) w-full cursor-pointer"
           }
           id="search"
           data-js="search"

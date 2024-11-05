@@ -27,14 +27,12 @@ export function DownloadablesFilterMenu(props: FilterMenuProps) {
       label: i18nDict.rl_Z_A,
       value: "ZA",
     },
-    // todo: i18n
     {
-      label: "Most Recently Updated",
+      label: i18nDict.mostRecentlyUpdated,
       value: "MRU",
     },
-    // todo: i18n
     {
-      label: "Least Recently Updated",
+      label: i18nDict.leastRecentlyUpdated,
       value: "LRU",
     },
   ];

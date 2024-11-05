@@ -71,6 +71,8 @@ const en = {
   rl_LangName: "Language Name",
   rl_Anglicized: "Anglicized Name",
   home: "Home",
+  mostRecentlyUpdated: "Most Recently Updated",
+  leastRecentlyUpdated: "Least Recently Updated",
 } as const;
 export type i18nKeysType = keyof typeof en;
 const ptbr: Record<i18nKeysType, string> = {
@@ -174,6 +176,8 @@ const es: Record<i18nKeysType, string> = {
   rl_LangName: "Nombre del idioma",
   rl_Anglicized: "Nombre anglicismo",
   home: "Página incial",
+  mostRecentlyUpdated: "Más reciente",
+  leastRecentlyUpdated: "Menos reciente",
 };
 const fr: Record<i18nKeysType, string> = {
   ...en,
