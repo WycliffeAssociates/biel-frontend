@@ -87,7 +87,7 @@ export const POST: APIRoute = async ({request, site, url, locals}) => {
     ];
     const emailAddresses = matchHelpMethodToEmailList(
       helpMethod,
-      locals.runtime.env.CONTACT_FORM_EMAILS || "{}",
+      locals.runtime.env.CONTACT_FORM_EMAILS_BASE64 || "{}",
       locals.runtime.env.CONTACT_ENV || "local"
     );
     const processingBody: remotePayloadType = {
@@ -132,14 +132,16 @@ function matchHelpMethodToEmailList(
   isDev: boolean
 ) {
   // don't worry about try catch here. We want to bubble and throw if not valid
-  console.log(emailJson);
-  const emailMap = JSON.parse(emailJson) as {
+  // ignore any deprecation warnings here.  atob is and btoa are fine since we don't use non ascii emails for wa.  Base64 to get around weird escaping issues with json from cloudflare.
+  const asString = atob(emailJson);
+  const emailMap = JSON.parse(asString) as {
     tech: string;
     engagement: string;
     dev: string;
     translationSupport: string;
     other: string;
   };
+  console.log(emailMap);
 
   function splitOnCommaAndFilter(str: string) {
     return str
@@ -149,6 +151,7 @@ function matchHelpMethodToEmailList(
   if (isDev) {
     return splitOnCommaAndFilter(emailMap.dev);
   }
+
   switch (helpMethod) {
     case "Scripture Engagement":
       return splitOnCommaAndFilter(emailMap.engagement);
