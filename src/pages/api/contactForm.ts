@@ -132,6 +132,7 @@ function matchHelpMethodToEmailList(
   isDev: boolean
 ) {
   // don't worry about try catch here. We want to bubble and throw if not valid
+  console.log(emailJson);
   const emailMap = JSON.parse(emailJson) as {
     tech: string;
     engagement: string;
