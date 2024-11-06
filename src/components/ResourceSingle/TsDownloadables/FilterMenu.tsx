@@ -1,11 +1,11 @@
-import {DropdownMenu} from "@kobalte/core/dropdown-menu";
+import {DropdownMenu, Sub} from "@kobalte/core/dropdown-menu";
 import type {i18nDictType} from "@src/i18n/strings";
 import {
   useResourceSingleContext,
   type tsFolderState,
 } from "../ResourceSingleContext";
 import type {TsDirectoryFile, TsDirectoryLang} from "@customTypes/types";
-import {createEffect, createSignal, For} from "solid-js";
+import {createEffect, createSignal, For, Show} from "solid-js";
 
 type FilterMenuProps = {
   isBig?: boolean;
@@ -18,22 +18,40 @@ export function DownloadablesFilterMenu(props: FilterMenuProps) {
     string[]
   >([]);
   const [sortSelected, setSortSelected] = createSignal("AZ");
+  const [sortVisual, setSortVisual] = createSignal("alphabetic");
+
   const sorts = [
     {
-      label: i18nDict.rl_A_Z,
-      value: "AZ",
+      label: "Alphabetical",
+      value: "alphabetic",
+      subValues: [
+        {
+          value: "AZ",
+          label: i18nDict.rl_A_Z,
+          scope: "alphabetic",
+        },
+        {
+          value: "ZA",
+          label: i18nDict.rl_Z_A,
+          scope: "alphabetic",
+        },
+      ],
     },
     {
-      label: i18nDict.rl_Z_A,
-      value: "ZA",
-    },
-    {
-      label: i18nDict.mostRecentlyUpdated,
-      value: "MRU",
-    },
-    {
-      label: i18nDict.leastRecentlyUpdated,
-      value: "LRU",
+      label: "Date",
+      value: "date",
+      subValues: [
+        {
+          value: "MRU",
+          label: null,
+          scope: "date",
+        },
+        {
+          value: "LRU",
+          label: null,
+          scope: "date",
+        },
+      ],
     },
   ];
 
@@ -109,19 +127,6 @@ export function DownloadablesFilterMenu(props: FilterMenuProps) {
     }
     return tree;
   };
-  const callShortTreeDirect = () => {
-    if (!allTsFiles) return;
-    const currentFolderAllFiles = currentFolderFromAllTsFiles();
-    if (!currentFolderAllFiles) return;
-    const copy = JSON.parse(
-      JSON.stringify(currentFolderAllFiles)
-    ) as TsDirectoryLang;
-    sortTree(copy);
-    return setSelectedTsFolder({
-      folderName: selectedTsFolder()?.folderName || "",
-      subTree: sortTree(copy),
-    });
-  };
 
   const filterFilesByType = () => {
     if (!allTsFiles) return;
@@ -169,9 +174,10 @@ export function DownloadablesFilterMenu(props: FilterMenuProps) {
   return (
     <DropdownMenu placement="bottom-end">
       <DropdownMenu.Trigger
+        data-name="dropdown-menu__trigger"
         class={`${
           props.isBig
-            ? "bg-surface-secondary rounded-lg size-10 aspect-square"
+            ? "rounded-lg size-10 aspect-square hover:bg-surface-secondary"
             : ""
         }`}
       >
@@ -179,35 +185,36 @@ export function DownloadablesFilterMenu(props: FilterMenuProps) {
       </DropdownMenu.Trigger>
       <DropdownMenu.Portal>
         <DropdownMenu.Content
-          class="bg-surface-primary p-4 z-10 shadow-md rounded-xl text-onSurface-secondary flex flex-col gap-4"
+          class="bg-surface-primary z-10 shadow-lg rounded-xl text-onSurface-secondary flex flex-col gap-4  w-84 max-w-90vw"
           data-name="dropdown-menu__content"
         >
           <div data-name="downloadableFilters" class="">
-            <p class="mb-4 font-step-0 font-500">{i18nDict.rl_Filter}</p>
-            <ul class="flex flex-col gap-4">
+            <p class="font-step-0 font-500 px-4 pbs-4">{i18nDict.rl_Filter}</p>
+            <ul class="flex flex-col">
               <For each={uniqueFileTypesInThisFolder()}>
                 {(fileType) => (
                   <li class="text-onSurface-secondary font-step-0">
                     <DropdownMenu.CheckboxItem
-                      class=" group data-[highlighted]:(text-brand-base) group-data-[checked]:(text-brand-base font-500) cursor-pointer focus:(outline-none bg-brand-light)"
+                      class="group p-4 data-[highlighted]:(text-brand-base) group-data-[checked]:(text-brand-base font-500) cursor-pointer focus:(outline-none bg-brand-light) hover:(outline-none bg-brand-light)"
                       checked={resourceTypesToFilterBy().includes(fileType)}
                       onChange={(isChecked) => {
                         toggleResourceType(isChecked, fileType);
                         filterFilesByType();
                       }}
                     >
-                      <div class="flex justify-between ">
-                        <div class="flex gap-2 items-center">
-                          <div class="h-24px w-24px border-2 border-onSurface-secondary border-solid rounded-sm  group-data-[checked]:(border-brand-base bg-brand-base) ">
+                      <div class="flex justify-between group-data-[checked]:(text-brand-base font-500) ">
+                        <div class="flex gap-4 items-center ">
+                          <div class="h-16px w-16px border-2 border-onSurface-secondary border-solid rounded-sm  group-data-[checked]:(border-brand-base bg-brand-base) ">
                             <DropdownMenu.ItemIndicator
                               data-name="dropdown-menu__item-indicator"
                               class="grid place-content-center h-full w-full"
                             >
-                              <span class="i-material-symbols:check-rounded text-surface-primary size-24px" />
+                              <span class="i-material-symbols:check-rounded text-surface-primary size-16px" />
                             </DropdownMenu.ItemIndicator>
                           </div>
                           <span>{fileType}</span>
                         </div>
+                        <FileTypeIcon type={fileType} />
                       </div>
                     </DropdownMenu.CheckboxItem>
                   </li>
@@ -216,28 +223,67 @@ export function DownloadablesFilterMenu(props: FilterMenuProps) {
             </ul>
           </div>
           <div data-name="downloadableSorts" class="">
-            <p class="mb-4 font-step-0 font-500">{i18nDict.rl_Sort}</p>
+            <p class="font-step-0 font-500 px-4">{i18nDict.rl_Sort}</p>
             <DropdownMenu.RadioGroup
-              class="list-none flex-col flex gap-4"
-              value={sortSelected()}
+              class="list-none flex-col flex "
+              value={sortVisual()}
             >
               <For each={sorts}>
                 {(sort) => (
                   <DropdownMenu.RadioItem
                     value={sort.value}
-                    class="flex items-center gap-2 text-onSurface-secondary font-step-0 group"
+                    class="flex p-4 items-center gap-4 justify-between text-onSurface-secondary cursor-pointer font-step-0 group focus:(outline-none bg-brand-light) hover:(outline-none bg-brand-light)"
                     onSelect={() => {
-                      setSortSelected(sort.value);
+                      setSortVisual(sort.value);
+                      setSortSelected(sort.subValues[0]!.value);
                       filterFilesByType();
                     }}
                   >
-                    <div class="h-24px w-24px border-2 border-onSurface-secondary border-solid  group-data-[checked]:(border-brand-base) rounded-full grid place-content-center">
-                      <DropdownMenu.ItemIndicator
-                        data-name="dropdown-menu__item-indicator"
-                        class="size-14px rounded-full group-data-[checked]:(bg-brand-base)"
-                      />
+                    <div class="flex justify-between">
+                      <div class="flex gap-4 items-center">
+                        <div class="h-24px w-24px border-2 border-onSurface-secondary border-solid  group-data-[checked]:(border-brand-base) rounded-full grid place-content-center">
+                          <DropdownMenu.ItemIndicator
+                            data-name="dropdown-menu__item-indicator"
+                            class="size-14px rounded-full group-data-[checked]:(bg-brand-base)"
+                          />
+                        </div>
+                        <span>{sort.label}</span>
+                      </div>
                     </div>
-                    <span>{sort.label}</span>
+                    <Show
+                      when={sort.subValues.some(
+                        (subValue) => subValue.scope === sortVisual()
+                      )}
+                    >
+                      <Show when={sort.subValues[0]!.value === sortSelected()}>
+                        <button
+                          type="button"
+                          class="flex gap-2 items-center"
+                          on:click={(e) => {
+                            e.stopPropagation();
+                            setSortSelected(sort.subValues[1]!.value);
+                            filterFilesByType();
+                          }}
+                        >
+                          <span>{sort.subValues[0]!.label}</span>
+                          <span class="i-solar-arrow-up-linear w-1em h-1em" />
+                        </button>
+                      </Show>
+                      <Show when={sort.subValues[1]!.value === sortSelected()}>
+                        <button
+                          type="button"
+                          class="flex gap-2 items-center"
+                          on:click={(e) => {
+                            e.stopPropagation();
+                            setSortSelected(sort.subValues[0]!.value);
+                            filterFilesByType();
+                          }}
+                        >
+                          <span>{sort.subValues[1]!.label}</span>
+                          <span class="i-solar-arrow-up-linear w-1em h-1em rotate-180" />
+                        </button>
+                      </Show>
+                    </Show>
                   </DropdownMenu.RadioItem>
                 )}
               </For>
@@ -247,4 +293,20 @@ export function DownloadablesFilterMenu(props: FilterMenuProps) {
       </DropdownMenu.Portal>
     </DropdownMenu>
   );
+}
+
+function FileTypeIcon(props: {type: string}) {
+  const className = "w-1em h-1em";
+  switch (props.type.toLowerCase()) {
+    case "pdf":
+      return <span class={`i-fa:file-pdf-o w-1em h-1em ${className}`} />;
+    case "docx":
+      return <span class={`i-fa-solid:file-word w-1em h-1em ${className}`} />;
+    case "pptx":
+      return (
+        <span class={`i-fa6-solid:file-powerpoint w-1em h-1em ${className}`} />
+      );
+    default:
+      return null;
+  }
 }

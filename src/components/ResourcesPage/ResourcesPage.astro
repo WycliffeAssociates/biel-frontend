@@ -12,7 +12,6 @@ const runtime = Astro.locals.runtime;
 const referrer = Astro.request.headers.get("Referer") as string;
 const referrerUrl = new URL(referrer);
 const doBustCache = !!referrerUrl.searchParams.get("cache-bust");
-// todo: use res type and add in UI on the languages index page for filtering by content types so that /resources can link to this
 const resourceType = referrerUrl.searchParams.get("resource-type");
 const resourceTypeArrQp = resourceType
   ? resourceType.split("|").map((t) => t.trim().toLowerCase())

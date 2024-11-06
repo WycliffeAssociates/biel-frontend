@@ -115,7 +115,7 @@ function DownloadLoadableTypeMenu(props: {
   };
 
   return (
-    <div data-name="downloadable-menu-wrapper" class="flex flex-col gap-2">
+    <div data-name="downloadable-menu-wrapper" class="flex flex-col gap-6">
       <div class="flex justify-between align-center">
         <div class="flex items-center gap-2">
           <Checkbox
@@ -135,8 +135,8 @@ function DownloadLoadableTypeMenu(props: {
           </Checkbox>
           <h2 class="font-700 font-step-1">{props.tsFolder()?.folderName}</h2>
         </div>
-        <div data-name="downloadable-actions" class="flex gap-4 items-center">
-          <DownloadablesFilterMenu />
+        <div data-name="downloadable-actions" class="flex gap-4 items-center ">
+          <DownloadablesFilterMenu isBig={true} />
 
           <form action="/api/downloadTsFiles" method="post">
             <label class="flex gap-2 items-center">
@@ -150,7 +150,8 @@ function DownloadLoadableTypeMenu(props: {
               />
               <button
                 type="submit"
-                class="p-2 bg-brand-light text-brand-base rounded-xl focus:bg-brand-base focus:ring-4 focus:ring-brand focus:ring-offset-6 md:aspect-auto md:bg-brand md:border-x-2 md:border-t-2 md:border-b-4 md:border-brand-darkest md:bg-brand-base md:text-onSurface-invert! md:flex md:gap-2 md:items-center md:hover:bg-brand-darkest md:active:bg-brand-darkest"
+                disabled={props.tsFiles().size === 0}
+                class="p-2 bg-brand-light text-brand-base rounded-xl focus:bg-brand-base focus:ring-4 focus:ring-brand focus:ring-offset-6 md:aspect-auto md:bg-brand md:border-x-2 md:border-t-2 md:border-b-4 md:border-brand-darkest md:bg-brand-base md:text-onSurface-invert! md:flex md:gap-2 md:items-center md:hover:bg-brand-darkest md:active:bg-brand-darkest disabled:(opacity-70 cursor-not-allowed)"
               >
                 {props.i18nDict.ls_DownloadButton}{" "}
                 <Show when={Array.from(props.tsFiles()).length}>

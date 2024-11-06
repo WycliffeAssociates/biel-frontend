@@ -59,8 +59,11 @@ const en = {
   ls_TrainingMaterials: "Training Resources",
   ls_SelectAll: "Select All",
   rl_ChooseALanguage: "Choose a language",
+  rl_TheWordLanguage: "Language",
+  rl_TheWordSort: "Sort",
   rl_SearchPlaceholder: "Search by Name, Code, etc...",
   rl_Filter: "Filter",
+  rl_ResourceType: "Resource Type",
   rl_FilterByResourceType: "Filter by Resource Type",
   rl_GatewayLanguage: "Gateway Language",
   rl_HeartLanguage: "Heart Language",
@@ -71,6 +74,7 @@ const en = {
   rl_LangName: "Language Name",
   rl_Anglicized: "Anglicized Name",
   home: "Home",
+  updated: "Updated:",
   mostRecentlyUpdated: "Most Recently Updated",
   leastRecentlyUpdated: "Least Recently Updated",
 } as const;
@@ -176,6 +180,7 @@ const es: Record<i18nKeysType, string> = {
   rl_LangName: "Nombre del idioma",
   rl_Anglicized: "Nombre anglicismo",
   home: "Página incial",
+  updated: "Actualizado:",
   mostRecentlyUpdated: "Más reciente",
   leastRecentlyUpdated: "Menos reciente",
 };

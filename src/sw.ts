@@ -1,10 +1,16 @@
 import type {ZipSrcBodyReq} from "@customTypes/types";
-import {downloadZip, makeZip} from "client-zip";
+import {downloadZip} from "client-zip";
 import {clientsClaim} from "workbox-core";
 import {cleanupOutdatedCaches, precacheAndRoute} from "workbox-precaching";
 import {registerRoute} from "workbox-routing";
+import {ExpirationPlugin} from "workbox-expiration";
+
 import {CacheFirst} from "workbox-strategies";
-import {bielExternalCacheName, fetchExternalUsfmAndCache} from "./lib/web";
+import {
+  bielExternalCacheName,
+  bielStaticCacheName,
+  fetchExternalUsfmAndCache,
+} from "./lib/web";
 import {constants} from "./lib/constants";
 declare const self: ServiceWorkerGlobalScope;
 
@@ -87,4 +93,28 @@ registerRoute(
     });
   },
   "POST"
+);
+
+registerRoute(
+  ({url, sameOrigin, request}) => {
+    // https://developer.mozilla.org/en-US/docs/Web/API/Request/destination#font
+    const destination = request.destination;
+    const sameOriginCache = ["script", "style"];
+    const anyOriginCache = ["image", "font"];
+
+    if (sameOrigin) {
+      return sameOriginCache.includes(destination);
+    }
+    return anyOriginCache.includes(destination);
+  },
+  // Hashes should guarantee strong caching that doesn't need expiring, so go cache first on those, but route through CF as well
+  new CacheFirst({
+    cacheName: bielStaticCacheName,
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 200,
+        purgeOnQuotaError: true,
+      }),
+    ],
+  })
 );

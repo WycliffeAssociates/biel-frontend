@@ -45,7 +45,9 @@ export function ContentView(props: ContentViewProps) {
         <div
           data-name="contentViewDownloadable"
           data-js="contentView"
-          class={`${props.classes || ""} pbe-16! max-h-70vh! overflow-y-auto!`}
+          class={`${
+            props.classes || ""
+          } pbe-16! pie-4px!  max-h-70vh! overflow-y-auto!`}
         >
           <DownloadableView tsTree={selectedTsFolder()} loopIter={0} />
         </div>
@@ -63,8 +65,12 @@ function DownloadableView(props: {
     | undefined;
   loopIter?: number;
 }) {
-  const {tsFilesToDownload, setTsFilesToDownload, downloadableSearchTerm} =
-    useResourceSingleContext();
+  const {
+    tsFilesToDownload,
+    setTsFilesToDownload,
+    downloadableSearchTerm,
+    i18nDict,
+  } = useResourceSingleContext();
   if (!props.tsTree) {
     return null;
   }
@@ -140,7 +146,7 @@ function DownloadableView(props: {
                   filterFilesAgainstSearch(props.tsTree!.subTree.files)
                 )
               }
-              class="flex items-center gap-2"
+              class="flex items-center gap-2 mbs-6"
             >
               <Checkbox.Input />
               <Checkbox.Control class="h-4 w-4 rounded-2px border relative border-brand-base data-[checked]:(bg-brand-base text-onSurface-invert border-none)">
@@ -148,7 +154,7 @@ function DownloadableView(props: {
                   <span class="i-material-symbols:check w-full h-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4" />
                 </Checkbox.Indicator>
               </Checkbox.Control>
-              <Checkbox.Label class="data-[checked]:(text-brand-base) transition-colors transition-duration-25">
+              <Checkbox.Label class="data-[checked]:(text-brand-base) transition-colors transition-duration-25 ">
                 {" "}
                 {props.tsTree.folderName}
               </Checkbox.Label>
@@ -186,7 +192,7 @@ function DownloadableView(props: {
                 <Checkbox
                   checked={isChecked(file)}
                   onChange={() => toggle(file)}
-                  class="flex items-center gap-2"
+                  class="flex items-center gap-4 cursor-pointer rounded-xl p-2 hover:(bg-surface-secondary)"
                 >
                   <Checkbox.Input />
                   <Checkbox.Control class="h-4 w-4 rounded-2px border relative border-brand-base data-[checked]:(bg-brand-base text-onSurface-invert border-none)">
@@ -194,11 +200,15 @@ function DownloadableView(props: {
                       <span class="i-material-symbols:check w-full h-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4" />
                     </Checkbox.Indicator>
                   </Checkbox.Control>
-                  <Checkbox.Label class="data-[checked]:(text-brand-base) inline-flex gap-2 items-center justify-between w-full pe-2">
+                  <Checkbox.Label class="data-[checked]:(text-brand-base) inline-flex gap-2 items-center justify-between w-full pe-2 group">
                     {file.fileName}
                     <Show when={file.lastUpdated}>
-                      <small class="font-step--2 font-600 tracking-wide">
-                        ({dateFormatter.format(new Date(file.lastUpdated!))})
+                      <small class="font-step--2 text-onSurface-tertiary inlinex-flex gap-2px group-data-[checked]:(text-brand-base)">
+                        <span>{i18nDict.updated}</span>
+                        <span>
+                          {" "}
+                          ({dateFormatter.format(new Date(file.lastUpdated!))})
+                        </span>
                       </small>
                     </Show>
                   </Checkbox.Label>

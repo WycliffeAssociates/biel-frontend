@@ -181,15 +181,15 @@ function Listing(props: ListingProps) {
   return (
     <li class="">
       <a
-        class="rounded-2xl px-4 py-2 flex flex-row-reverse gap-x-4px md:(grid grid-cols-[1fr_4fr_2fr] items-center  w-full justify-between) hover:bg-surface-secondary"
+        class="rounded-2xl px-4 py-2 gap-x-4px grid grid-rows-[1fr_1fr] grid-cols-[1fr_1fr] md:(grid grid-cols-[1fr_1fr_1fr] grid-rows-none items-center  w-full justify-between) hover:bg-surface-secondary"
         href={`/${props.prefix}/${props.code}`}
       >
-        <ListingCode value={props.code} />
-        <div class="flex flex-col leading-tight w-full md:(flex-row justify-between)">
-          <ListingName value={props.name} />
-          <ListingAnglicized value={props.anglicized} />
+        <ListingName value={props.name} />
+        <ListingAnglicized value={props.anglicized} />
+        <div class="col-start-2 row-span-full flex flex-col self-center items-end   leading-tight  md:(col-start-auto row-start-0 row-span-1 self-auto flex-row gap-4 justify-end items-center)">
+          <ListingCode value={props.code} />
+          <ListingArrow />
         </div>
-        <ListingArrow />
       </a>
     </li>
   );
@@ -205,24 +205,28 @@ function ListingCode(props: ListingUnitProps) {
   return <span class="color-onSurface-tertiary shrink-0">{props.value}</span>;
 }
 function ListingName(props: ListingUnitProps) {
-  return <span class="color-onSurface-secondary">{props.value}</span>;
+  return (
+    <span class="col-start-1 row-start-1 md:(col-start-auto row-start-auto) color-onSurface-secondary font-500">
+      {props.value}
+    </span>
+  );
 }
 function ListingAnglicized(props: ListingUnitProps) {
   return (
-    <span class="text-size-[var(--step--1)] color-onSurface-tertiary">
+    <span class="col-start-1 row-start-2 md:(col-start-auto row-start-auto) text-size-[var(--step--1)] color-onSurface-tertiary">
       {props.value}
     </span>
   );
 }
 function ListingArrow() {
   return (
-    <span class="hidden md:(inline-block mis-auto i-ph:arrow-right-bold color-onSurface-tertiary w-1em h-1em)" />
+    <span class="hidden md:(inline-block  i-ph:arrow-right-bold color-onSurface-tertiary w-1em h-1em)" />
   );
 }
 
 function HeaderTitle(props: DictProp) {
   return (
-    <h1 class="text-size-[var(--step-2)] md:text-size-[var(--step-3)]">
+    <h1 class="text-size-[var(--step-1)] md:text-size-[var(--step-2)]">
       {props.i18nDict.rl_ChooseALanguage}
     </h1>
   );
@@ -238,7 +242,7 @@ function HeaderSearch(props: HeaderSearchProps) {
       <MangifyingGlass class="absolute ltr:left-0 rtl:right-0 top-1/2 -translate-y-1/2 mis-1" />
       <input
         type="search"
-        class="rounded-xl bg-surface-secondary pis-8 w-full py-2 text-onSurface-tertiary placeholder:text-onSurface-tertiary/80"
+        class="rounded-xl bg-surface-secondary pis-8 w-full py-2 text-onSurface-tertiary placeholder:text-onSurface-tertiary/80 border-2 border-solid border-surface-border"
         placeholder={props.i18nDict.rl_SearchPlaceholder}
         value={props.searchTerm()}
         onInput={(e) => {
@@ -275,19 +279,10 @@ function FilterDetails(props: FilterProps) {
   };
   return (
     <div>
-      <details open class="group">
-        <summary class="cursor-pointer  webkit-hide-summary-arrow list-none ">
-          <p class="flex rtl:flex-row-reverse justify-between">
-            <span class="inline-flex gap-2">
-              <span class="i-material-symbols:filter-alt-outline w-1.5em h-1.5em" />
-              <span class="font-bold text-size-[var(--step-0)]">
-                {" "}
-                {props.i18nDict.rl_Filter}{" "}
-              </span>
-            </span>
-            <span class="i-ic:round-chevron-left w-1.5em h-1.5em rotate-90 group-open:-rotate-90 transition-transform duration-150 " />
-          </p>
-        </summary>
+      <p class="text-onSurface-primary font-step-0 font-500">
+        {props.i18nDict.rl_TheWordLanguage}
+      </p>
+      <div class="flex flex-col gap-12">
         <div class="flex flex-col gap-4">
           <label class="mbs-4 flex gap-2  text-brand-base accent-[hsla(var(--clr-brand-base))] font-bold">
             <input
@@ -315,7 +310,12 @@ function FilterDetails(props: FilterProps) {
             />
             {props.i18nDict.rl_HeartLanguage}
           </label>
+        </div>
 
+        <div class="">
+          <p class="text-onSurface-primary font-step-0 font-500 mbe-4">
+            {props.i18nDict.rl_ResourceType}
+          </p>
           <Select<string>
             multiple
             placement="bottom"
@@ -327,7 +327,7 @@ function FilterDetails(props: FilterProps) {
               <Select.Item
                 item={selectProps.item}
                 data-name="select_item"
-                class="flex items-center justify-between p-2 data-[highlighted]:(bg-brand-base text-onSurface-invert) rounded-md group"
+                class="flex items-center justify-between p-2 data-[highlighted]:(bg-surface-secondary outline-none border-none) data-[selected]:(bg-brand-light! text-brand-base font-500)  group"
               >
                 <Select.ItemLabel class="flex gap-2">
                   {props.resourceTypeToDisplayName[selectProps.item.rawValue] ||
@@ -344,7 +344,7 @@ function FilterDetails(props: FilterProps) {
                   </Show>
                 </Select.ItemLabel>
                 <Select.ItemIndicator>
-                  <span class="i-ph:check-bold w-1.5em h-1.5em" />
+                  <span class="i-material-symbols:check-circle w-1.25em h-1.25em" />
                 </Select.ItemIndicator>
               </Select.Item>
             )}
@@ -356,7 +356,7 @@ function FilterDetails(props: FilterProps) {
               class="inline-flex items-center justify-between w-full rounded-lg border bg-surface-secondary text-gray-800 transition-colors duration-200 px-1"
             >
               <Select.Value<string>
-                class="flex items-center gap-2 justify-between p-2 w-full"
+                class="flex items-center gap-2 justify-between p-4 h-16 w-full data-[placeholder-shown]:text-onSurface-secondary"
                 data-name="select_value"
               >
                 {(state) => (
@@ -397,7 +397,7 @@ function FilterDetails(props: FilterProps) {
             <Select.Portal>
               <Select.Content
                 data-name="select_content"
-                class="bg-surface-primary shadow-md rounded-xl origin-[var(--kb-select-content-transform-origin)] animate-[fadeOut_0.2s_ease-in_1] data-[expanded]:animate-[fadeIn_0.2s_ease-out_1]"
+                class="bg-surface-primary overflow-hidden shadow-md rounded-xl origin-[var(--kb-select-content-transform-origin)] animate-[fadeOut_0.2s_ease-in_1] data-[expanded]:animate-[fadeIn_0.2s_ease-out_1]"
               >
                 <Select.Listbox
                   class="max-h-280px overflow-y-scroll"
@@ -407,7 +407,7 @@ function FilterDetails(props: FilterProps) {
             </Select.Portal>
           </Select>
         </div>
-      </details>
+      </div>
     </div>
   );
 }
@@ -451,75 +451,63 @@ function SortDetails(props: SortProps) {
   ];
   return (
     <div class="w-full">
-      <details class="group" open>
-        <summary class="cursor-pointer  webkit-hide-summary-arrow list-none pb-4">
-          <p class="flex rtl:flex-row-reverse justify-between">
-            <span class="inline-flex gap-2">
-              <span class="i-material-symbols:sort-rounded w-1.5em h-1.5em" />
-              <span class="font-bold text-size-[var(--step-0)]">
-                {props.i18nDict.rl_Sort}{" "}
-              </span>
-            </span>
-            <span class="i-ic:round-chevron-left w-1.5em h-1.5em rotate-90 group-open:-rotate-90 transition-transform duration-150 " />
-          </p>
-        </summary>
-        <ul class="grid auto-rows-[1fr]">
-          <For each={sortLabels}>
-            {(sort) => (
-              <li class="flex items-center ">
-                <div class="w-full flex justify-between items-center">
-                  <label class="flex gap-2">
-                    <input
-                      type="radio"
-                      checked={radioSorts().category === sort.cat}
-                      name="sort"
-                      class=""
-                      onChange={() => {
-                        const current = radioSorts();
-                        setRadio({
-                          direction: current.order,
-                          category: sort.cat,
-                        });
-                      }}
-                    />
+      <p class="text-onSurface-primary font-step-0 font-500 mbe-4">
+        {props.i18nDict.rl_TheWordSort}
+      </p>
+      <ul class="grid auto-rows-[1fr]">
+        <For each={sortLabels}>
+          {(sort) => (
+            <li class="flex items-center ">
+              <div class="w-full flex justify-between items-center">
+                <label class="flex gap-2">
+                  <input
+                    type="radio"
+                    checked={radioSorts().category === sort.cat}
+                    name="sort"
+                    class=""
+                    onChange={() => {
+                      const current = radioSorts();
+                      setRadio({
+                        direction: current.order,
+                        category: sort.cat,
+                      });
+                    }}
+                  />
 
-                    {sort.label}
-                  </label>
-                  <Show when={radioSorts().category === sort.cat}>
-                    <button
-                      type="button"
-                      data-sort={radioSorts().category}
-                      class="bg-surface-secondary flex rtl:flex-row-reverse rounded-lg px-2 py-1 border border-solid border-surface-border"
-                      onClick={() => {
-                        const current = radioSorts();
-                        const newOrder = current.order === "AZ" ? "ZA" : "AZ";
-                        setRadio({category: sort.cat, direction: newOrder});
-                      }}
+                  {sort.label}
+                </label>
+                <Show when={radioSorts().category === sort.cat}>
+                  <button
+                    type="button"
+                    data-sort={radioSorts().category}
+                    class="bg-surface-secondary flex rtl:flex-row-reverse rounded-lg px-2 py-1 border border-solid border-surface-border"
+                    onClick={() => {
+                      const current = radioSorts();
+                      const newOrder = current.order === "AZ" ? "ZA" : "AZ";
+                      setRadio({category: sort.cat, direction: newOrder});
+                    }}
+                  >
+                    <span
+                      class={`inline-block transition-transform px-1   ${
+                        radioSorts().order === "AZ" ? "rotate-0" : "rotate-180"
+                      }`}
                     >
                       <span
-                        class={`inline-block transition-transform px-1   ${
-                          radioSorts().order === "AZ"
-                            ? "rotate-0"
-                            : "rotate-180"
-                        }`}
-                      >
-                        <span
-                          class={"i-ic:baseline-arrow-downward w-1em h-1em "}
-                        />
-                      </span>
-                      <span>
-                        {radioSorts().order === "AZ"
-                          ? props.i18nDict.rl_A_Z
-                          : props.i18nDict.rl_Z_A}
-                      </span>
-                    </button>
-                  </Show>
-                </div>
-              </li>
-            )}
-          </For>
-        </ul>
-      </details>
+                        class={"i-ic:baseline-arrow-downward w-1em h-1em "}
+                      />
+                    </span>
+                    <span>
+                      {radioSorts().order === "AZ"
+                        ? props.i18nDict.rl_A_Z
+                        : props.i18nDict.rl_Z_A}
+                    </span>
+                  </button>
+                </Show>
+              </div>
+            </li>
+          )}
+        </For>
+      </ul>
     </div>
   );
 }

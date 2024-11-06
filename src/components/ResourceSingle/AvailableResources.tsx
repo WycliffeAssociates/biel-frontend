@@ -44,12 +44,12 @@ export function AvailableResources(props: AvailableResourcesProps) {
   return (
     <Show when={isBig()} fallback={<AvailableResourcesSmall {...props} />}>
       <div
-        class={`hidden md:(flex shrink-0 flex-col gap-2 pie-4) ${
+        class={`hidden md:(flex shrink-0 flex-col gap-12 pie-4) ${
           props.classes || ""
         }`}
       >
         <div class="flex flex-col gap-2">
-          <h3 class="text-brand-dark font-700 font-step-0 mbe-2">
+          <h3 class="text-onSurface-primary font-700 font-step-0 mbe-3 pis-2">
             {i18nDict.ls_TranslationResources}
           </h3>
           <ul class="flex flex-col gap-4">
@@ -68,9 +68,8 @@ export function AvailableResources(props: AvailableResourcesProps) {
         </div>
 
         <Show when={props.tsFiles?.trainingFiles}>
-          <hr class="border-none h-2px text-[#e6e6e6] bg-[#e6e6e6]" />
           <div>
-            <h3 class="text-brand-dark font-700 font-step-0 mbe-2">
+            <h3 class="text-onSurface-primary font-700 font-step-0 mbe-3 pis-2">
               {i18nDict.ls_TrainingMaterials}
             </h3>
             <ul class="flex flex-col gap-4">
@@ -90,9 +89,8 @@ export function AvailableResources(props: AvailableResourcesProps) {
           </div>
         </Show>
         <Show when={props.tsFiles?.supplementalFiles}>
-          <hr class="border-none h-2px text-[#e6e6e6] bg-[#e6e6e6]" />
           <div>
-            <h3 class="text-brand-dark font-700 font-step-0 mbe-2">
+            <h3 class="text-onSurface-primary font-700 font-step-0 mbe-3 pis-2">
               {i18nDict.ls_AvailableForDownload}
             </h3>
             <ul class="flex flex-col gap-4">
@@ -189,9 +187,8 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
               </For>
             </ul>
             <Show when={props.tsFiles?.trainingFiles}>
-              <hr class="border-none h-2px text-[#e6e6e6] bg-[#e6e6e6]" />
               <div>
-                <h3 class="text-brand-dark font-bold pis-2">
+                <h3 class="text-onSurface-primary font-700 font-step-0 mbe-3 pis-2">
                   {i18nDict.ls_TrainingMaterials}
                 </h3>
                 <ul>
@@ -214,9 +211,8 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
               </div>
             </Show>
             <Show when={props.tsFiles?.supplementalFiles}>
-              <hr class="border-none h-2px text-[#e6e6e6] bg-[#e6e6e6]" />
               <div>
-                <h3 class="text-brand-dark font-bold pis-2">
+                <h3 class="text-onSurface-primary font-700 font-step-0 mbe-3 pis-2">
                   {i18nDict.ls_AvailableForDownload}
                 </h3>
                 <ul>
@@ -253,7 +249,7 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
             class="bg-surface-secondary px-6 py-2 rounded-lg border border-surface-border w-full"
             placeholder={i18nDict.ls_SearchFilesByName}
           />
-          <DownloadablesFilterMenu isBig={true} />
+          <DownloadablesFilterMenu isBig={false} />
         </div>
 
         <form action="/api/downloadTsFiles" method="post">
@@ -269,7 +265,8 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
             <div class="fixed w-full bottom-0 start-0 contain-pad bg-surface-primary z-10 py-2">
               <button
                 type="submit"
-                class="p-2 bg-brand-base text-onSurface-invert  rounded-xl focus:(ring-4 ring-offset-6)"
+                disabled={tsFilesToDownload().size === 0}
+                class="p-2 bg-brand-base text-onSurface-invert  rounded-xl focus:(ring-4 ring-offset-6) disabled:(opacity-70 cursor-not-allowed)"
               >
                 {i18nDict.ls_DownloadButton}
                 <Show when={Array.from(tsFilesToDownload()).length}>
@@ -299,7 +296,7 @@ export function SearchBar(props: SearchBarProps) {
         class="bg-surface-secondary px-6 py-2 rounded-lg w-full border border-surface-border"
         onInput={(e) => setMenuSearchTerm(e.currentTarget.value)}
       />
-      <span class="absolute ltr:right-4 rtl:left-4 top-1/2 -translate-y-1/2 i-ph:magnifying-glass" />
+      <span class="absolute end-6 top-1/2 -translate-y-1/2 i-ph:magnifying-glass" />
     </div>
   );
 }
@@ -353,9 +350,9 @@ export function AvailableResource(props: AvailableResourceProps) {
           setContent();
           if (props.additionalOnClick) props.additionalOnClick();
         }}
-        class={`w-full text-left p-2  rounded-lg inline-flex justify-between hover:bg-brand-light ${
+        class={`w-full text-left p-2  rounded-lg inline-flex justify-between text-onSurface-secondary hover:bg-surface-secondary ${
           isSelected() && props.viewType() === "readable"
-            ? "bg-brand-light! text-brand-base!"
+            ? "bg-brand-light! text-brand-base! font-500"
             : ""
         }`}
       >
@@ -384,10 +381,10 @@ function TsFileDownload(props: {
   return (
     <li>
       <button
-        class={`text-left p-2  rounded-lg inline-flex justify-between hover:bg-brand-light ${
+        class={`text-left p-2  rounded-lg inline-flex text-onSurface-secondary justify-between hover:bg-brand-light ${
           props.tsFolders()?.folderName === props.topLevelFolder &&
           props.viewType() === "downloadable"
-            ? "bg-brand-light! text-brand-base!"
+            ? "bg-brand-light! text-brand-base! font-500"
             : ""
         } `}
         onClick={() => {

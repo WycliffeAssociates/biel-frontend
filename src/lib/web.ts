@@ -3,6 +3,7 @@ import type {TsDirectoryFile, ZipSrcBodyReq} from "@customTypes/types";
 import {makeZip} from "client-zip";
 
 export const bielExternalCacheName = "biel-external";
+export const bielStaticCacheName = "biel-static";
 
 export function isAbsoluteUrl(str: string) {
   const isAbsoluteRegex = /^(?:[a-z+]+:)?\/\//i;

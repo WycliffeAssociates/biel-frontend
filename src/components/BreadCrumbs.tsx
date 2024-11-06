@@ -16,7 +16,10 @@ export function BreadCrumbs(props: Props) {
             return (
               <Show when={!isLast} fallback={<LastCrumb crumb={crumb} />}>
                 <li class="flex items-center">
-                  <a class={"text-brand-base underline"} href={`${crumb.uri}`}>
+                  <a
+                    class={"text-brand-base underline font-step-0"}
+                    href={`${crumb.uri}`}
+                  >
                     {crumb.title}
                   </a>
                   <span class="mx-2">/</span>
@@ -38,6 +41,8 @@ type CrumbType = {
 };
 function LastCrumb({crumb}: CrumbType) {
   return (
-    <span class={"text-onSurface-tertiary no-underline"}>{crumb.title}</span>
+    <span class={"text-onSurface-tertiary no-underline font-step-0"}>
+      {crumb.title}
+    </span>
   );
 }
