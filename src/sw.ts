@@ -5,7 +5,7 @@ import {cleanupOutdatedCaches, precacheAndRoute} from "workbox-precaching";
 import {registerRoute} from "workbox-routing";
 import {ExpirationPlugin} from "workbox-expiration";
 
-import {CacheFirst} from "workbox-strategies";
+import {CacheFirst, StaleWhileRevalidate} from "workbox-strategies";
 import {
   bielExternalCacheName,
   bielStaticCacheName,
@@ -117,4 +117,25 @@ registerRoute(
       }),
     ],
   })
+);
+
+registerRoute(
+  ({url, sameOrigin}) => {
+    // and unfortunate hack needing in case a firefox download since it'll kill a stream feeding a download if it takes too long
+    return (
+      sameOrigin &&
+      url.pathname.includes("_server-islands/ResourceIndex") &&
+      !url.searchParams.get("cache-bust")
+    );
+  },
+  // Hashes should guarantee strong caching that doesn't need expiring, so go cache first on those, but route through CF as well
+  new StaleWhileRevalidate({
+    cacheName: bielStaticCacheName,
+    plugins: [
+      new ExpirationPlugin({
+        maxAgeSeconds: 60 * 60, // an hour w/o query param in browser
+      }),
+    ],
+  }),
+  "POST"
 );
