@@ -1,6 +1,6 @@
 ---
 import {getDict, type i18nDictType} from "@src/i18n/strings";
-import Layout from "@layouts/Layout.astro";
+import Layout from "@layouts/LayoutNoFooter.astro";
 import {HeaderMenu} from "@components/HeaderMenu";
 import {getMenus, getLanguagesPageSlugs, getWpmlLanguages} from "@src/data/wp";
 import ResourceIndex from "@components/ResourcesPage/ResourcesPage.astro";
@@ -82,7 +82,6 @@ const {title, allLangs, langInfo, headerMenu, pageDict} = Astro.props;
 const {resourceIndex: prefix} = Astro.params;
 ---
 
-<!-- todo: the description  -->
 <Layout
   title={title}
   inlineCss={[]}
@@ -90,7 +89,6 @@ const {resourceIndex: prefix} = Astro.params;
   langInfo={langInfo}
   langSwitcher={allLangs}
   langDirection="ltr"
-  isContactPage={false}
 >
   <div class="header">
     <HeaderMenu

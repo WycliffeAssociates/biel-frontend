@@ -1,5 +1,6 @@
 import {DOMParser} from "linkedom/worker";
 import type {Menu, MenuItem, WpPage} from "./customTypes/types";
+import {EndOfLineState} from "typescript";
 
 export function flatMenuToHierachical(menu: Menu) {
   // For each menu->items, remove them from the the flat list, find the menu item who is their parent, and add it to children array on the item
@@ -65,7 +66,7 @@ export function adjustCmsDomLinks({
     if (needToHandleLocalHttpsErr(img.src) || isRelativeImgPath(img.src)) {
       img.setAttribute("loading", "lazy"); //just assume lazy
       img.setAttribute("src", `${srcToUse}`);
-      img.setAttribute("srcset", srcSet.replaceAll("https", "http"));
+      img.setAttribute("srcset", srcSet.replaceAll("http", "https"));
     }
   });
 
@@ -95,28 +96,41 @@ function replaceAllAbsoluteLinksToCms({
   aTags.forEach((tag) => {
     const newHref = tag.href.replace(baseUrl, "");
     tag.setAttribute("href", newHref);
+    if (tag.href.includes("resources")) {
+      console.log(tag.href);
+    }
     if (englishUriMap && currentLangCode) {
       // home link, special:
-
       const regexMatchHash = newHref.match(/#(.*)$/);
       const hash = regexMatchHash ? regexMatchHash[0] : null;
+      const searchParams = new URLSearchParams(newHref.split("?")?.[1]);
+      let upUntilSearchParams = newHref.split("?")[0]!;
+      upUntilSearchParams = upUntilSearchParams.endsWith("/")
+        ? upUntilSearchParams
+        : `${upUntilSearchParams}/`;
 
-      if (newHref === "/") {
-        hash
-          ? tag.setAttribute(
-              "href",
-              `/${currentLangCode}${hash}`.replace("//", "/")
-            )
-          : tag.setAttribute("href", `/${currentLangCode}`.replace("//", "/"));
-        // tag.setAttribute("href", `/${currentLangCode}`);
-      } else if (englishUriMap[newHref]?.[currentLangCode]) {
-        const localizedHref = hash
-          ? `${englishUriMap[newHref][currentLangCode]}${hash}`.replace(
-              "//",
-              "/"
-            )
-          : `${englishUriMap[newHref][currentLangCode]}`.replace("//", "/");
-        tag.setAttribute("href", localizedHref);
+      const makeUrl = (href: string) => {
+        if (searchParams.size) {
+          const withoutTrailingSlash = href.endsWith("/")
+            ? href.slice(0, -1)
+            : href;
+
+          return `${withoutTrailingSlash}?${searchParams.toString().trim()}${
+            hash ? `#${hash}` : ""
+          }`;
+        }
+        return `${href}${hash ? `#${hash}` : ""}`;
+      };
+
+      if (upUntilSearchParams === "/") {
+        const newUrl = makeUrl(`/${currentLangCode}`);
+        tag.setAttribute("hash", newUrl);
+      } else if (englishUriMap[upUntilSearchParams]?.[currentLangCode]) {
+        const newUrl = makeUrl(
+          englishUriMap[upUntilSearchParams]![currentLangCode]!
+        );
+        // console.log({newUrl});
+        tag.setAttribute("href", newUrl);
       }
     }
   });

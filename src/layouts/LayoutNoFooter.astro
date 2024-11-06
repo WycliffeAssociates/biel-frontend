@@ -39,6 +39,7 @@ const dedupedInlineStyles = [...deduped].join("\n");
     {pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}
     {
       langSwitcher.map((version) => {
+        // todo: valid hreflangs can't be relative. Need to get site url
         return (
           <link
             rel="alternate"
