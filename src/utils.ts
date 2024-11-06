@@ -1,6 +1,5 @@
 import {DOMParser} from "linkedom/worker";
 import type {Menu, MenuItem, WpPage} from "./customTypes/types";
-import {EndOfLineState} from "typescript";
 
 export function flatMenuToHierachical(menu: Menu) {
   // For each menu->items, remove them from the the flat list, find the menu item who is their parent, and add it to children array on the item

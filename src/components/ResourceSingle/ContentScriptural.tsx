@@ -1,5 +1,4 @@
 import type {ScriptureStoreState} from "@customTypes/types";
-import type {ZipSrcBodyReq} from "@customTypes/types";
 import {Accordion} from "@kobalte/core/accordion";
 import {Dialog} from "@kobalte/core/dialog";
 import {createMediaQuery} from "@solid-primitives/media";

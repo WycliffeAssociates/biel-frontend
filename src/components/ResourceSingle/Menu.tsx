@@ -7,7 +7,6 @@ import {
   type twStateType,
 } from "./ResourceSingleContext";
 import type {
-  DirectoryListing,
   ScriptureStoreState,
   TsDirectoryFile,
   TsDirectoryLang,
@@ -15,12 +14,11 @@ import type {
 import type {i18nDictType} from "@src/i18n/strings";
 import {Checkbox} from "@kobalte/core/checkbox";
 import {getTsFilesPayload} from "@lib/web";
-import {formatBytes} from "@src/utils";
-import {DropdownMenu} from "@kobalte/core/dropdown-menu";
 import {DownloadablesFilterMenu} from "./TsDownloadables/FilterMenu";
 
 // No need to ship this to most folks langs that won't have a tw
 const TwMenu = lazy(() => import("./Tw/TwMenu"));
+// todo: maybe lazy the ts stuff too?
 
 type MenuProps = {
   classes?: string;

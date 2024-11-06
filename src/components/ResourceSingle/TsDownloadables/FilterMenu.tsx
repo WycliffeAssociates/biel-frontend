@@ -1,11 +1,7 @@
-import {DropdownMenu, Sub} from "@kobalte/core/dropdown-menu";
-import type {i18nDictType} from "@src/i18n/strings";
-import {
-  useResourceSingleContext,
-  type tsFolderState,
-} from "../ResourceSingleContext";
+import {DropdownMenu} from "@kobalte/core/dropdown-menu";
+import {useResourceSingleContext} from "../ResourceSingleContext";
 import type {TsDirectoryFile, TsDirectoryLang} from "@customTypes/types";
-import {createEffect, createSignal, For, Show} from "solid-js";
+import {createSignal, For, Show} from "solid-js";
 
 type FilterMenuProps = {
   isBig?: boolean;

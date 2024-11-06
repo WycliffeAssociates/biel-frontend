@@ -3,7 +3,6 @@ import type {
   ScriptureStoreState,
   ZipSrcBodyReq,
 } from "@customTypes/types";
-import {Dialog} from "@kobalte/core/dialog";
 import {DropdownMenu} from "@kobalte/core/dropdown-menu";
 import {RadioGroup} from "@kobalte/core/radio-group";
 import {ToggleButton} from "@kobalte/core/toggle-button";

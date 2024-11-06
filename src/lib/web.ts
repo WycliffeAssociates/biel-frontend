@@ -1,6 +1,4 @@
-import type {tsFilesToDownload} from "@components/ResourceSingle/ResourceSingleContext";
-import type {TsDirectoryFile, ZipSrcBodyReq} from "@customTypes/types";
-import {makeZip} from "client-zip";
+import type {TsDirectoryFile} from "@customTypes/types";
 
 export const bielExternalCacheName = "biel-external";
 export const bielStaticCacheName = "biel-static";
