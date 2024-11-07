@@ -89,8 +89,6 @@ export const POST: APIRoute = async ({request, locals}) => {
       locals.runtime.env.CONTACT_FORM_EMAILS_BASE64 || "{}",
       locals.runtime.env.CONTACT_ENV || "local"
     );
-    console.log("Sending to");
-    console.log(emailAddresses);
     const processingBody: remotePayloadType = {
       env: locals.runtime.env.CONTACT_ENV || "local",
       addresses: emailAddresses,
@@ -129,7 +127,7 @@ export const POST: APIRoute = async ({request, locals}) => {
 function matchHelpMethodToEmailList(
   helpMethod: string,
   emailJson: string,
-  isDev: boolean
+  formEnv: string
 ) {
   // don't worry about try catch here. We want to bubble and throw if not valid
   // ignore any deprecation warnings here.  Cloudlfare workers and  Astro endpoints aren't node. atob is and btoa are fine since we don't use non ascii emails for wa.  Base64 to get around weird escaping issues with json from cloudflare.
@@ -141,17 +139,16 @@ function matchHelpMethodToEmailList(
     translationSupport: string;
     other: string;
   };
-  console.log(emailMap);
+  console.log(emailMap, helpMethod);
 
   function splitOnCommaAndFilter(str: string) {
     return str
       .split(",")
       .filter((s: string) => s.includes("@wycliffeassociates.org"));
   }
-  if (isDev) {
+  if (formEnv.toLowerCase() === "local") {
     return splitOnCommaAndFilter(emailMap.dev);
   }
-  console.log(emailMap, helpMethod);
   switch (helpMethod) {
     case "Scripture Engagement":
       return splitOnCommaAndFilter(emailMap.engagement);
