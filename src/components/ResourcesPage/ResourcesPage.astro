@@ -1,7 +1,8 @@
 ---
+import {constants} from "@lib/constants";
 import {getLanguagesWithContentForBiel} from "@src/data/pubDataApi";
-import type {i18nDictType} from "@src/i18n/strings";
 import {ResourceIndex} from "./Main";
+import type {i18nDictType} from "@src/i18n/strings";
 interface Props {
   detailPrefix: string;
   i18nDict: i18nDictType;
@@ -11,17 +12,23 @@ const startTime = performance.now();
 const runtime = Astro.locals.runtime;
 const referrer = Astro.request.headers.get("Referer") as string;
 const referrerUrl = new URL(referrer);
-const doBustCache = !!referrerUrl.searchParams.get("cache-bust");
-const resourceType = referrerUrl.searchParams.get("resource-type");
+const paramsLower = new URLSearchParams(
+  Array.from(referrerUrl.searchParams, ([key, value]) => [
+    key.toLowerCase(),
+    value,
+  ])
+);
+const doBustCache = !!paramsLower.get(constants.queryParamCacheBust);
+const resourceType = paramsLower.get(constants.queryParamResourceType);
 const resourceTypeArrQp = resourceType
   ? resourceType.split("|").map((t) => t.trim().toLowerCase())
   : [];
-console.log(`resourceType: ${resourceType}`);
+
 // note, cache is a noop in dev right now for cloudfalre adapter
 const cache = runtime.caches.default;
 const ctx = runtime.ctx;
 const pubDataApiUrl = runtime.env.PUBLIC_DATA_API;
-const {detailPrefix, i18nDict, siteIetf} = Astro.props;
+const {detailPrefix, i18nDict, siteIetf} = Astro.props as Props;
 const {data, wasCached, resourceTypeToDisplayName} =
   await getLanguagesWithContentForBiel({
     cache,
@@ -47,6 +54,6 @@ console.log(
     languages={data.data.language}
     detailPrefix={detailPrefix}
     resourceTypeToDisplayName={resourceTypeToDisplayName}
-    resourceTypeArrQps={resourceTypeArrQp}
+    resourceTypeArrSearchParams={resourceTypeArrQp}
   />
 </div>

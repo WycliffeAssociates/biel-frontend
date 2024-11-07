@@ -1,28 +1,20 @@
 import type {
-  DirectoryListing,
   ScriptureStoreState,
   TsDirectoryFile,
   TsDirectoryLang,
 } from "@customTypes/types";
-import type {domainScripture} from "@src/data/pubDataApi";
+import {Checkbox} from "@kobalte/core/checkbox";
 import {For, Show, Suspense, createSignal, onMount} from "solid-js";
 import {ScripturalView} from "./ContentScriptural";
 import {PeripheralMenu} from "./Menu";
 import {useResourceSingleContext} from "./ResourceSingleContext";
-import {Checkbox} from "@kobalte/core/checkbox";
 
 type ContentViewProps = {
   classes?: string;
 };
 export function ContentView(props: ContentViewProps) {
-  const {
-    fitsScripturalSchema,
-    activeContent,
-    viewType,
-    setViewType,
-    selectedTsFolder,
-    tsFilesToDownload,
-  } = useResourceSingleContext();
+  const {fitsScripturalSchema, activeContent, viewType, selectedTsFolder} =
+    useResourceSingleContext();
 
   return (
     <Suspense>
@@ -66,8 +58,8 @@ function DownloadableView(props: {
   loopIter?: number;
 }) {
   const {
-    tsFilesToDownload,
-    setTsFilesToDownload,
+    tsFilesForDownload,
+    setTsFilesForDownload,
     downloadableSearchTerm,
     i18nDict,
   } = useResourceSingleContext();
@@ -77,29 +69,29 @@ function DownloadableView(props: {
   // const [wholeFolderChecked, setWholeFolderChecked] = createSignal(false);
   const wholeChecked = () => {
     return props.tsTree?.subTree.files.every((file) =>
-      tsFilesToDownload().has(file.path)
+      tsFilesForDownload().has(file.path)
     );
   };
 
   const isChecked = (file: TsDirectoryFile) => {
-    return tsFilesToDownload().has(file.path);
+    return tsFilesForDownload().has(file.path);
   };
 
   const toggle = (file: TsDirectoryFile) => {
     if (isChecked(file)) {
-      setTsFilesToDownload((prev) => {
+      setTsFilesForDownload((prev) => {
         prev.delete(file.path);
         return new Map(prev);
       });
     } else {
-      setTsFilesToDownload((prev) => {
+      setTsFilesForDownload((prev) => {
         prev.set(file.path, file);
         return new Map(prev);
       });
     }
   };
   const selectSubTree = (wholeChecked: boolean, files: TsDirectoryFile[]) => {
-    setTsFilesToDownload((prev) => {
+    setTsFilesForDownload((prev) => {
       files.forEach((file) => {
         wholeChecked ? prev.delete(file.path) : prev.set(file.path, file);
       });

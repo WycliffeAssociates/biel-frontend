@@ -64,6 +64,7 @@ export function getCachedFooter(forceRefresh = false) {
 			const parsed = JSON.parse(page);
 			return parsed;
 		} catch (error) {
+			console.error(error);
 			return;
 		}
 	}
@@ -102,6 +103,7 @@ export function cacheHeaderMenu({
 				const parsed = JSON.parse(menu);
 				return parsed;
 			} catch (error) {
+				console.error(error);
 				return;
 			}
 		} else if (action === "put") {

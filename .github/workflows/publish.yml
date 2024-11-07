@@ -80,6 +80,7 @@ jobs:
         env:
           NODE_OPTIONS: --max_old_space_size=4096
           TURNSTILE_PUBLIC_KEY: ${{ env.TURNSTILE_PUBLIC_KEY }}
+          IS_MAIN_BRANCH: ${{ github.ref == 'refs/heads/prod' }}
 
       - name: Purge extra css
         run: |

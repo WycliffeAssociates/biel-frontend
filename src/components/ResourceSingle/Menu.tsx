@@ -1,19 +1,19 @@
-import {Show, Suspense, lazy, type Accessor, type Setter} from "solid-js";
-import {MenuRow} from "./ContentScriptural";
-import {
-  useResourceSingleContext,
-  type tsFilesToDownload,
-  type tsFolderState,
-  type twStateType,
-} from "./ResourceSingleContext";
 import type {
   ScriptureStoreState,
   TsDirectoryFile,
   TsDirectoryLang,
 } from "@customTypes/types";
-import type {i18nDictType} from "@src/i18n/strings";
 import {Checkbox} from "@kobalte/core/checkbox";
 import {getTsFilesPayload} from "@lib/web";
+import type {i18nDictType} from "@src/i18n/strings";
+import {type Accessor, type Setter, Show, Suspense, lazy} from "solid-js";
+import {MenuRow} from "./ContentScriptural";
+import {
+  type TsFilesForDownload,
+  type tsFolderState,
+  type twStateType,
+  useResourceSingleContext,
+} from "./ResourceSingleContext";
 import {DownloadablesFilterMenu} from "./TsDownloadables/FilterMenu";
 
 // No need to ship this to most folks langs that won't have a tw
@@ -32,9 +32,9 @@ export function Menu(props: MenuProps) {
     activeContent,
     i18nDict,
     viewType,
-    tsFilesToDownload,
+    tsFilesForDownload,
     selectedTsFolder,
-    setTsFilesToDownload,
+    setTsFilesForDownload,
     downloadableSearchTerm,
     setDownloadableSearchTerm,
   } = useResourceSingleContext();
@@ -58,9 +58,9 @@ export function Menu(props: MenuProps) {
       </Show>
       <Show when={viewType() === "downloadable" && isBig()}>
         <DownloadLoadableTypeMenu
-          tsFiles={tsFilesToDownload}
+          tsFiles={tsFilesForDownload}
           tsFolder={selectedTsFolder}
-          setTsFilesToDownload={setTsFilesToDownload}
+          setTsFilesForDownload={setTsFilesForDownload}
           i18nDict={i18nDict}
           downloadableSearchTerm={downloadableSearchTerm}
           setDownloadableSearchTerm={setDownloadableSearchTerm}
@@ -71,9 +71,9 @@ export function Menu(props: MenuProps) {
 }
 
 function DownloadLoadableTypeMenu(props: {
-  tsFiles: Accessor<tsFilesToDownload>;
+  tsFiles: Accessor<TsFilesForDownload>;
   tsFolder: Accessor<tsFolderState | undefined>;
-  setTsFilesToDownload: Setter<tsFilesToDownload>;
+  setTsFilesForDownload: Setter<TsFilesForDownload>;
   i18nDict: i18nDictType;
   downloadableSearchTerm: Accessor<string>;
   setDownloadableSearchTerm: Setter<string>;
@@ -102,13 +102,13 @@ function DownloadLoadableTypeMenu(props: {
       });
 
       if (tree?.folders) {
-        Object.entries(tree.folders).forEach(([key, nestedFolder]) => {
+        Object.values(tree.folders).forEach((nestedFolder) => {
           selectAllFiles(isChecked, results, nestedFolder);
         });
       }
-      props.setTsFilesToDownload(new Map(results.map((f) => [f.path, f])));
+      props.setTsFilesForDownload(new Map(results.map((f) => [f.path, f])));
     } else {
-      props.setTsFilesToDownload(new Map<string, TsDirectoryFile>());
+      props.setTsFilesForDownload(new Map<string, TsDirectoryFile>());
     }
   };
 

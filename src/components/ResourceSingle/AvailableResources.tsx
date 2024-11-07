@@ -1,22 +1,16 @@
-import type {
-  ScriptureStoreState,
-  TsDirectoryLang,
-  TsFile,
-} from "@customTypes/types";
+import type {ScriptureStoreState, TsDirectoryLang} from "@customTypes/types";
 import {Dialog} from "@kobalte/core/dialog";
-import type {contentsForLang} from "@src/data/pubDataApi";
-import {For, Show, createSignal, type Accessor, type Setter} from "solid-js";
+import {getTsFilesPayload} from "@lib/web";
+import type {ContentsForLang} from "@src/data/gqlQueries/queries";
+import {type Accessor, For, type Setter, Show, createSignal} from "solid-js";
 import type {SetStoreFunction} from "solid-js/store";
 import {DownloadOptions} from "./DownloadOptions";
 import {
-  useResourceSingleContext,
   type tsFolderState,
+  useResourceSingleContext,
 } from "./ResourceSingleContext";
-import {contentContainsSearch, isScriptural} from "./lib";
-import {getTsFilesPayload} from "@lib/web";
-import type {tsFilesToDownload} from "./ResourceSingleContext";
-import {formatBytes} from "@src/utils";
 import {DownloadablesFilterMenu} from "./TsDownloadables/FilterMenu";
+import {contentContainsSearch, isScriptural} from "./lib";
 
 type AvailableResourcesProps = {
   classes?: string;
@@ -128,7 +122,7 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
     setSelectedTsFolder,
     selectedTsFolder,
     viewType,
-    tsFilesToDownload,
+    tsFilesForDownload,
     downloadableSearchTerm,
     setDownloadableSearchTerm,
   } = useResourceSingleContext();
@@ -258,20 +252,20 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
               type="hidden"
               name="zipPayload"
               value={JSON.stringify(
-                getTsFilesPayload(Array.from(tsFilesToDownload().values()))
+                getTsFilesPayload(Array.from(tsFilesForDownload().values()))
                   .zipPayload
               )}
             />
             <div class="fixed w-full bottom-0 start-0 contain-pad bg-surface-primary z-10 py-2">
               <button
                 type="submit"
-                disabled={tsFilesToDownload().size === 0}
+                disabled={tsFilesForDownload().size === 0}
                 class="p-2 bg-brand-base text-onSurface-invert  rounded-xl focus:(ring-4 ring-offset-6) disabled:(opacity-70 cursor-not-allowed)"
               >
                 {i18nDict.ls_DownloadButton}
-                <Show when={Array.from(tsFilesToDownload()).length}>
+                <Show when={Array.from(tsFilesForDownload()).length}>
                   {" "}
-                  {`(${Array.from(tsFilesToDownload()).length})`}
+                  {`(${Array.from(tsFilesForDownload()).length})`}
                 </Show>
               </button>
             </div>
@@ -303,7 +297,7 @@ export function SearchBar(props: SearchBarProps) {
 
 type AvailableResourceProps = {
   setActiveContent: SetStoreFunction<ScriptureStoreState>;
-  content: contentsForLang;
+  content: ContentsForLang;
   activeContent: ScriptureStoreState;
   additionalOnClick?: () => void;
   setViewType: Setter<"readable" | "downloadable">;

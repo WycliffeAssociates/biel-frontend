@@ -2,16 +2,16 @@
 
 import type { ScriptureStoreState } from "@customTypes/types";
 import type {
+	ContentsForLang,
 	RenderedContentRow,
-	contentsForLang,
 	domainScripture,
-} from "@src/data/pubDataApi";
+} from "@src/data/gqlQueries/queries";
 import { filter, flow, groupBy } from "ramda";
 import type { Accessor, Setter } from "solid-js";
 import type { SetStoreFunction } from "solid-js/store";
 
 export function isScriptural(
-	content: contentsForLang,
+	content: ContentsForLang,
 ): content is domainScripture {
 	return (
 		content.domain === "scripture" ||
@@ -22,7 +22,7 @@ export function isScriptural(
 
 export const contentContainsSearch = (
 	searchTerm: Accessor<string>,
-	contents: contentsForLang[],
+	contents: ContentsForLang[],
 ) => {
 	const term = searchTerm().toLowerCase();
 	if (!term || term.length <= 1) return contents;

@@ -2,9 +2,10 @@
 import "../styles/wordpress.scss";
 import "../styles/global.scss";
 import "../styles/vars.scss";
-import Blocks from "@components/Blocks.astro";
 import type {languageType} from "@customTypes/types";
 import {getEnglishUriMap, getFooter} from "@src/data/wp";
+import Blocks from "@components/Blocks.astro";
+import {adjustCmsDomLinks, hrefLangUrl} from "@src/utils";
 interface Props {
   title: string;
   langInfo: languageType;
@@ -12,16 +13,26 @@ interface Props {
   inlineCss: string[];
   isContactPage: boolean;
   langDirection: "ltr" | "rtl";
+  description: string;
+  siteName: string;
+  ogImage: string;
 }
-
-import {adjustCmsDomLinks} from "@src/utils";
 const gqlUrl =
   import.meta.env.WORDPRESS_GQL_URL ||
   Astro.locals.runtime.env?.WORDPRESS_GQL_URL;
 const cmsBaseUrl = import.meta.env.CMS_URL || Astro.locals.runtime.env?.CMS_URL;
 
-const {title, inlineCss, langInfo, langSwitcher, isContactPage, langDirection} =
-  Astro.props;
+const {
+  title,
+  inlineCss,
+  langInfo,
+  langSwitcher,
+  isContactPage,
+  langDirection,
+  description,
+  siteName,
+  ogImage,
+} = Astro.props;
 
 // const forceRefresh = false;
 const footerData = await getFooter({langCode: langInfo.code, gqlUrl});
@@ -43,6 +54,11 @@ const {englishUriMap} = await getEnglishUriMap({gqlUrl});
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <!-- https://bible-in-every-language.local/wp-content/themes/generatepress/assets/css/main.min.css -->
     <meta name="generator" content={Astro.generator} />
+    <meta content={title} property="og:title" />
+    <meta content={description} property="og:description" />
+    <meta content={siteName} property="og:site_name" />
+    <meta content={ogImage} property="og:image" />
+    <!-- if I robot gets to preview, don't index -->
     <meta name="robots" content="noindex, nofollow" />
     <title>{title}</title>
     {inlineCss && <style id="headlessStyles" set:html={dedupedInlineStyles} />}
@@ -51,16 +67,12 @@ const {englishUriMap} = await getEnglishUriMap({gqlUrl});
         return (
           <link
             rel="alternate"
-            href={
-              version.localizedUrl ||
-              `${version.code == "en" ? "/" : `/${version.code}`}`
-            }
+            href={hrefLangUrl(version, Astro)}
             hreflang={version.code}
           />
         );
       })
     }
-    <!-- {import.meta.env.PROD && <ViewTransitions />} -->
     {
       isContactPage && (
         <script
@@ -86,3 +98,5 @@ const {englishUriMap} = await getEnglishUriMap({gqlUrl});
     </footer>
   </body>
 </html>
+-->
+

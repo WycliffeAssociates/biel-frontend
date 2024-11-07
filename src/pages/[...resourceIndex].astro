@@ -5,6 +5,7 @@ import {HeaderMenu} from "@components/HeaderMenu";
 import {getMenus, getLanguagesPageSlugs, getWpmlLanguages} from "@src/data/wp";
 import ResourceIndex from "@components/ResourcesPage/ResourcesPage.astro";
 import type {languageType, Menu} from "@customTypes/types";
+import {titleCase} from "@src/utils";
 
 type Props = {
   title: string;
@@ -78,17 +79,22 @@ export async function getStaticPaths() {
 }
 
 const {title, allLangs, langInfo, headerMenu, pageDict} = Astro.props;
-
+const ogImage = `${Astro.site}/images/wa_logo.png`;
 const {resourceIndex: prefix} = Astro.params;
 ---
 
 <Layout
-  title={title}
+  title={titleCase({
+    lang: langInfo.code,
+    str: `${pageDict.siteName} - ${title}`,
+  })}
   inlineCss={[]}
   description="Resources Languages Page"
   langInfo={langInfo}
   langSwitcher={allLangs}
   langDirection="ltr"
+  siteName={pageDict.siteName}
+  ogImage={ogImage}
 >
   <div class="header">
     <HeaderMenu

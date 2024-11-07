@@ -7,7 +7,7 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"ignore": ["dev-dist/*", "src/pagefind/*"]
+		"ignore": ["dev-dist/*", "src/pagefind/*", "*.astro"]
 	},
 	"formatter": {
 		"enabled": true,
@@ -25,6 +25,10 @@
 			},
 			"style": {
 				"noNonNullAssertion": "off"
+			},
+			"correctness": {
+				"noUnusedImports": "error",
+				"noUnusedVariables": "error"
 			}
 		}
 	},

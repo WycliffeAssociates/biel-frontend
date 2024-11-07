@@ -16,7 +16,7 @@ import {
   getWpmlLanguages,
 } from "@src/data/wp";
 import {getDict} from "@src/i18n/strings";
-import {adjustCmsDomLinks, determineShowGlobal} from "@src/utils";
+import {adjustCmsDomLinks, determineShowGlobal, titleCase} from "@src/utils";
 import {DOMParser} from "linkedom/worker";
 const gqlUrl =
   import.meta.env.WORDPRESS_GQL_URL ||
@@ -25,8 +25,6 @@ const restUrl =
   import.meta.env.WORDPRESS_REST_MENU_ENDPOINT ||
   Astro.locals.runtime.env?.WORDPRESS_REST_MENU_ENDPOINT;
 const cmsBaseUrl = import.meta.env.CMS_URL || Astro.locals.runtime.env?.CMS_URL;
-// style id=generateblocks-inline-css
-// const res = await fetch("http://bible-in-every-language.local/headless/");
 const {slug} = Astro.params;
 if (!slug) return Astro.redirect("/404");
 const wpmlLangDict = await getWpmlLanguages({gqlUrl});
@@ -36,7 +34,6 @@ const langInfo = wpmlLangDict[firstPart]
   ? wpmlLangDict[firstPart]
   : wpmlLangDict.en;
 if (!langInfo) return Astro.redirect("/404");
-// const langInfo.language_code = !!wpmlLangDict[firstPart] ? firstPart : "en";
 const [page, ctaSection, {englishUriMap}] = await Promise.all([
   getPage({
     uri: slug,
@@ -101,29 +98,38 @@ const langSwitcherList = Object.values(wpmlLangDict)
     return copy;
   });
 
-const {title} = page;
-
-page.editorBlocks
+const blockHtmlWithClientInjections = page.editorBlocks
   .filter((b) => b.parentClientId == null)
   .map((block) => {
     //do injections here if neede
     return block.renderedHtml;
   });
+const metaDescription =
+  page.pageOptions?.topBlurb ||
+  blockHtmlWithClientInjections.join(" ").slice(0, 100);
+const ogImage = page.featuredImage?.node.sourceUrl || "";
+const pageDict = getDict(langInfo.code, true)!;
 ---
 
 <LayoutServer
-  title={title}
+  title={titleCase({
+    lang: langInfo.code,
+    str: `${pageDict.siteName} - ${page.title}`,
+  })}
   inlineCss={inlineStyles}
   langInfo={langInfo}
   langSwitcher={langSwitcherList}
   isContactPage={page.isContactPage}
   langDirection="ltr"
+  description={metaDescription}
+  siteName={pageDict.siteName}
+  ogImage={ogImage}
 >
   <HeaderMenu
     allLangs={langSwitcherList}
     currentLang={langInfo}
     menu={headerMenu}
-    i18nDict={getDict(langInfo.code, true)!}
+    i18nDict={pageDict}
     client:load
   />
   <main class={`${!page.isHomePage && "interior-page"} `}>
@@ -162,7 +168,7 @@ page.editorBlocks
               );
             })}
           {blocksAreEmpty(page.editorBlocks) && (
-            <h2 class="">{getDict(langInfo.code, true)?.notYetTranslated}</h2>
+            <h2 class="">{pageDict.notYetTranslated}</h2>
           )}
         </div>
       )
@@ -173,7 +179,7 @@ page.editorBlocks
           languageCode={langInfo.language_code}
           editorBlocks={page.editorBlocks}
           notTranslatedYet={blocksAreEmpty(page.editorBlocks)}
-          dict={getDict(langInfo.code, true)!}
+          dict={pageDict}
         />
       )
     }
@@ -181,7 +187,7 @@ page.editorBlocks
     {
       page.isSearchPage && (
         <SearchPage
-          dict={getDict(langInfo.code, true)!}
+          dict={pageDict}
           languageCode={langInfo.code}
           langSwitcherList={langSwitcherList}
         />
@@ -231,7 +237,7 @@ page.editorBlocks
       const userAgent = navigator.userAgent;
       const ua = userAgent.toLowerCase();
       const isMac = ua.includes("mac");
-      const isWindows = ua.includes("win");
+      // const isWindows = ua.includes("win");
       const isLinux = ua.includes("linux");
       const isAndroid = ua.includes("android");
       const isIOS = ua.includes("iphone") || ua.includes("ipad");

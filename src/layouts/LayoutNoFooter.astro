@@ -3,8 +3,9 @@ import "../styles/wordpress.scss";
 import "../styles/global.scss";
 import "../styles/vars.scss";
 import "../styles/reader.css";
-import {pwaInfo} from "virtual:pwa-info";
 import type {languageType} from "@customTypes/types";
+import {pwaInfo} from "virtual:pwa-info";
+import {hrefLangUrl} from "@src/utils";
 
 interface Props {
   title: string;
@@ -13,10 +14,20 @@ interface Props {
   inlineCss: string[];
   description: string;
   langDirection: "ltr" | "rtl";
+  siteName: string;
+  ogImage: string;
 }
-import {ViewTransitions} from "astro:transitions";
-const {title, inlineCss, langInfo, langSwitcher, description, langDirection} =
-  Astro.props;
+
+const {
+  title,
+  inlineCss,
+  langInfo,
+  langSwitcher,
+  description,
+  langDirection,
+  siteName,
+  ogImage,
+} = Astro.props;
 const allStyles = [...inlineCss];
 const deduped = new Set(allStyles);
 const dedupedInlineStyles = [...deduped].join("\n");
@@ -33,20 +44,20 @@ const dedupedInlineStyles = [...deduped].join("\n");
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="sitemap" href="/sitemap-index.xml" />
     <meta name="generator" content={Astro.generator} />
+    <meta content={title} property="og:title" />
+    <meta content={description} property="og:description" />
+    <meta content={siteName} property="og:site_name" />
+    <meta content={ogImage} property="og:image" />
     <title>{title}</title>
     {inlineCss && <style id="headlessStyles" set:html={dedupedInlineStyles} />}
     <script src="/src/pwa.ts"></script>
     {pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}
     {
       langSwitcher.map((version) => {
-        // todo: valid hreflangs can't be relative. Need to get site url
         return (
           <link
             rel="alternate"
-            href={
-              version.localizedUrl ||
-              `${version.code == "en" ? "/" : `/${version.code}`}`
-            }
+            href={hrefLangUrl(version, Astro)}
             hreflang={version.code}
           />
         );

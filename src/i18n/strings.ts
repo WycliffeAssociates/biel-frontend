@@ -1,4 +1,5 @@
 const en = {
+  siteName: "Bible in Every Language",
   notYetTranslated:
     "This has not yet been translated. We are working to get it finished soon.",
   search: "Search...",

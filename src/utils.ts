@@ -1,5 +1,6 @@
+import type {AstroGlobal} from "astro";
 import {DOMParser} from "linkedom/worker";
-import type {Menu, MenuItem, WpPage} from "./customTypes/types";
+import type {Menu, MenuItem, WpPage, languageType} from "./customTypes/types";
 
 export function flatMenuToHierachical(menu: Menu) {
   // For each menu->items, remove them from the the flat list, find the menu item who is their parent, and add it to children array on the item
@@ -377,4 +378,31 @@ export function formatBytes(bytes: number) {
 }
 export function capitalizeFirstLetter(word: string): string {
   return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
+export function hrefLangUrl(version: languageType, astro: AstroGlobal) {
+  const hostName = astro.site?.hostname || "";
+  if (version.localizedUrl) {
+    const withoutStartingSlash = version.localizedUrl.startsWith("/")
+      ? version.localizedUrl.slice(1)
+      : version.localizedUrl;
+    return `${hostName}/${withoutStartingSlash}`;
+  }
+  if (version.code === "en") {
+    return `${hostName}`;
+  }
+  return `${hostName}/${version.code}`;
+}
+
+type TitleCaseArgs = {
+  lang: string;
+  str: string;
+};
+
+export function titleCase({lang = "en", str}: TitleCaseArgs) {
+  // function implementation
+  const words = Array.from(
+    new Intl.Segmenter(lang, {granularity: "word"}).segment(str)
+  ).map((word) => word.segment.charAt(0).toUpperCase() + word.segment.slice(1));
+  return words.join(" ");
 }

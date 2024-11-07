@@ -1,7 +1,20 @@
 import {bibleBookSortOrder} from "@src/utils";
-const bielFilter = `show_on_biel: {_eq: true},status: {_eq: "Primary"}`;
-import {groupBy} from "ramda";
-const hasRenderings = "count: {predicate: {_gt: 0}}";
+import {
+  type ContentRow,
+  type GetLanguageContentsQueryReturn,
+  type GetLanguagesWithContentForBielQueryReturn,
+  type LangWithContent,
+  type RenderedContentRow,
+  type RenderedContentRowsByType,
+  getLangWithContentNamesQuery,
+  type getLangWithContentNamesQueryReturn,
+  getLanguageContentsQuery,
+  getLanguagesWithContentForBielQuery,
+} from "./gqlQueries/queries";
+type;
+
+import {groupBy, type} from "ramda";
+
 import type {
   Cache,
   ExecutionContext,
@@ -22,59 +35,20 @@ export async function getLanguagesWithContentForBiel({
   doBustCache,
   siteLanguage,
 }: getLanguagesWithContentForBielArgs): Promise<{
-  data: queryReturn | null;
+  data: GetLanguagesWithContentForBielQueryReturn | null;
   wasCached: boolean;
   resourceTypeToDisplayName: Record<string, string>;
 }> {
   const siteLanguageException = siteLanguage === "es" ? "es-419" : siteLanguage;
-  const query = `
-query MyQuery {
-  localization(
-    where: {category: {_eq: "resource_type"}, ietf_code: {_eq: "${siteLanguageException}"}}
-  ) {
-    resourceTypeKey:key
-    value
-  }
-  language(
-    where: {
-      contents_aggregate: {
-      count: {
-      predicate: {_gt: 0},
-      filter: {
-        wa_content_metadata: {
-        ${bielFilter}
-        },
-        rendered_contents_aggregate: {
-        ${hasRenderings}
-        }
-      }
-    }
-  }
-}
-    order_by: {english_name: asc}
-  ) {
-    english_name
-    ietf_code
-    national_name
-    wa_language_metadata {
-      is_gateway
-    }
-    contents(
-      where: {wa_content_metadata: {${bielFilter}}}
-      distinct_on: resource_type
-    ) {
-      resource_type
-    }
-  }
-}
-`;
+
   // todo: decide on a valid stale seconds time
   const swrThresholdSeconds = 3600; //valid for another hour after max
   const maxAgeValidSecond = 60 * 60 * 3; // 3 hours
   const oneYearInSeconds = 60 * 60 * 24 * 365;
   try {
     // CF doesn't support SWR yet, but we cna implement it for one route.  Just use caches.default and put one in with a custom x-swr header. When this is called, do a caches.match()... if the max-age or s-max isn't expired, cf should just use that. Then,
-    let json: queryReturn;
+    let json: GetLanguagesWithContentForBielQueryReturn;
+    const query = getLanguagesWithContentForBielQuery(siteLanguageException);
     const requestToMake = () => {
       return new Request(pubDataApiUrl, {
         method: "POST",
@@ -110,7 +84,7 @@ query MyQuery {
           })
         );
       }
-      json = (await match.json()) as queryReturn;
+      json = (await match.json()) as GetLanguagesWithContentForBielQueryReturn;
       const resourceTypeToDisplayName = json.data.localization.reduce(
         (acc: Record<string, string>, curr) => {
           acc[curr.resourceTypeKey] = curr.value;
@@ -127,7 +101,7 @@ query MyQuery {
 
     const res = await fetch(requestToMake());
     if (res?.ok) {
-      json = (await res.json()) as queryReturn;
+      json = (await res.json()) as GetLanguagesWithContentForBielQueryReturn;
       json.data.language.forEach((l) => {
         l.resourceTypesAvailable = l.contents.map((c) => c.resource_type);
       });
@@ -163,42 +137,6 @@ query MyQuery {
   }
 }
 
-export type queryReturn = {
-  data: {
-    localization: {
-      resourceTypeKey: string;
-      value: string;
-      ietf_code: string;
-    }[];
-    language: queryReturnLanguage[];
-  };
-};
-
-export type queryReturnLanguage = {
-  english_name: string;
-  ietf_code: string;
-  national_name: string;
-  wa_language_metadata: {
-    is_gateway: boolean;
-  } | null;
-  resourceTypesAvailable: string[];
-  // todo: this isn't right for all queries
-  contents: {
-    resource_type: string;
-    name: string;
-    id: string;
-    wa_content_metadata: {
-      show_on_biel: boolean;
-      status: string;
-    };
-    rendered_contents_aggregate: {
-      aggregate: {
-        count: number;
-      };
-    };
-  }[];
-};
-
 type getLanguageContentsArgs = getLanguagesWithContentForBielArgs & {
   language: string;
 };
@@ -211,49 +149,11 @@ export async function getLanguageContents({
   doBustCache,
   siteLanguage,
 }: getLanguageContentsArgs) {
-  // todo: decide whether to use siteLanguage or resources language for css
   const siteLanguageException = siteLanguage === "es" ? "es-419" : siteLanguage;
-  const query = `query LangContents {
-  localization(
-    where: {category: {_eq: "resource_type"}, ietf_code: {_eq: "${siteLanguageException}"}}
-  ) {
-    resourceTypeKey:key
-    value
-  }
-  language(where: {ietf_code: {_eq: "${language}"}}) {
-    national_name
-    english_name
-    direction
-    ietf_code
-    wa_language_metadata {
-      is_gateway
-    }
-    contents(
-      where: {wa_content_metadata: {status: {_eq: "Primary"}, show_on_biel: {_eq: true}}, rendered_contents_aggregate: {count: {predicate: {_gt: 0}}}}
-    ) {
-      name
-      type
-      domain
-      title
-      resource_type
-      gitRepo:git_repo {
-      url:repo_url
-    }
-      rendered_contents {
-        hash
-        url
-        scriptural_rendering_metadata {
-          chapter
-          book_slug
-          book_name
-        }
-        file_type
-        file_size_bytes
-      }
-    }
-  }
-}
-  `;
+  const query = getLanguageContentsQuery({
+    lang: language,
+    siteLang: siteLanguageException,
+  });
 
   // Have to write cf specific code for caching post requests. It think we'll skip SWR for this stuff and just set it to an s-maxage of a day.
   let res: Response | WorkerResponse | null | undefined = null;
@@ -290,7 +190,7 @@ export async function getLanguageContents({
       ctx.waitUntil(cache.put(cacheKey as unknown as WorkerRequest, response));
     }
   }
-  const json = (await res.json()) as langContentReturn;
+  const json = (await res.json()) as GetLanguageContentsQueryReturn;
 
   const resourceTypeToDisplayName = json.data.localization.reduce(
     (acc: Map<string, string>, curr) => {
@@ -373,49 +273,7 @@ export async function getLangsWithContentNames({
 }: {
   pubDataUrl: string;
 }) {
-  const query = `
-		query MyQuery {
-    localization(
-    where: {category: {_eq: "resource_type"}}
-    ) {
-    resourceTypeKey:key
-    value
-    ietf_code
-     }
-    language(
-				where: {
-					contents_aggregate: {
-					count: {
-					predicate: {_gt: 0},
-					filter: {
-						wa_content_metadata: {
-						${bielFilter}
-						},
-						rendered_contents_aggregate: {
-						${hasRenderings}
-						}
-					}
-				}
-			}
-		}
-				order_by: {english_name: asc}
-			) {
-				english_name
-				ietf_code
-				national_name
-				wa_language_metadata {
-					is_gateway
-				}
-				contents ( where: {wa_content_metadata: {status: {_eq: "Primary"}, show_on_biel: {_eq: true}}, rendered_contents_aggregate: {count: {predicate: {_gt: 0}}}}) {
-					name
-					type
-					domain
-					title
-					resource_type
-				}
-			}
-		}
-		`;
+  const query = getLangWithContentNamesQuery();
 
   const res = await fetch(pubDataUrl, {
     method: "POST",
@@ -424,7 +282,7 @@ export async function getLangsWithContentNames({
     },
     body: JSON.stringify({query}),
   });
-  const json = (await res.json()) as getLangsWithContentNamesReturn;
+  const json = (await res.json()) as getLangWithContentNamesQueryReturn;
   console.log(json);
   const resourceTypeToDisplayName = json.data.localization.reduce(
     (acc: Map<string, string>, curr) => {
@@ -450,116 +308,6 @@ export async function getLangsWithContentNames({
   return json;
 }
 
-type getLangsWithContentNamesReturn = {
-  data: {
-    localization: {
-      resourceTypeKey: string;
-      value: string;
-      ietf_code: string;
-    }[];
-    language: {
-      english_name: string;
-      ietf_code: string;
-      national_name: string;
-      wa_language_metadata: {
-        is_gateway: boolean;
-      };
-      contents: {
-        title: string | undefined;
-        displayName: string;
-        name: string;
-        resource_type: string;
-        type: string;
-        domain: string;
-        rendered_contents: RenderedContentRow[];
-      }[];
-    }[];
-  };
-};
-
-type RenderedContentRowsByType = {
-  wholeChapterUrls: {[key: string]: RenderedContentRow};
-  htmlChapters: RenderedContentRow[];
-  wholeResourceRow: RenderedContentRow | null;
-  usfmSources: RenderedContentRow[];
-  otherFiles: RenderedContentRow[];
-};
-
-type ContentRow = {
-  name: string;
-  type: string;
-  domain: string;
-  resource_type: string;
-  title: string | undefined;
-  gitRepo?: {
-    url: string;
-  };
-  // usfmSources?: string[];
-  rendered_contents: RenderedContentRow[];
-};
-type langContentReturn = {
-  data: {
-    localization: Array<{
-      resourceTypeKey: string;
-      value: string;
-    }>;
-    language: {
-      national_name: string;
-      english_name: string;
-      direction: "ltr" | "rtl";
-      ietf_code: string;
-      // # english_name
-      wa_language_metadata: {
-        is_gateway: boolean;
-      };
-      contents: ContentRow[];
-    }[];
-  };
-};
-export type RenderedContentRow = {
-  hash: string;
-  url: string;
-  scriptural_rendering_metadata: {
-    chapter: string;
-    book_slug: string;
-    book_name: string;
-  } | null;
-  file_type: string;
-  file_size_bytes: number;
-};
-
-type contentCommon = {
-  name: string;
-  type: string;
-  resource_type: string;
-  // title comes from db directly and is manifest.yaml|json derived. DisplayName is form manually curated localization of resource types
-  title: string | undefined;
-  displayName: string;
-  gitRepo?: {
-    url: string;
-  };
-  rendered_contents: RenderedContentRowsByType;
-};
-export type domainScripture = contentCommon & {
-  domain: "scripture" | "gloss" | "parascriptural";
-};
-export type domainPeripheral = contentCommon & {
-  domain: "peripheral";
-  // rendered_contents: RenderedContentRow[];
-};
-
-export type contentsForLang = domainScripture | domainPeripheral;
-
-export type LanguageForClient = {
-  direction: "ltr" | "rtl";
-  isGateway: boolean;
-  code: string;
-  englishName: string;
-};
-export type LangWithContent = {
-  language: LanguageForClient;
-  contents: contentsForLang[];
-};
 type ManageCfCacheArgs = {
   swrThresholdSeconds?: number;
   query: string;

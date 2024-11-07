@@ -81,7 +81,6 @@ export async function getLanguagesPageSlugs({gqlUrl}: {gqlUrl: string}) {
     };
   };
   // todo: change these to all languages in routes.json. Double check all of routes.json actuall. Write a utitliy to call this and check all the uris.
-  // todo:
   /* 
     { languageCode: 'es', slug: 'recursos', title: 'Recursos' },
     { languageCode: 'fa', slug: 'منابع', title: 'منابع' },

@@ -6,21 +6,24 @@ interface Props {
   siteLanguage: string;
 }
 import {ResourceWrapper} from "@components/ResourceSingle/ResourceWrapper";
+import {constants} from "@lib/constants";
 import {getTsFiles} from "@src/data/github";
 import {getLanguageContents} from "@src/data/pubDataApi";
 
 const {languageToFetch, i18nDict, siteLanguage} = Astro.props;
 const startTime = performance.now();
-// todo: remove
-// const tsFiles = await getTsFiles(languageToFetch);
-// todo: rename
 const tsFiles = await getTsFiles(languageToFetch);
 const cache = Astro.locals.runtime.caches.default;
 const ctx = Astro.locals.runtime.ctx;
 const pubDataApiUrl = Astro.locals.runtime.env.PUBLIC_DATA_API;
 const docUiUrl = Astro.locals.runtime.env.DOC_UI_URL as string;
-const urlParams = Astro.url.searchParams;
-const doBustCache = !!urlParams.get("cache-bust");
+const paramsLower = new URLSearchParams(
+  Array.from(Astro.url.searchParams, ([key, value]) => [
+    key.toLowerCase(),
+    value,
+  ])
+);
+const doBustCache = !!paramsLower.get(constants.queryParamCacheBust);
 
 const data = await getLanguageContents({
   language: languageToFetch,
@@ -39,10 +42,13 @@ console.log(
   `Time for language ${languageToFetch} route on server ${totalTime} ms.  
   Was cache match is ${wasCached}`
 );
-const resource = Astro.url.searchParams.get("resource") || null;
-const book = Astro.url.searchParams.get("book") || null;
-const chapter = Astro.url.searchParams.get("chapter") || null;
-const download = Astro.url.searchParams.get("download") || null;
+
+const resource = paramsLower.get(constants.queryParamResourceType) || null;
+const book = paramsLower.get(constants.queryParamsLangContentsBook) || null;
+const chapter =
+  paramsLower.get(constants.queryParamsLangContentsChapter) || null;
+const download =
+  paramsLower.get(constants.queryParamsLangContentsDownload) || null;
 const queryParams = {resource, book, chapter, download};
 ---
 

@@ -1,7 +1,8 @@
 ---
+import Blocks from "@components/Blocks.astro";
 import {HeaderMenu} from "@components/HeaderMenu";
-import {injectSearch} from "@components/SearchInjectClientSide";
 import type {WpPage} from "@customTypes/types";
+import Layout from "@layouts/Layout.astro";
 import {cacheHomePageDev, getDevHomePage} from "@lib/caching";
 import {
   getEnglishUriMap,
@@ -9,13 +10,9 @@ import {
   getMenus,
   getWpmlLanguages,
 } from "@src/data/wp";
-import {adjustCmsDomLinks} from "@src/utils";
-import {DOMParser} from "linkedom/worker";
-import Blocks from "../components/Blocks.astro";
-// export const prerender = false;
-import Layout from "../layouts/Layout.astro";
-
 import {getDict} from "@src/i18n/strings";
+import {adjustCmsDomLinks, titleCase} from "@src/utils";
+import {DOMParser} from "linkedom/worker";
 // !NOTE: THIS IS ONLY THE ENGLISH PAGE, HECNE THE COERCCIONES AND HARDCODES TO .EN. THIS IS DUE TO WANTING TO ROUTE THE HOME PAGE TO /, BUT THE OTHER HOME PAGES ARE LOCALE PREFIXED /ES FOR EXAMPLE
 const forceRefresh = true;
 const gqlUrl =
@@ -79,24 +76,30 @@ const blockHtmlWithClientInjections = editorBlocks
   });
 
 const description = blockHtmlWithClientInjections.join(" ").slice(0, 100);
-
+const ogImage = `${Astro.site}/images/wa_logo.png`;
 const {englishUriMap} = await getEnglishUriMap({gqlUrl});
+const pageDict = getDict(langInfo.code, true)!;
 ---
 
 <Layout
-  title={title}
+  title={titleCase({
+    lang: langInfo.code,
+    str: `${pageDict.siteName} - ${title}`,
+  })}
   inlineCss={inlineStyles}
   langInfo={langInfo}
   langSwitcher={langSwitcherList}
   description={description}
   langDirection="ltr"
   isContactPage={false}
+  siteName={pageDict.siteName}
+  ogImage={ogImage}
 >
   <HeaderMenu
     allLangs={langSwitcherList}
     currentLang={langInfo}
     menu={headerMenu}
-    i18nDict={getDict("en")!}
+    i18nDict={pageDict}
     client:load
   />
   <main

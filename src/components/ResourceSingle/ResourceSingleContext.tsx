@@ -6,7 +6,7 @@ import type {
   ZipSrcBodyReq,
 } from "@customTypes/types";
 import {createMediaQuery} from "@solid-primitives/media";
-import type {contentsForLang} from "@src/data/pubDataApi";
+import type {ContentsForLang} from "@src/data/gqlQueries/queries";
 import type {i18nDictType} from "@src/i18n/strings";
 import {
   type Accessor,
@@ -26,7 +26,7 @@ const ResourceSingleContext = createContext<{
   menuSearchTerm: Accessor<string>;
   setMenuSearchTerm: Setter<string>;
   activeContent: ScriptureStoreState;
-  allLangContents: contentsForLang[];
+  allLangContents: ContentsForLang[];
   langCode: string;
   setActiveContent: SetStoreFunction<ScriptureStoreState>;
   fitsScripturalSchema: () => boolean;
@@ -44,8 +44,8 @@ const ResourceSingleContext = createContext<{
   setViewType: Setter<"readable" | "downloadable">;
   selectedTsFolder: Accessor<tsFolderState | undefined>;
   setSelectedTsFolder: Setter<tsFolderState | undefined>;
-  tsFilesToDownload: Accessor<tsFilesToDownload>;
-  setTsFilesToDownload: Setter<tsFilesToDownload>;
+  tsFilesForDownload: Accessor<TsFilesForDownload>;
+  setTsFilesForDownload: Setter<TsFilesForDownload>;
   downloadableSearchTerm: Accessor<string>;
   setDownloadableSearchTerm: Setter<string>;
   allTsFiles:
@@ -59,7 +59,7 @@ export type tsFolderState = {
   folderName: string;
   subTree: TsDirectoryLang;
 };
-export type tsFilesToDownload = Map<string, TsDirectoryFile>;
+export type TsFilesForDownload = Map<string, TsDirectoryFile>;
 export type twStateType = {
   menuList:
     | {
@@ -74,7 +74,7 @@ export type twStateType = {
 type ResourceSingleProviderProps = {
   // biome-ignore lint/suspicious/noExplicitAny: <I think children have to be jsx els or something, but not going to pass a type that's not that of course>
   children: any;
-  allLangContents: contentsForLang[];
+  allLangContents: ContentsForLang[];
   langDirection: "ltr" | "rtl";
   langCode: string;
   i18nDict: i18nDictType;
@@ -109,8 +109,8 @@ export const ResourceSingleProvider = (props: ResourceSingleProviderProps) => {
     tsFolderState | undefined
   >(getDefaultTsFolderShown());
 
-  const [tsFilesToDownload, setTsFilesToDownload] =
-    createSignal<tsFilesToDownload>(new Map());
+  const [tsFilesForDownload, setTsFilesForDownload] =
+    createSignal<TsFilesForDownload>(new Map());
   const resourceFromQpOrDefault =
     props.allLangContents.find((r) => r.name === props.queryParams.resource) ||
     props.allLangContents[0]!;
@@ -263,8 +263,8 @@ export const ResourceSingleProvider = (props: ResourceSingleProviderProps) => {
         setViewType,
         selectedTsFolder: selectedTsFolder,
         setSelectedTsFolder: setSelectedTsFolder,
-        setTsFilesToDownload,
-        tsFilesToDownload,
+        setTsFilesForDownload,
+        tsFilesForDownload,
         downloadableSearchTerm,
         setDownloadableSearchTerm,
         allTsFiles: props.tsFiles,

@@ -6,7 +6,8 @@ import {BreadCrumbs} from "@components/BreadCrumbs";
 import Layout from "@layouts/LayoutNoFooter.astro";
 import {getMenus, getLanguagesPageSlugs, getWpmlLanguages} from "@src/data/wp";
 import {getDict} from "@src/i18n/strings";
-import {capitalizeFirstLetter} from "@src/utils";
+import {capitalizeFirstLetter, titleCase} from "@src/utils";
+
 const {resourceLang} = Astro.params;
 if (!resourceLang) return Astro.redirect("/404");
 const gqlUrl =
@@ -125,15 +126,21 @@ switch (parts.length) {
 const crumbs = {
   nodes: nodes,
 };
+const ogImage = `${Astro.site}/images/wa_logo.png`;
 ---
 
 <Layout
-  title={parts.join(" ")}
+  title={titleCase({
+    lang: langInfo.code,
+    str: `${i18nDict!.siteName} - ${parts.join(" ")}`,
+  })}
   inlineCss={[]}
-  description={`${parts[parts.length - 1]} - BIEL`}
+  description={`${i18nDict!.siteName} - ${parts[parts.length - 1]}`}
   langInfo={langInfo}
   langSwitcher={langSwitcherList}
   langDirection="ltr"
+  siteName={i18nDict!.siteName}
+  ogImage={ogImage}
 >
   <HeaderMenu
     allLangs={langSwitcherList}
