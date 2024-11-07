@@ -126,7 +126,7 @@ switch (parts.length) {
 const crumbs = {
   nodes: nodes,
 };
-const ogImage = `${Astro.site}/icon-512.png;`;
+const ogImage = `${Astro.site?.origin}/icon-512.png`;
 ---
 
 <Layout

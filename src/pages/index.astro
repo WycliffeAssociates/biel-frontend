@@ -76,7 +76,7 @@ const blockHtmlWithClientInjections = editorBlocks
   });
 
 const description = blockHtmlWithClientInjections.join(" ").slice(0, 100);
-const ogImage = `${Astro.site}/icon-512.png`;
+const ogImage = `${Astro.site?.origin}/icon-512.png`;
 const {englishUriMap} = await getEnglishUriMap({gqlUrl});
 const pageDict = getDict(langInfo.code, true)!;
 ---
