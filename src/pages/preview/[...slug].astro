@@ -107,7 +107,7 @@ const blockHtmlWithClientInjections = page.editorBlocks
 const metaDescription =
   page.pageOptions?.topBlurb ||
   blockHtmlWithClientInjections.join(" ").slice(0, 100);
-const ogImage = page.featuredImage?.node.sourceUrl || "";
+const ogImage = `${Astro.site}/icon-512.png`;
 const pageDict = getDict(langInfo.code, true)!;
 ---
 
