@@ -16,7 +16,7 @@ const {pageOptions, title, featuredImage} = Astro.props;
       class="flex flex-col-reverse md:(grid grid-cols-[1fr_minmax(auto,720px)_minmax(auto,720px)_1fr]) py-0 relative"
     >
       <div
-        class="w-full md:(grid-col-start-2 self-center) z-10 relative py-14 my-8 mr--24 bg-surface-primary flex flex-col gap-4 contain-pad"
+        class="w-full py-7 md:(grid-col-start-2 self-center py-14) z-10 relative my-8 mr--24 bg-surface-primary flex flex-col gap-4 contain-pad"
       >
         <div class="flex gap-8px">
           {
@@ -30,7 +30,9 @@ const {pageOptions, title, featuredImage} = Astro.props;
             )
           }
 
-          <h1 class="mx-auto font-bold md:(text-left m-0)">
+          <h1
+            class="mx-auto font-bold md:(text-left m-0) text-wrap break-anywhere"
+          >
             <strong>{title}</strong>
           </h1>
         </div>
@@ -39,26 +41,28 @@ const {pageOptions, title, featuredImage} = Astro.props;
           {pageOptions.topBlurb}
         </p>
 
-        <div class="flex flex-col md:flex-row gap-4 mbs-6">
-          {
-            pageOptions.heroLinks?.map((link) => {
-              return (
-                <a
-                  href={link.heroLinkUrl}
-                  class={`inline-flex items-center gap-2 w-max py-2 px-12 rounded-2xl decoration-none! ${link.linkStyle == "filled" ? "border-x-2 border-t border-b-2 border-solid border-brand-darkest bg-brand-dark text-onSurface-invert!" : "bg-brand-light"}`}
-                >
-                  {link.heroLinkIcon && (
-                    <span
-                      class="font-size-[var(--step-0)]"
-                      set:html={link.heroLinkIcon}
-                    />
-                  )}
-                  {link.heroLinkText}
-                </a>
-              );
-            })
-          }
-        </div>
+        {
+          pageOptions.heroLinks?.length && (
+            <div class="flex flex-col md:flex-row gap-4 mbs-6">
+              {pageOptions.heroLinks?.map((link) => {
+                return (
+                  <a
+                    href={link.heroLinkUrl}
+                    class={`inline-flex items-center gap-2 w-max py-2 px-12 rounded-2xl decoration-none! ${link.linkStyle == "filled" ? "border-x-2 border-t border-b-2 border-solid border-brand-darkest bg-brand-dark text-onSurface-invert!" : "bg-brand-light"}`}
+                  >
+                    {link.heroLinkIcon && (
+                      <span
+                        class="font-size-[var(--step-0)]"
+                        set:html={link.heroLinkIcon}
+                      />
+                    )}
+                    {link.heroLinkText}
+                  </a>
+                );
+              })}
+            </div>
+          )
+        }
       </div>
       {
         featuredImage?.node.sourceUrl && (

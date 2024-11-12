@@ -317,7 +317,7 @@ const pageDict = getDict(langInfo.code, true)!;
     }
     {
       page.isScriptureEngagmentPage && (
-        <ScriptureEngagment langCode={langInfo.code} />
+        <ScriptureEngagment langCode={langInfo.code} i18nDict={pageDict} />
       )
     }
     {

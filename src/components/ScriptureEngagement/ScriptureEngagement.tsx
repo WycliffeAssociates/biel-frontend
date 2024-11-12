@@ -368,7 +368,7 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
   }
 
   return (
-    <div class="seForm w-full bg-surface-primary rounded-80px  p-20 max-w-5xl mx-auto">
+    <div class="seForm py-4 w-full bg-surface-primary md:rounded-80px  md:p-20 max-w-5xl mx-auto">
       <Show
         when={!formNotSubimittedSuccessfully()}
         fallback={<ThankYouSuccess dict={props.i18nDict} />}
@@ -499,7 +499,7 @@ function BinaryRadioGroup(props: RadioGroupProps) {
               <RadioGroup.ItemInput data-name="radio__input" />
               <RadioGroup.ItemControl
                 data-name="radio__control"
-                class="border border-solid border-surface-border rounded-full size-4 w-4 h-4 flex items-center justify-center data-checked:[border-inherit]"
+                class="border border-solid border-surface-border rounded-full shrink-0 size-4 w-4 h-4 flex items-center justify-center data-checked:[border-inherit]"
               >
                 <RadioGroup.ItemIndicator
                   class="rounded-full bg-brand-base size-2"
@@ -557,7 +557,7 @@ function MultiRadioGroup(props: MultiRadioGroupProps) {
               <RadioGroup.ItemInput data-name="radio__input" />
               <RadioGroup.ItemControl
                 data-name="radio__control"
-                class="border border-solid border-surface-border rounded-full size-4 w-4 h-4 flex items-center justify-center data-[checked]:(border-brand-base)"
+                class="border border-solid border-surface-border rounded-full shrink-0 size-4 w-4 h-4 flex items-center justify-center data-[checked]:(border-brand-base)"
               >
                 <RadioGroup.ItemIndicator
                   class="rounded-full bg-brand-base size-2"
@@ -617,7 +617,7 @@ function RadioGroupMaturity(props: RadioGroupMaturityProps) {
               <RadioGroup.ItemInput data-name="radio__input" />
               <RadioGroup.ItemControl
                 data-name="radio__control"
-                class="border border-solid border-surface-border rounded-full size-4 shrink-0 flex items-center justify-center data-checked:[border-inherit] transform translate-y-1/2"
+                class="border border-solid border-surface-border rounded-full shrink-0 size-4 shrink-0 flex items-center justify-center data-checked:[border-inherit] transform translate-y-1/2"
               >
                 <RadioGroup.ItemIndicator
                   class="rounded-full bg-brand-base size-2"
@@ -783,9 +783,10 @@ type CalendarInputProps = {
   subLabel?: string;
   onValueChange: (v: string) => void;
 };
+
 function CalendarInput(props: CalendarInputProps) {
   const triggerClasses =
-    "p-2 rounded-xl focus:bg-brand-base focus:ring-4 focus:ring-brand focus:ring-offset-6 md:aspect-auto md:bg-brand md:border-x-2 md:border-t-2 md:border-b-4 md:border-brand-darkest md:bg-brand-base md:text-onSurface-invert! md:flex md:gap-2 md:items-center md:hover:bg-brand-darkest md:active:bg-brand-darkest ";
+    "focus:bg-brand-base focus:ring-4 focus:ring-brand focus:ring-offset-6 aspect-square rounded-lg p-1 bg-brand border-x-2 border-t-2 border-b-4 border-brand-darkest bg-brand-base text-onSurface-invert! flex gap-2 items-center hover:bg-brand-darkest active:bg-brand-darkest ";
   const rangeTextClasses = "font-700 font-step-1";
   return (
     <DatePicker.Root
@@ -857,7 +858,7 @@ function CalendarInput(props: CalendarInputProps) {
                               <Index each={week()}>
                                 {(day) => (
                                   <DatePicker.TableCell value={day()} class="">
-                                    <DatePicker.TableCellTrigger class="text-center rounded-lg hover:bg-surface-secondary p-3 data-[disabled]:(opacity-40 cursor-not-allowed) data-[selected]:(bg-brand-base text-onSurface-invert)">
+                                    <DatePicker.TableCellTrigger class="text-center rounded-lg hover:(bg-brand-light text-brand-base) p-3 data-[disabled]:(opacity-40 cursor-not-allowed) data-[selected]:(bg-brand-base text-onSurface-invert)">
                                       {day().day}
                                     </DatePicker.TableCellTrigger>
                                   </DatePicker.TableCell>
@@ -905,7 +906,7 @@ function CalendarInput(props: CalendarInputProps) {
                                     value={month().value}
                                     class=""
                                   >
-                                    <DatePicker.TableCellTrigger class="text-center rounded-lg hover:bg-surface-secondary focus:bg-surface-secondary p-3">
+                                    <DatePicker.TableCellTrigger class="text-center rounded-lg hover:(bg-brand-light text-brand-base) focus:bg-surface-secondary p-3">
                                       {month().label}
                                     </DatePicker.TableCellTrigger>
                                   </DatePicker.TableCell>
@@ -948,7 +949,7 @@ function CalendarInput(props: CalendarInputProps) {
                                     value={year().value}
                                     class=""
                                   >
-                                    <DatePicker.TableCellTrigger class="text-center rounded-lg hover:bg-surface-secondary focus:bg-surface-secondary p-3">
+                                    <DatePicker.TableCellTrigger class="text-center rounded-lg hover:(bg-brand-light text-brand-base)focus:bg-surface-secondary p-3">
                                       {year().label}
                                     </DatePicker.TableCellTrigger>
                                   </DatePicker.TableCell>
@@ -1108,7 +1109,7 @@ type Section1Props = {
 
 function SectionHeader(props: {header: string}) {
   return (
-    <p class="font-step-2! text-onSurface-primary! font-500 mb-8">
+    <p class="font-step-2! text-onSurface-primary! font-500 mb-2 md:mb-8">
       {props.header}
     </p>
   );
@@ -1272,83 +1273,86 @@ function Section3(props: Section3Props) {
   const section2Questions = () => props.form()!.sections!.secondSection!;
   const section2Name = "secondSection";
   return (
-    <div id="section3se" class="flex flex-col gap-8">
+    <div>
       <SectionHeader header="Section 3" />
-      <BinaryRadioGroup
-        binaryChoices={props.binaryChoices}
-        label={section2Questions()!.haveReadBibleOutsideChurch!.label!}
-        updateForm={(value) =>
-          props.updateRestOfForm(
-            section2Name,
-            "haveReadBibleOutsideChurch",
-            value
-          )
-        }
-      />
-      <Show
-        when={props.showSecondFormSections()}
-        fallback={
-          <SecondSectionFallback
-            form={props.form}
-            getLocalizedChoiceWithFallback={
-              props.getLocalizedChoiceWithFallback
-            }
-            handleCheckboxFormValues={props.handleCheckboxFormValues}
-            inputChoices={inputChoices}
-            labelSet={props.labelSet}
-          />
-        }
-      >
-        <div class="flex flex-col gap-8">
-          <CheckBoxGroup
-            choices={inputChoices.languagesBibleReadIn!}
-            label={section2Questions().languagesBibleReadIn!.label!}
-            subLabel={section2Questions().languagesBibleReadIn!.subLabel!}
-            handleChange={(action: "add" | "remove", val: string) => {
-              props.handleCheckboxFormValues({
-                action,
-                value: val,
-                sectionName: section2Name,
-                fieldName: "languagesBibleReadIn",
-              });
-            }}
-            getLocalizedChoiceWithFallback={
-              props.getLocalizedChoiceWithFallback
-            }
-            supportsOther={
-              section2Questions().languagesBibleReadIn!.supportsOther
-            }
-            otherLabel={props.labelSet.otherLabel}
-          />
-          <CheckBoxGroup
-            choices={inputChoices.commonReadingMethod!}
-            label={section2Questions().commonReadingMethod!.label!}
-            subLabel={section2Questions().commonReadingMethod!.subLabel!}
-            handleChange={(action: "add" | "remove", val: string) => {
-              props.handleCheckboxFormValues({
-                action,
-                value: val,
-                sectionName: section2Name,
-                fieldName: "commonReadingMethod",
-              });
-            }}
-            getLocalizedChoiceWithFallback={
-              props.getLocalizedChoiceWithFallback
-            }
-            supportsOther={
-              section2Questions().commonReadingMethod!.supportsOther
-            }
-            otherLabel={props.labelSet.otherLabel}
-          />
-          <TextAreaInput
-            label={section2Questions().whyReadThisWay!.label!}
-            subLabel={section2Questions().whyReadThisWay!.subLabel}
-            updateForm={(val) =>
-              props.updateRestOfForm(section2Name, "whyReadThisWay", val)
-            }
-          />
-        </div>
-      </Show>
+
+      <div id="section3se" class="flex flex-col gap-8">
+        <BinaryRadioGroup
+          binaryChoices={props.binaryChoices}
+          label={section2Questions()!.haveReadBibleOutsideChurch!.label!}
+          updateForm={(value) =>
+            props.updateRestOfForm(
+              section2Name,
+              "haveReadBibleOutsideChurch",
+              value
+            )
+          }
+        />
+        <Show
+          when={props.showSecondFormSections()}
+          fallback={
+            <SecondSectionFallback
+              form={props.form}
+              getLocalizedChoiceWithFallback={
+                props.getLocalizedChoiceWithFallback
+              }
+              handleCheckboxFormValues={props.handleCheckboxFormValues}
+              inputChoices={inputChoices}
+              labelSet={props.labelSet}
+            />
+          }
+        >
+          <div class="flex flex-col gap-8">
+            <CheckBoxGroup
+              choices={inputChoices.languagesBibleReadIn!}
+              label={section2Questions().languagesBibleReadIn!.label!}
+              subLabel={section2Questions().languagesBibleReadIn!.subLabel!}
+              handleChange={(action: "add" | "remove", val: string) => {
+                props.handleCheckboxFormValues({
+                  action,
+                  value: val,
+                  sectionName: section2Name,
+                  fieldName: "languagesBibleReadIn",
+                });
+              }}
+              getLocalizedChoiceWithFallback={
+                props.getLocalizedChoiceWithFallback
+              }
+              supportsOther={
+                section2Questions().languagesBibleReadIn!.supportsOther
+              }
+              otherLabel={props.labelSet.otherLabel}
+            />
+            <CheckBoxGroup
+              choices={inputChoices.commonReadingMethod!}
+              label={section2Questions().commonReadingMethod!.label!}
+              subLabel={section2Questions().commonReadingMethod!.subLabel!}
+              handleChange={(action: "add" | "remove", val: string) => {
+                props.handleCheckboxFormValues({
+                  action,
+                  value: val,
+                  sectionName: section2Name,
+                  fieldName: "commonReadingMethod",
+                });
+              }}
+              getLocalizedChoiceWithFallback={
+                props.getLocalizedChoiceWithFallback
+              }
+              supportsOther={
+                section2Questions().commonReadingMethod!.supportsOther
+              }
+              otherLabel={props.labelSet.otherLabel}
+            />
+            <TextAreaInput
+              label={section2Questions().whyReadThisWay!.label!}
+              subLabel={section2Questions().whyReadThisWay!.subLabel}
+              updateForm={(val) =>
+                props.updateRestOfForm(section2Name, "whyReadThisWay", val)
+              }
+            />
+          </div>
+        </Show>
+      </div>
     </div>
   );
 }
@@ -1359,8 +1363,8 @@ function Section4(props: Section3Props) {
   return (
     // these are also only relevant when there is current reading
     <Show when={props.showSecondFormSections()}>
+      <SectionHeader header="Section 4" />
       <div id="section4se" class="flex flex-col gap-8">
-        <SectionHeader header="Section 4" />
         <TextAreaInput
           label={section3Questions().desireToUse!.label!}
           subLabel={section3Questions().desireToUse!.subLabel}
@@ -1430,33 +1434,35 @@ function Section5(
   const thisSection = props.form()!.sections!.fourthSection!;
   const thisSectionName = "fourthSection";
   return (
-    <div class="flex flex-col gap-8">
+    <div>
       <SectionHeader header="Section 5" />
-      <RadioGroupMaturity
-        choices={maturityLevels}
-        getLocalizedChoiceWithFallbackNested={
-          props.getLocalizedChoiceWithFallbackNested
-        }
-        label={thisSection.averageMaturity!.label!}
-        updateForm={(val) =>
-          props.updateRestOfForm(thisSectionName, "averageMaturity", val)
-        }
-      />
-      <TextInput
-        label={thisSection.inChargePrinting!.label!}
-        subLabel={thisSection.inChargePrinting!.subLabel}
-        updateForm={(val) =>
-          props.updateRestOfForm(thisSectionName, "inChargePrinting", val)
-        }
-        type="text"
-      />
-      <TextAreaInput
-        label={thisSection.planToDistribute!.label!}
-        subLabel={thisSection.planToDistribute!.subLabel}
-        updateForm={(val) =>
-          props.updateRestOfForm(thisSectionName, "planToDistribute", val)
-        }
-      />
+      <div class="flex flex-col gap-8">
+        <RadioGroupMaturity
+          choices={maturityLevels}
+          getLocalizedChoiceWithFallbackNested={
+            props.getLocalizedChoiceWithFallbackNested
+          }
+          label={thisSection.averageMaturity!.label!}
+          updateForm={(val) =>
+            props.updateRestOfForm(thisSectionName, "averageMaturity", val)
+          }
+        />
+        <TextInput
+          label={thisSection.inChargePrinting!.label!}
+          subLabel={thisSection.inChargePrinting!.subLabel}
+          updateForm={(val) =>
+            props.updateRestOfForm(thisSectionName, "inChargePrinting", val)
+          }
+          type="text"
+        />
+        <TextAreaInput
+          label={thisSection.planToDistribute!.label!}
+          subLabel={thisSection.planToDistribute!.subLabel}
+          updateForm={(val) =>
+            props.updateRestOfForm(thisSectionName, "planToDistribute", val)
+          }
+        />
+      </div>
     </div>
   );
 }
