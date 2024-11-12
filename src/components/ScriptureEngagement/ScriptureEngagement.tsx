@@ -770,7 +770,7 @@ function TextAreaInput(props: TextInputProps) {
       </Show>
       <TextField.TextArea
         autoResize={false}
-        class="p-4 rounded-lg min-h-40"
+        class="p-4 rounded-lg min-h-40 bg-surface-secondary"
         placeholder="Type here"
         onInput={(e) => props.updateForm(e.currentTarget.value)}
       />
