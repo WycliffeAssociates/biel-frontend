@@ -264,7 +264,12 @@ export function determineShowGlobal({
   global: Record<string, any> | null | undefined;
 }) {
   // maybe opt into wp pages that opt in or out of their globals?
-  return !page.isContactPage && !page.isHomePage && !!global;
+  return (
+    !page.isContactPage &&
+    !page.isHomePage &&
+    !page.isScriptureEngagmentPage &&
+    !!global
+  );
 }
 
 export function doShowPageTitle(page: WpPage) {
@@ -277,7 +282,9 @@ export function doShowPageTitle(page: WpPage) {
 }
 
 export function isNotCustomPage(page: WpPage) {
-  return !page.isSearchPage && !page.isContactPage;
+  return (
+    !page.isSearchPage && !page.isContactPage && !page.isScriptureEngagmentPage
+  );
 }
 export function doShowTopBlurb(page: WpPage) {
   return page.pageOptions?.topBlurb && !page.isHomePage;

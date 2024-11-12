@@ -246,4 +246,12 @@ export function getDictByAcceptHeader(acceptHeader: string) {
 export type i18nDictType = Record<i18nKeysType, string>;
 
 // NOTE: MANUAL MAINTENANCE
-export const nonHiddenLanguageCodes = ["en", "es", "pt-br", "fr", "id"];
+export const nonHiddenLanguageCodes = [
+  "en",
+  "es",
+  "pt-br",
+  "fr",
+  "id",
+] as const;
+export type NonHiddenLanguageCodesType =
+  (typeof nonHiddenLanguageCodes)[number];

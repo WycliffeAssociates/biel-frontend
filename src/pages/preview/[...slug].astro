@@ -3,6 +3,7 @@ export const prerender = false;
 import Blocks from "@components/Blocks.astro";
 import {BreadCrumbs} from "@components/BreadCrumbs";
 import ContactPage from "@components/ContactPage.astro";
+import ScriptureEngagment from "@components/ScriptureEngagement/ScriptureE.astro";
 import {HeaderMenu} from "@components/HeaderMenu";
 import Hero from "@components/Hero.astro";
 import SearchPage from "@components/SearchPage.astro";
@@ -16,7 +17,12 @@ import {
   getWpmlLanguages,
 } from "@src/data/wp";
 import {getDict} from "@src/i18n/strings";
-import {adjustCmsDomLinks, determineShowGlobal, titleCase} from "@src/utils";
+import {
+  adjustCmsDomLinks,
+  determineShowGlobal,
+  isNotCustomPage,
+  titleCase,
+} from "@src/utils";
 import {DOMParser} from "linkedom/worker";
 const gqlUrl =
   import.meta.env.WORDPRESS_GQL_URL ||
@@ -132,11 +138,13 @@ const pageDict = getDict(langInfo.code, true)!;
     i18nDict={pageDict}
     client:load
   />
-  <main class={`${!page.isHomePage && "interior-page"} `}>
+  <main
+    class={`${!page.isHomePage && "interior-page"} ${page.isScriptureEngagmentPage && "scripture-engagement-page"}`}
+  >
     {!page.isHomePage && <BreadCrumbs crumbs={page.ancestors} />}
     {
       !page.isHomePage && page.pageOptions?.topBlurb && (
-        <div class="headless-insertion wp-blocks site-container">
+        <div class="headless-insertion wp-blocks site-container site-hero">
           <Hero
             pageOptions={page.pageOptions}
             title={page.title}
@@ -147,7 +155,7 @@ const pageDict = getDict(langInfo.code, true)!;
     }
     {
       // handle all but hardcoded pages of translations/contact
-      !page.isSearchPage && !page.isContactPage && (
+      isNotCustomPage(page) && (
         <div
           class={`headless-insertion wp-blocks ${
             !page.isHomePage && "site-container"
@@ -191,6 +199,11 @@ const pageDict = getDict(langInfo.code, true)!;
           languageCode={langInfo.code}
           langSwitcherList={langSwitcherList}
         />
+      )
+    }
+    {
+      page.isScriptureEngagmentPage && (
+        <ScriptureEngagment langCode={langInfo.code} i18nDict={pageDict} />
       )
     }
 

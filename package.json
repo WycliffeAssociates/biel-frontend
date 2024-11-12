@@ -16,6 +16,7 @@
 		"pflocal": "WORDPRESS_GQL_URL=https://bieldev.wpengine.com/index.php?graphql    PUBLIC_DATA_API_URL=https://api.bibleineverylanguage.org/v1/graphql tsx ./makePageFindIndex.ts"
 	},
 	"dependencies": {
+		"@ark-ui/solid": "^4.3.0",
 		"@astrojs/check": "^0.9.4",
 		"@astrojs/cloudflare": "^11.1.0",
 		"@astrojs/sitemap": "^3.2.1",
@@ -27,6 +28,7 @@
 		"@wordpress/block-library": "^9.10.0",
 		"astro": "^4.16.7",
 		"client-zip": "^2.4.5",
+		"intl-tel-input": "^24.7.0",
 		"linkedom": "^0.18.5",
 		"ramda": "^0.30.1",
 		"solid-js": "^1.9.3",

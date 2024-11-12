@@ -3,6 +3,8 @@
 import Blocks from "@components/Blocks.astro";
 import {BreadCrumbs} from "@components/BreadCrumbs";
 import ContactPage from "@components/ContactPage.astro";
+import ScriptureEngagment from "@components/ScriptureEngagement/ScriptureE.astro";
+
 import {HeaderMenu} from "@components/HeaderMenu";
 import Hero from "@components/Hero.astro";
 import SearchPage from "@components/SearchPage.astro";
@@ -311,6 +313,11 @@ const pageDict = getDict(langInfo.code, true)!;
           languageCode={langInfo.code}
           langSwitcherList={langSwitcherList}
         />
+      )
+    }
+    {
+      page.isScriptureEngagmentPage && (
+        <ScriptureEngagment langCode={langInfo.code} />
       )
     }
     {

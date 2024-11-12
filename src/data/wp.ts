@@ -236,6 +236,8 @@ export async function getPage({
     page.translations.some((t) => t.title.toLowerCase() === "contact us");
   page.isSearchPage = page.title.toLowerCase() === "search";
   const otherVersions: Record<string, string> = {};
+  page.isScriptureEngagmentPage =
+    page.title.toLowerCase() === "scripture engagement";
   page.translations.forEach((t) => {
     otherVersions[t.languageCode] = t.uri;
   });
@@ -253,6 +255,7 @@ export async function getPage({
     t.isHomePage = page.uri === "/";
     t.isContactPage = page.isContactPage;
     t.isSearchPage = page.isSearchPage;
+    t.isScriptureEngagmentPage = page.isScriptureEngagmentPage;
   });
 
   return page;
@@ -376,6 +379,11 @@ export async function getAllPages({gqlUrl}: {gqlUrl: string}) {
     page.isSearchPage =
       page.title.toLowerCase() === "search" ||
       page.translations.some((t) => t.title.toLowerCase() === "search");
+    page.isScriptureEngagmentPage =
+      page.title.toLowerCase() === "scripture engagement" ||
+      page.translations.some(
+        (t) => t.title.toLowerCase() === "scripture engagement"
+      );
     // Every page needs an otherVersions to all others in the form of langCode -> databaseId of the localized version: This is populating it for english, and we'll do same below;
     const otherVersions: Record<string, string> = {};
     page.translations.forEach((t) => {
@@ -406,6 +414,7 @@ export async function getAllPages({gqlUrl}: {gqlUrl: string}) {
       translation.isHomePage = enPage.uri === "/";
       translation.isContactPage = enPage.isContactPage;
       translation.isSearchPage = enPage.isSearchPage;
+      translation.isScriptureEngagmentPage = enPage.isScriptureEngagmentPage;
       if (enPage.uri === "/") {
         // Wpml / WP also have these uri's as /, but they are really /langCode cause we aren't ssr rendering / to whatever lang you want.  It's got to be at a different uri
         translation.uri = `/${translation.languageCode}`;

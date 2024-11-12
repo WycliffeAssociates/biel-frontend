@@ -1,7 +1,7 @@
 export const prerender = false;
 import type {APIRoute} from "astro";
 
-type remotePayloadType = {
+export type RemotePayloadType = {
   env: string;
   addresses: string[];
   formFields: Array<{
@@ -89,7 +89,7 @@ export const POST: APIRoute = async ({request, locals}) => {
       locals.runtime.env.CONTACT_FORM_EMAILS_BASE64 || "{}",
       locals.runtime.env.CONTACT_ENV || "local"
     );
-    const processingBody: remotePayloadType = {
+    const processingBody: RemotePayloadType = {
       env: locals.runtime.env.CONTACT_ENV || "local",
       addresses: emailAddresses,
       formFields,
@@ -124,7 +124,7 @@ export const POST: APIRoute = async ({request, locals}) => {
   });
 };
 
-function matchHelpMethodToEmailList(
+export function matchHelpMethodToEmailList(
   helpMethod: string,
   emailJson: string,
   formEnv: string
