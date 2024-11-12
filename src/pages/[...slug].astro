@@ -247,13 +247,13 @@ const pageDict = getDict(langInfo.code, true)!;
   </header>
   <main
     data-pagefind-meta="type:page"
-    class={`${!page.isHomePage ? "interior-page" : "homePage"} `}
+    class={`${!page.isHomePage ? "interior-page" : "homePage"} ${page.isScriptureEngagmentPage && "scripture-engagement-page"}`}
   >
     {!page.isHomePage && <BreadCrumbs crumbs={page.ancestors} />}
 
     {
       doShowTopBlurb(page) && (
-        <div class="headless-insertion wp-blocks site-container">
+        <div class="headless-insertion wp-blocks site-container site-hero">
           <Hero
             pageOptions={page.pageOptions}
             title={page.title}
