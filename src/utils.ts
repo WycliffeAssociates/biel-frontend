@@ -66,7 +66,7 @@ export function adjustCmsDomLinks({
     if (needToHandleLocalHttpsErr(img.src) || isRelativeImgPath(img.src)) {
       img.setAttribute("loading", "lazy"); //just assume lazy
       img.setAttribute("src", `${srcToUse}`);
-      img.setAttribute("srcset", srcSet.replaceAll("http", "https"));
+      img.setAttribute("srcset", srcSet.replaceAll(/^http/g, "https"));
     }
   });
 

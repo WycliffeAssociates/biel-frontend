@@ -239,6 +239,14 @@ main img {
   padding: 0;
   margin: 0;
 }
+.scripture-engagement-page label {
+  cursor: inherit !important;
+}
+.seForm input[type="text"],
+.seForm input[type="email"],
+.seForm textarea {
+  @apply bg-surface-secondary border-surface-border;
+}
 
 .icon > svg {
   // fill: inherit !important;
