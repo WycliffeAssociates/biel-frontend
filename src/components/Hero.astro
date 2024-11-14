@@ -10,7 +10,7 @@ interface Props {
 const {pageOptions, title, featuredImage} = Astro.props;
 ---
 
-<header class="mb-16 full-bleed hero-inner-shadow pr-0! pl-0!">
+<header class="full-bleed hero-inner-shadow pr-0! pl-0!">
   <div class="contain md:(w-full!)">
     <div
       class="flex flex-col-reverse md:(grid grid-cols-[1fr_minmax(auto,720px)_minmax(auto,720px)_1fr]) py-0 relative"
@@ -18,7 +18,7 @@ const {pageOptions, title, featuredImage} = Astro.props;
       <div
         class="w-full py-7 md:(grid-col-start-2 self-center py-14) z-10 relative my-8 mr--24 bg-surface-primary flex flex-col gap-4 contain-pad"
       >
-        <div class="flex gap-8px">
+        <div class="flex gap-8px mx-auto md:(m-0) items-center">
           {
             pageOptions.iconPreTitle && (
               <Image
@@ -26,13 +26,12 @@ const {pageOptions, title, featuredImage} = Astro.props;
                 loading="eager"
                 alt=""
                 inferSize={true}
+                class="max-w-48px"
               />
             )
           }
 
-          <h1
-            class="mx-auto font-bold md:(text-left m-0) text-wrap break-anywhere"
-          >
+          <h1 class="font-bold md:(text-left m-0) text-wrap break-anywhere">
             <strong>{title}</strong>
           </h1>
         </div>

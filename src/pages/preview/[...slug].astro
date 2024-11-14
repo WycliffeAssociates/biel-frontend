@@ -144,7 +144,7 @@ const pageDict = getDict(langInfo.code, true)!;
     {!page.isHomePage && <BreadCrumbs crumbs={page.ancestors} />}
     {
       !page.isHomePage && page.pageOptions?.topBlurb && (
-        <div class="headless-insertion wp-blocks site-container site-hero">
+        <div class="headless-insertion wp-blocks  site-hero">
           <Hero
             pageOptions={page.pageOptions}
             title={page.title}

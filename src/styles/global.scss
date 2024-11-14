@@ -128,6 +128,9 @@ button:focus {
 main img {
   display: initial;
 }
+.btnPrimaryTextInvert a {
+  @apply bg-brand-base! text-onSurface-invert! py-2 px-19 relative decoration-none! rounded-lg border border-solid border-brand-dark inline-block;
+}
 .btnHoverPrimary:hover {
   @apply bg-brand-base! text-onSurface-invert!;
 }
@@ -140,6 +143,7 @@ main img {
     1fr;
   padding-bottom: 2rem;
 }
+
 .contain {
   width: min(var(--site-container-max), 100%);
   margin-left: auto;
@@ -179,6 +183,100 @@ main img {
       hsla(0, 0%, 5%, 0) 0%,
       #0d0d0d 60%
     );
+  }
+}
+#sunGradient {
+  position: relative;
+}
+.sunGradientContent {
+  position: relative;
+  z-index: 1;
+}
+.sunGradientContent :where(p, h1, h2, h3) {
+  @apply text-onSurface-invert!;
+}
+#sunGradient::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: 40px;
+  background-image: linear-gradient(
+    180deg,
+    hsla(0, 0%, 5%, 0.4) 0%,
+    hsla(0, 0%, 5%, 1) 100%
+  );
+}
+@media (max-width: 767px) {
+  #sunGradient::after {
+    border-radius: 0px;
+  }
+}
+@screen lt-sm {
+  #sunGradient::after {
+    width: 100vw;
+    margin: 0 -1rem;
+    border-radius: 0px;
+  }
+}
+@screen md {
+  #sunGradient::after {
+    background-image: linear-gradient(
+      270deg,
+      hsla(0, 0%, 5%, 0.4) 0%,
+      hsla(0, 0%, 5%, 1) 100%
+    );
+    width: auto;
+    margin: 0;
+  }
+}
+
+// Source Audio Page
+// full-bleed already from wp
+// 2 children 1. .audio-cta-bg and 2.audio-cta-content
+.audio-cta {
+  display: grid;
+  grid-template-rows: max(70vh, 360px) auto;
+}
+@screen md {
+  .audio-cta {
+    grid-template-columns:
+      1fr
+      min(120ch, 100%)
+      1fr;
+    grid-template-rows: 1fr;
+    position: relative;
+  }
+  .audio-cta-bg {
+    grid-column: 1/-1;
+    grid-row: 1/-1;
+  }
+  .audio-cta::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(
+      360deg,
+      #ffffff 0%,
+      rgba(255, 255, 255, 0.5) 50.11%,
+      #ffffff 100%
+    );
+  }
+
+  .audio-cta-content {
+    grid-column-start: 2;
+    grid-row: 1/-1;
+    position: relative;
+    z-index: 1;
+    margin: 10rem auto;
+  }
+}
+
+@screen lt-md {
+  .site-container > *,
+  .contain-pad {
+    padding-inline-start: 1rem;
+    padding-inline-end: 1rem;
   }
 }
 @screen md {
@@ -261,8 +359,11 @@ main img {
 }
 
 .wp-blocks a:where(:not(.gb-button):not(footer a)) {
-  color: var(--color-accent);
+  color: hsla(var(--clr-brand-base));
   text-decoration: underline;
+}
+.wp-blocks a:where(:not(.gb-button):not(footer a)):hover {
+  color: hsla(var(--clr-brand-dark));
 }
 .safe-svg-inside svg {
   width: 100% !important;
