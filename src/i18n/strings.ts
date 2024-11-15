@@ -83,8 +83,7 @@ const en = {
   seSection3: "Current Scripture Engagement",
   seSection4: "Vision for Scripture Engagement",
   seSection5: "Distribution",
-  seSuccessHtml:
-    "<div class='flex flex-col gap-4'><h2>Thank you, your message has been received.</h2><p>A member of our team will be in touch with you shortly.</p></div>",
+  seSuccessHtml: "Thank you ",
 } as const;
 export type i18nKeysType = keyof typeof en;
 const ptbr: Record<i18nKeysType, string> = {
@@ -134,7 +133,6 @@ const es: Record<i18nKeysType, string> = {
     "This aún no se ha traducido. Estamos trabajando para terminarlo pronto",
   search: "Buscar...",
   requiredIndicator: "indica campo obligatorio",
-
   contactNamePlaceholder: "Nombre",
   contactEmailInput: "Email",
   contactEmailPlaceholder: "Email",
