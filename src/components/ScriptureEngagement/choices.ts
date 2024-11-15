@@ -225,6 +225,26 @@ export const preferredContact = [
 		},
 	},
 ];
+export const contactFallbackHelpMethods = [
+	{
+		value: "Translation Support",
+		labels: {
+			en: "Translation Support",
+		},
+	},
+	{
+		value: "Tech Support",
+		labels: {
+			en: "Tech Support",
+		},
+	},
+	{
+		value: "Other",
+		labels: {
+			en: "Other",
+		},
+	},
+];
 
 export const inputChoices: InputChoicesType = {
 	projectStatus: projectStatus,
@@ -234,6 +254,7 @@ export const inputChoices: InputChoicesType = {
 	toGuideMembersWith: toGuideMembersWith,
 	whyNotReadBibleOutsideChurch: whyNotReadBibleOutsideChurch,
 	preferredContact: preferredContact,
+	contactFallbackHelpMethods: contactFallbackHelpMethods,
 } as const;
 
 export const binaryChoiceLabels: Partial<
@@ -283,7 +304,7 @@ export const questionLabels: Record<string, Record<string, string>> = {
 		prefferredContact: "How do you preferred to be contacted?",
 		email: "Email Address",
 		emailSubLabel: "An email address is not required to complete this form",
-		phone: "What’sApp Number",
+		phone: "WhatsApp Number",
 		phoneSubLabel: "What is the best number we can contact you?",
 		managerName: "Name of Project Manager",
 		expectedLaunchDate: "Expected Bible launch date",
@@ -316,7 +337,7 @@ export const questionLabels: Record<string, Record<string, string>> = {
 		churchMembersToSelect: "For the church members to:",
 		churchMembersToSelectSubLabel: "Select all that apply",
 		questionsFromCommunity:
-			"What qustions about God or the Bible do you hear from your community?",
+			"What questions about God or the Bible do you hear from your community?",
 		questionsFromCommunitySubLabel:
 			"We many have specific resources to share based on your answer",
 		averageMaturity: "What is the average maturity level of believers?",
@@ -326,6 +347,8 @@ export const questionLabels: Record<string, Record<string, string>> = {
 		planToDistributeSubLabel:
 			"Examples include digital copies, photocopies, printouts, etc.",
 		otherLabel: "Other",
+		contactFallbackMessage: "Your Message",
+		contactFallbackHelpMethod: "How Can We Help You?",
 	},
 };
 

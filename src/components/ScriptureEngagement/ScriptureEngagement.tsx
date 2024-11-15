@@ -1,7 +1,6 @@
 import { DatePicker, parseDate } from "@ark-ui/solid/date-picker";
 import {
 	type InputChoicesType,
-	disclaimerMessages,
 	getBinaryChoiceLabelsLocalized,
 	inputChoices,
 	maturityLevels,
@@ -12,12 +11,23 @@ import { RadioGroup } from "@kobalte/core/radio-group";
 import { TextField } from "@kobalte/core/text-field";
 import type { i18nDictType } from "@src/i18n/strings";
 import intlTelInput, { type Iti } from "intl-tel-input";
-import { For, Match, Show, Switch, createSignal, onMount } from "solid-js";
+import type { HTMLInputElement } from "linkedom";
+import {
+	type Accessor,
+	For,
+	Match,
+	type Setter,
+	Show,
+	Switch,
+	createSignal,
+	onMount,
+} from "solid-js";
 import { Index, Portal } from "solid-js/web";
 
 type ScriptureEngagementFormProps = {
 	languageCode: string;
 	i18nDict: i18nDictType;
+	turnstilePublicKey: string;
 };
 
 type InputProperties = {
@@ -38,18 +48,25 @@ type SeFormType = {
 			[fieldName: string]: InputProperties;
 		};
 	};
+	generalContactFallback: {
+		[fieldName: string]: InputProperties;
+	};
 };
 
-const labelClasses = "font-600 text-onSurface-primary font-step-1  block";
+const labelClasses =
+	"font-600 text-onSurface-primary font-step-1  block leading-150% md:leading-120%";
+
+function valIsWhatsApp(val: unknown) {
+	return typeof val === "string" && !!val && val.toLowerCase() === "whatsapp";
+}
 
 export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
 	const labelSet = questionLabels[props.languageCode] || questionLabels.en!;
-	const disclaimers =
-		disclaimerMessages[props.languageCode] || disclaimerMessages.en!;
 	const enLabelSet = questionLabels.en!;
 	const binaryChoices = getBinaryChoiceLabelsLocalized(props.languageCode);
-	const [formNotSubimittedSuccessfully, setFormNotSubimittedSuccessfully] =
+	const [formNotSubimittedSuccessfully, setFormNotSubmittedSuccessfully] =
 		createSignal(false);
+	const [turnstileToken, setTurnstileToken] = createSignal("");
 	const [form, setForm] = createSignal<SeFormType>({
 		preliminaryRadios: [
 			{
@@ -118,7 +135,11 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
 					id: "email",
 					isValid: (): boolean => {
 						const thisSection = form()?.sections?.firstSection;
-						if (thisSection?.preferEmailOrWhatsApp?.value === null) {
+						// if no preference, that will trigger, else if phone preferred, then all email valid
+						if (
+							thisSection?.preferEmailOrWhatsApp?.value === null ||
+							valIsWhatsApp(thisSection?.preferEmailOrWhatsApp?.value)
+						) {
 							return true;
 						}
 						return (
@@ -135,14 +156,24 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
 					id: "phone",
 					isValid: (): boolean => {
 						const thisSection = form()?.sections?.firstSection;
-						if (thisSection?.preferEmailOrWhatsApp?.value === null) {
+						// if no preference, that will trigger, else if email preferred, then all phone valid
+						if (
+							thisSection?.preferEmailOrWhatsApp?.value === null ||
+							thisSection?.preferEmailOrWhatsApp?.value === "email"
+						) {
 							return true;
 						}
+						const phoneEl = document.querySelector(
+							"#phone input[type='phone']",
+						) as HTMLInputElement | null;
+						const phoneValStatus =
+							!phoneEl || phoneEl?.dataset?.valid === "true";
 						return (
 							typeof thisSection?.preferEmailOrWhatsApp?.value === "string" &&
 							thisSection?.preferEmailOrWhatsApp?.value?.toLowerCase() ===
 								"whatsapp" &&
-							thisSection?.email?.value !== null
+							thisSection?.phone?.value !== null &&
+							phoneValStatus
 						);
 					},
 				},
@@ -241,13 +272,6 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
 					name: enLabelSet.desireToUse,
 					id: "desireToUse",
 				},
-				wouldHelpBetterUse: {
-					value: null,
-					label: labelSet.wouldHelpBetterUse,
-					subLabel: labelSet.wouldHelpBetterUseSubLabel,
-					name: enLabelSet.wouldHelpBetterUse,
-					id: "wouldHelpBetterUse",
-				},
 				toGuideLeadersWith: {
 					value: [],
 					label: labelSet.toGuideLeadersWith,
@@ -263,13 +287,6 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
 					name: enLabelSet.toGuideMembersWith,
 					supportsOther: true,
 					id: "toGuideMembersWith",
-				},
-				churchMembersToSelect: {
-					value: null,
-					label: labelSet.churchMembersToSelect,
-					subLabel: labelSet.churchMembersToSelectSubLabel,
-					name: enLabelSet.churchMembersToSelect,
-					id: "churchMembersToSelect",
 				},
 				questionsFromCommunity: {
 					value: null,
@@ -300,6 +317,73 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
 					id: "planToDistribute",
 				},
 			},
+		},
+		generalContactFallback: {
+			preferEmailOrWhatsApp: {
+				value: null, //email or phone
+				label: labelSet.prefferredContact,
+				name: enLabelSet.prefferredContact,
+				id: "prefferredContact",
+			},
+			email: {
+				value: null,
+				label: labelSet.email,
+				subLabel: labelSet.emailSubLabel,
+				name: enLabelSet.email,
+				id: "email",
+				isValid: (): boolean => {
+					const thisSection = form()?.generalContactFallback;
+
+					if (
+						thisSection?.preferEmailOrWhatsApp?.value === null ||
+						valIsWhatsApp(thisSection?.preferEmailOrWhatsApp?.value)
+					) {
+						return true;
+					}
+					return (
+						thisSection?.preferEmailOrWhatsApp?.value === "email" &&
+						thisSection?.email?.value !== null
+					);
+				},
+			},
+			phone: {
+				value: null,
+				label: labelSet.phone,
+				subLabel: labelSet.phoneSubLabel,
+				name: enLabelSet.phone,
+				id: "phone",
+				isValid: (): boolean => {
+					const thisSection = form()?.generalContactFallback;
+					if (
+						thisSection?.preferEmailOrWhatsApp?.value === null ||
+						thisSection?.preferEmailOrWhatsApp?.value === "email"
+					) {
+						return true;
+					}
+					const phoneEl = document.querySelector(
+						"#phone input[type='phone']",
+					) as HTMLInputElement | null;
+					const phoneValStatus = !phoneEl || phoneEl?.dataset?.valid === "true";
+					return (
+						valIsWhatsApp(thisSection?.preferEmailOrWhatsApp?.value) &&
+						thisSection?.phone?.value !== null &&
+						phoneValStatus
+					);
+				},
+			},
+			helpMethods: {
+				value: null,
+				label: labelSet.contactFallbackHelpMethod,
+				name: enLabelSet.contactFallbackHelpMethod,
+				id: "method",
+			},
+			message: {
+				value: null, //email or phone
+				label: labelSet.contactFallbackMessage,
+				name: enLabelSet.contactFallbackMessage,
+				id: "message",
+			},
+			// helpMethod
 		},
 	});
 
@@ -410,6 +494,7 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
 				};
 			});
 		});
+		// We don't need fallback contact vals.
 		return [...preliminaryValues, ...sectionValues];
 	}
 	const showSecondFormSections = () => {
@@ -473,7 +558,6 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
 				}
 			});
 		});
-		console.log(formCopy);
 		setForm(formCopy);
 		if (idToScrollTo) {
 			const node = document.getElementById(idToScrollTo);
@@ -490,13 +574,17 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
 	}
 	async function onSubmit() {
 		// todo: validate and show errors
-
 		// Take flattened form state and send to enpoint;
 		try {
 			if (!validateForm()) {
 				return;
 			}
-			const payload = getFlattenFormState();
+			const payload = getFlattenFormState().filter((f) => {
+				if (Array.isArray(f.value)) {
+					return f.value.length > 0;
+				}
+				return !!f.value;
+			});
 
 			const res = await fetch("/api/seForm", {
 				method: "POST",
@@ -506,7 +594,7 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
 				},
 			});
 			if (res.status === 200) {
-				setFormNotSubimittedSuccessfully(true);
+				setFormNotSubmittedSuccessfully(true);
 				console.log("all was good");
 			}
 		} catch (e) {
@@ -532,15 +620,26 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
 					<Show
 						when={!doHideRestOfForm()}
 						fallback={
-							<Disclaimer
-								disclaimers={disclaimers}
-								showWhen={doShowDisclaimer()}
-								preliminaryChoices={form().preliminaryRadios}
-							/>
+							<Show when={doShowDisclaimer()}>
+								<FallbackContactForm
+									form={form}
+									getLocalizedChoiceWithFallback={
+										getLocalizedChoiceWithFallback
+									}
+									i18nDict={props.i18nDict}
+									inputChoices={inputChoices}
+									setForm={setForm}
+									setTurnstileToken={setTurnstileToken}
+									turnstileToken={turnstileToken}
+									turnstilePublicKey={props.turnstilePublicKey}
+									setFormNotSubmittedSuccessfully={
+										setFormNotSubmittedSuccessfully
+									}
+								/>
+							</Show>
 						}
 					>
 						<section>
-							{/* todo intl */}
 							<Section2
 								form={form}
 								updateRestOfForm={updateRestOfForm}
@@ -586,30 +685,27 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
 							/>
 						</section>
 					</Show>
+					<Show when={doShowSubmitBtn()}>
+						<div>
+							<SubmitSection
+								i18nDict={props.i18nDict}
+								onSubmit={onSubmit}
+								turnstilePublicKey={props.turnstilePublicKey}
+								setTurnstileToken={setTurnstileToken}
+							/>
+						</div>
+					</Show>
 				</div>
-
-				<Show when={doShowSubmitBtn()}>
-					<button
-						type="button"
-						onClick={onSubmit}
-						class={
-							"px-14 bg-brand-base text-onSurface-invert border-2 border-b-4 border-solid border-brand-darkest py-1 mt-8  hover:(bg-brand-base/80 text-onSurface-invert) rounded-xl w-fit disabled:(opacity-50 cursor-not-allowed)"
-						}
-					>
-						{props.i18nDict.submitForm}
-					</button>
-				</Show>
 			</Show>
 		</div>
 	);
-} // todo: split each section into a component to reduce verbosity:
-// Validations on data.
-// Make a form or nah?
+}
 function ThankYouSuccess(props: { dict: i18nDictType }) {
 	return (
-		<div class="grid h-full w-full min-h-50vh place-content-center">
-			{props.dict.contactSuccessTitle}
-		</div>
+		<div
+			innerHTML={props.dict.seSuccessHtml}
+			class="grid h-full w-full min-h-30vh place-content-start"
+		/>
 	);
 }
 function ValidationErr(props: { errMsg: string | undefined }) {
@@ -646,7 +742,7 @@ function BinaryRadioGroup(props: RadioGroupProps) {
 					{([key, label]) => (
 						<RadioGroup.Item
 							value={key}
-							class="radio flex items-center gap-4  py-1 rounded-lg text-inherit focus-within:(ring-2 ring-offset-2 ring-brand-base) cursor-pointer hover:(text-onSurface-primary)"
+							class="radio flex items-center gap-4  py-1 rounded-lg text-inherit  cursor-pointer hover:(text-onSurface-primary) seFocusWithin"
 						>
 							<RadioGroup.ItemInput data-name="radio__input" />
 							<RadioGroup.ItemControl
@@ -705,7 +801,7 @@ function MultiRadioGroup(props: MultiRadioGroupProps) {
 					{(choice) => (
 						<RadioGroup.Item
 							value={choice.value}
-							class="radio flex items-center gap-4  py-1 rounded-lg text-inherit focus-within:(ring-2 ring-offset-2 ring-brand-base) cursor-pointer hover:(text-onSurface-primary)"
+							class="radio flex items-center gap-4  py-1 rounded-lg text-inherit seFocusWithin cursor-pointer hover:(text-onSurface-primary)"
 						>
 							<RadioGroup.ItemInput data-name="radio__input" />
 							<RadioGroup.ItemControl
@@ -747,7 +843,7 @@ function RadioGroupMaturity(props: RadioGroupMaturityProps) {
 	return (
 		<RadioGroup
 			data-name="radio-group"
-			class="text-onSurface-secondary data-checked:[text-brand-base]"
+			class="flex flex-col gap-4 text-onSurface-secondary data-checked:[text-brand-base]"
 			onChange={(val) => props.updateForm(val)}
 			id={props.field.id || ""}
 		>
@@ -767,7 +863,7 @@ function RadioGroupMaturity(props: RadioGroupMaturityProps) {
 					{(choice) => (
 						<RadioGroup.Item
 							value={choice.value}
-							class="radio flex items-center gap-4  py-1 rounded-lg text-inherit items-start! focus-within:(ring-2 ring-offset-2 ring-brand-base) hover:(text-onSurface-primary) cursor-pointer"
+							class="radio flex items-center gap-4  py-1 rounded-lg text-inherit items-start! seFocusWithin hover:(text-onSurface-primary) cursor-pointer"
 						>
 							<RadioGroup.ItemInput data-name="radio__input" />
 							<RadioGroup.ItemControl
@@ -822,7 +918,7 @@ function TextInput(props: TextInputProps) {
 			<TextField.Input
 				onInput={(e) => props.updateForm(e.currentTarget.value)}
 				type={props.type || "text"}
-				class={`rounded-xl bg-surface-secondary p-4 text-onSurface-primary cursor-pointer border-surface-border border border-solid focus:(bg-surface-primary) ${
+				class={`rounded-xl bg-surface-secondary p-2 md:p-4 text-onSurface-primary cursor-pointer border-surface-border border border-solid focus:(bg-surface-primary) ${
 					props.field.validationError &&
 					"bg-error-surface! border-error-onSurface!"
 				}`}
@@ -857,7 +953,7 @@ function CheckBoxGroup(props: CheckBoxGroupProps) {
 					return (
 						<Checkbox
 							name={props.field.label}
-							class="flex items-center gap-4 text-onSurface-secondary focus-within:(ring-2 ring-offset-2 ring-brand-primary) hover:(text-onSurface-primary) cursor-pointer"
+							class="flex items-center gap-4 text-onSurface-secondary seFocusWithin hover:(text-onSurface-primary) cursor-pointer"
 							onChange={(isChecked) => {
 								const action = isChecked ? "add" : "remove";
 								props.handleChange(action, choice.value);
@@ -883,7 +979,7 @@ function CheckBoxGroup(props: CheckBoxGroupProps) {
 				<div class="flex gap-4 text-onSurface-secondary">
 					<Checkbox
 						name={props.field.label}
-						class="flex items-center gap-4 focus-within:(ring-2 ring-offset-2 ring-brand-primary)"
+						class="flex items-center gap-4 seFocusWithin"
 						onChange={(isChecked) => {
 							setOtherChecked(isChecked);
 							if (!isChecked) {
@@ -932,7 +1028,7 @@ function TextAreaInput(props: TextInputProps) {
 			<ValidationErr errMsg={props.field.validationError} />
 			<TextField.TextArea
 				autoResize={false}
-				class={`p-4 rounded-lg min-h-40 bg-surface-secondary cursor-pointer border-surface-border border border-solid focus:(bg-surface-primary!) ${
+				class={`p-2 md:p-4 rounded-lg min-h-40 bg-surface-secondary cursor-pointer border-surface-border border border-solid focus:(bg-surface-primary!) ${
 					props.field.validationError &&
 					"bg-error-surface! border-error-onSurface!"
 				}`}
@@ -984,7 +1080,7 @@ function CalendarInput(props: CalendarInputProps) {
 				<ValidationErr errMsg={props.field.validationError} />
 			</div>
 
-			<DatePicker.Trigger class="w-full p-4 bg-surface-secondary rounded-xl hover:(bg-surface-secondary! cursor-pointer) border-surface-border! border border-solid">
+			<DatePicker.Trigger class="w-full p-2 md:p-4 bg-surface-secondary rounded-xl hover:(bg-surface-secondary! cursor-pointer) border-surface-border! border border-solid">
 				<DatePicker.Control class="relative flex items-center flex-nowrap rtl:flex-reverse w-full ">
 					<span class="i-material-symbols:calendar-today-outline-rounded size-24px inline-block mie-4" />
 					<DatePicker.Input class="w-full text-onSurface-primary bg-inherit" />
@@ -1153,8 +1249,10 @@ function TelInput(props: TelInputProps) {
 	let inputRef: HTMLInputElement;
 	const [telInstance, setTelInstance] = createSignal<Iti | null>(null);
 	const [isValid, setIsValid] = createSignal(true);
+	// const [errMsg, setErrMsg] = createSignal("");
 
 	onMount(() => {
+		// @ts-ignore
 		const instance = intlTelInput(inputRef, {
 			loadUtilsOnInit: `https://cdn.jsdelivr.net/npm/intl-tel-input@${intlTelInput.version}/build/js/utils.js`,
 			formatAsYouType: true,
@@ -1184,39 +1282,19 @@ function TelInput(props: TelInputProps) {
 				class={`w-full bg-surface-secondary rounded-lg p-2 cursor-pointer ${
 					!isValid() && "border-2 border-error-onSurface"
 				}`}
-				onInput={(e) => {
-					console.log(e.target.value);
+				onInput={(e) => props.onUpdate(e.target.value)}
+				data-valid={isValid()}
+				onBlur={() => {
 					const instance = telInstance();
 					if (instance?.isValidNumber()) {
 						setIsValid(true);
+					} else {
+						setIsValid(false);
 					}
 				}}
 			/>
 		</div>
 	);
-}
-
-function Disclaimer(props: {
-	showWhen: boolean;
-	preliminaryChoices: Array<InputProperties>;
-	disclaimers: Record<string, string>;
-}) {
-	const messageKey = () => {
-		const choices = props.preliminaryChoices;
-		if (choices[0]!.value === "neverWorked") {
-			return "forCompletedPartners";
-		}
-		if (choices[1]?.value === false) {
-			return "forAfterPublish";
-		}
-		if (choices[2]?.value === false) {
-			return "forAfterRefinement";
-		}
-		if (choices[3]?.value === false) {
-			return "forDiscussWithCommunity";
-		}
-	};
-	return <Show when={props.showWhen}>{props.disclaimers[messageKey()!]}</Show>;
 }
 
 type SecondSectionFallbackProps = {
@@ -1400,6 +1478,12 @@ function Section2(props: Section2Props) {
 					field={section().expectedLaunchDate!}
 					onValueChange={(val: string) =>
 						props.updateRestOfForm(sectionName, "expectedLaunchDate", val)
+					}
+				/>
+				<TextInput
+					field={section().communityReligion!}
+					updateForm={(val) =>
+						props.updateRestOfForm(sectionName, "communityReligion", val)
 					}
 				/>
 			</div>
@@ -1615,5 +1699,228 @@ function Section5(
 				/>
 			</div>
 		</div>
+	);
+}
+
+function FallbackDisclaimer() {
+	return (
+		<div>
+			This service is designed for our partners who need help after their
+			translation is refined and is ready to be published. However, if we can
+			help you with anything else or answer any questions, please feel free to
+			submit the rest of the form below to leave us a message.
+		</div>
+	);
+}
+
+type FallbackContactFormProps = {
+	i18nDict: i18nDictType;
+	form: () => SeFormType;
+	getLocalizedChoiceWithFallback: (node: {
+		labels: Record<string, string>;
+	}) => string;
+	setForm: Setter<SeFormType>;
+	inputChoices: InputChoicesType;
+	setTurnstileToken: Setter<string>;
+	turnstileToken: Accessor<string>;
+	turnstilePublicKey: string;
+	setFormNotSubmittedSuccessfully: Setter<boolean>;
+};
+
+function FallbackContactForm(props: FallbackContactFormProps) {
+	// will need the form(), onSubmit and validation can be defined here though. Although, maybe we send this to scripture accessiblity regardless.  Or just different endpoints? Should they contact SA on their own?
+	const section = () => props.form()!.generalContactFallback!;
+
+	function validateFallbackState() {
+		let isValid = true;
+		let idToScrollTo = null;
+		const formCopy = { ...props.form() };
+		const useIds = ["email", "method", "message"];
+
+		if (
+			valIsWhatsApp(
+				formCopy.generalContactFallback.preferEmailOrWhatsApp?.value,
+			)
+		) {
+			// email required on other contact form, but this one has an option for whatsapp, so we hardcode a not provided here
+			formCopy.generalContactFallback.email!.value = "Not provided";
+		}
+
+		const validatedPayload = Object.values(formCopy.generalContactFallback).map(
+			(input) => {
+				const value = input.value;
+				const hasCustomValidationFunction = Object.hasOwn(input, "isValid");
+				if (hasCustomValidationFunction) {
+					if (!input.isValid!()) {
+						console.log(input.name);
+						isValid = false;
+						idToScrollTo ??= input.id;
+						input.validationError = "Field is required";
+					}
+				} else {
+					const isArrayField = Array.isArray(value);
+					const isStringField = typeof value === "string";
+					const isNotEmpty = input.value !== null;
+					if (isStringField && !value?.trim().length) {
+						isValid = false;
+						idToScrollTo ??= input.id;
+						input.validationError = "Field is required";
+					}
+					if (isArrayField && !value?.length) {
+						isValid = false;
+						idToScrollTo ??= input.id;
+						input.validationError = "Field is required";
+					}
+					if (!isNotEmpty) {
+						isValid = false;
+						idToScrollTo ??= input.id;
+						input.validationError = "Field is required";
+					}
+				}
+				return {
+					field: useIds.includes(input.id!) ? input.id : input.name,
+					value: input.value,
+				};
+			},
+		);
+		const validatedFormData = new FormData();
+		validatedFormData.append(
+			"Form Name",
+			"Contact Form - from Scripture Engagement Fallback",
+		);
+		validatedPayload
+			.filter((i) => i.value)
+			.forEach((input) => {
+				validatedFormData.append(input.field!, input.value as string);
+			});
+		validatedFormData.append("cf-turnstile-response", props.turnstileToken());
+		props.setForm(formCopy);
+		return {
+			isValid,
+			idToScrollTo,
+			validatedFormData,
+		};
+	}
+	async function fallbackSubmit() {
+		const { isValid, idToScrollTo, validatedFormData } =
+			validateFallbackState();
+		if (!isValid && idToScrollTo) {
+			const node = document.getElementById(idToScrollTo);
+			if (node) {
+				node.scrollIntoView({ behavior: "smooth" });
+			}
+		} else {
+			const res = await fetch("/api/contactForm", {
+				method: "POST",
+				body: validatedFormData,
+			});
+			const data = await res.json();
+			if (data.success) {
+				props.setFormNotSubmittedSuccessfully(true);
+			}
+		}
+	}
+	const updateForm = (key: string, value: string | boolean | string[]) => {
+		props.setForm((prev) => {
+			const newForm = { ...prev };
+			newForm.generalContactFallback![key]!.value = value;
+			return newForm;
+		});
+	};
+
+	function doShowInput(inputName: "email" | "whatsapp") {
+		const val = section().preferEmailOrWhatsApp!.value;
+		return !!val && typeof val === "string" && val?.toLowerCase() === inputName;
+	}
+
+	return (
+		<div class="flex flex-col gap-8">
+			<FallbackDisclaimer />
+			<MultiRadioGroup
+				choices={props.inputChoices.preferredContact!}
+				getLocalizedChoiceWithFallback={props.getLocalizedChoiceWithFallback}
+				field={section().preferEmailOrWhatsApp!}
+				updateForm={(val) => {
+					return updateForm("preferEmailOrWhatsApp", val);
+				}}
+			/>
+			<Switch>
+				<Match when={doShowInput("email")}>
+					<TextInput
+						field={section().email!}
+						updateForm={(val) => updateForm("email", val)}
+						type="email"
+					/>
+				</Match>
+				<Match when={doShowInput("whatsapp")}>
+					<TelInput
+						field={section().phone!}
+						onUpdate={(val) => updateForm("phone", val)}
+					/>
+				</Match>
+			</Switch>
+			<MultiRadioGroup
+				choices={props.inputChoices.contactFallbackHelpMethods!}
+				getLocalizedChoiceWithFallback={props.getLocalizedChoiceWithFallback}
+				field={section().helpMethods!}
+				updateForm={(val) => {
+					return updateForm("helpMethods", val);
+				}}
+			/>
+			<TextAreaInput
+				field={section().message!}
+				updateForm={(val) => updateForm("message", val)}
+			/>
+			<SubmitSection
+				i18nDict={props.i18nDict}
+				onSubmit={fallbackSubmit}
+				setTurnstileToken={props.setTurnstileToken}
+				turnstilePublicKey={props.turnstilePublicKey}
+			/>
+		</div>
+	);
+}
+
+type SubmitSectionProps = {
+	setTurnstileToken: Setter<string>;
+	onSubmit: () => void;
+	i18nDict: i18nDictType;
+	turnstilePublicKey: string;
+};
+function SubmitSection(props: SubmitSectionProps) {
+	let turnstileRef: HTMLDivElement | undefined;
+	const [hasRenderedTurnstile, setHasRenderedTurnstile] = createSignal(false);
+	onMount(() => {
+		if (!hasRenderedTurnstile() && turnstileRef && "turnstile" in window) {
+			// @ts-ignore https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/
+			const widget = window.turnstile.render(turnstileRef, {
+				sitekey: props.turnstilePublicKey,
+				callback: (token: string) => {
+					console.log(`Challenge Success ${token}`);
+					props.setTurnstileToken(token);
+				},
+			});
+			console.log({ widget });
+			setHasRenderedTurnstile(true);
+		}
+	});
+	return (
+		<>
+			<div
+				ref={turnstileRef}
+				class="cf-turnstile"
+				data-theme="light"
+				data-size=""
+			/>
+			<button
+				type="button"
+				onClick={props.onSubmit}
+				class={
+					"px-14 bg-brand-base text-onSurface-invert border-2 border-b-4 border-solid border-brand-darkest py-1 mt-8  hover:(bg-brand-base/80 text-onSurface-invert) rounded-xl w-fit disabled:(opacity-50 cursor-not-allowed) focus:(bg-brand-base ring-2 ring-offset-8 ring-brand-base text-onSurface-invert)"
+				}
+			>
+				{props.i18nDict.submitForm}
+			</button>
+		</>
 	);
 }

@@ -109,6 +109,7 @@ button:focus {
   background-color: inherit;
   color: inherit;
 }
+
 .site a {
   text-decoration: none;
   // color: inherit;
@@ -344,6 +345,9 @@ main img {
 .seForm input[type="email"],
 .seForm textarea {
   @apply bg-surface-secondary border-surface-border;
+}
+.seFocusWithin:focus-within:not([data-checked]) {
+  @apply ring-2 ring-offset-8 ring-brand-base;
 }
 
 .icon > svg {

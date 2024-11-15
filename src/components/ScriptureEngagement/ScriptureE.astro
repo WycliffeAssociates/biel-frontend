@@ -15,6 +15,7 @@ const {langCode, i18nDict} = Astro.props;
   <ScriptureEngagementForm
     languageCode={langCode}
     i18nDict={i18nDict}
+    turnstilePublicKey={import.meta.env.TURNSTILE_PUBLIC_KEY}
     client:load
   />
 </div>

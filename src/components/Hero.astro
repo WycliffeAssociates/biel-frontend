@@ -65,7 +65,7 @@ const {pageOptions, title, featuredImage} = Astro.props;
       </div>
       {
         featuredImage?.node.sourceUrl && (
-          <div class="md:(grid-col-start-3 grid-col-end-5 mis--4rem) max-md:relative">
+          <div class="md:(grid-col-start-3 grid-col-end-5 mis--4rem) max-md:relative max-h-80vh">
             <Image
               src={featuredImage?.node.sourceUrl}
               loading="eager"

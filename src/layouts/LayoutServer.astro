@@ -11,7 +11,7 @@ interface Props {
   langInfo: languageType;
   langSwitcher: languageType[];
   inlineCss: string[];
-  isContactPage: boolean;
+  isFormPage: boolean;
   langDirection: "ltr" | "rtl";
   description: string;
   siteName: string;
@@ -27,7 +27,7 @@ const {
   inlineCss,
   langInfo,
   langSwitcher,
-  isContactPage,
+  isFormPage,
   langDirection,
   description,
   siteName,
@@ -74,7 +74,7 @@ const {englishUriMap} = await getEnglishUriMap({gqlUrl});
       })
     }
     {
-      isContactPage && (
+      isFormPage && (
         <script
           src="https://challenges.cloudflare.com/turnstile/v0/api.js"
           async

@@ -86,6 +86,7 @@ export function ContactForm(props: ContactFormProps) {
 		e.preventDefault();
 		setFormStatus((prev) => ({ ...prev, status: statuses.submitted }));
 		const formData = new FormData(e.target as HTMLFormElement);
+		formData.append("Form Name", "Biel General Contact Form");
 		try {
 			const res = await fetch("/api/contactForm", {
 				method: "POST",
