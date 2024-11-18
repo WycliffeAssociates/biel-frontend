@@ -112,6 +112,7 @@ export const ResourceSingleProvider = (props: ResourceSingleProviderProps) => {
 
   const [tsFilesForDownload, setTsFilesForDownload] =
     createSignal<TsFilesForDownload>(new Map());
+
   const resourceFromQpOrDefault =
     props.allLangContents.find((r) => r.name === props.queryParams.resource) ||
     props.allLangContents[0]!;
@@ -232,7 +233,6 @@ export const ResourceSingleProvider = (props: ResourceSingleProviderProps) => {
         if (bookSlug) baseUrl += `&book=${bookSlug}`;
         if (bookChapter) baseUrl += `&chapter=${bookChapter}`;
       }
-
       window.history.replaceState(null, "", baseUrl);
     }
   });
