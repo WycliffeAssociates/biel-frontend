@@ -1789,11 +1789,6 @@ function FallbackContactForm(props: FallbackContactFormProps) {
     });
   };
 
-  function doShowInput(inputName: "email" | "whatsapp") {
-    const val = section().preferEmailOrWhatsApp!.value;
-    return !!val && typeof val === "string" && val?.toLowerCase() === inputName;
-  }
-
   return (
     <div class="flex flex-col gap-8">
       <FallbackDisclaimer />
