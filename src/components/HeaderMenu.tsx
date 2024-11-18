@@ -7,6 +7,7 @@ import type {i18nDictType} from "@src/i18n/strings";
 import {For, Show, createSignal} from "solid-js";
 import {HeaderMenuMobile} from "./HeaderMenuMobile";
 import {WaLogo} from "./Logo";
+import {LanguagePicker} from "./LanguagePicker";
 
 type HeaderMenuProps = {
   menu: Menu;
@@ -159,10 +160,10 @@ export function HeaderMenu(props: HeaderMenuProps) {
                 isBig={isBig()}
                 langSwitcherList={props.allLangs}
               />
-              {/* <LanguagePicker
-								allLangs={props.allLangs}
-								currentLang={props.currentLang}
-							/> */}
+              <LanguagePicker
+                allLangs={props.allLangs}
+                currentLang={props.currentLang}
+              />
             </div>
           </nav>
           {/* for html sematnnci, the nav is nested, but we the white backround to cover width of screen */}
