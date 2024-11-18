@@ -17,8 +17,8 @@ type HeaderMenuProps = {
 };
 export function HeaderMenu(props: HeaderMenuProps) {
   const [activeIdx, setActiveIdx] = createSignal<number | null>();
-  const isBig = createMediaQuery("(min-width: 900px)", true);
-  const canHover = createMediaQuery("(hover: hover)", true);
+  const isBig = createMediaQuery("(min-width: 900px)", false);
+  const canHover = createMediaQuery("(hover: hover)", false);
   function shapeLink(item: MenuItem) {
     const link = item.attached_post?.uri || item.url;
     if (isAbsoluteUrl(link)) return link;

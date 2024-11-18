@@ -76,7 +76,7 @@ jobs:
           cache: pnpm
       - name: Install JS dependencies and build
         run: |
-          pnpm install && pnpm build
+          pnpm install --frozen-lockfile && pnpm build
         env:
           NODE_OPTIONS: --max_old_space_size=4096
           TURNSTILE_PUBLIC_KEY: ${{ env.TURNSTILE_PUBLIC_KEY }}
