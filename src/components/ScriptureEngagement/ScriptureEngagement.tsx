@@ -130,7 +130,6 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
         email: {
           value: null,
           label: labelSet.email,
-          subLabel: labelSet.emailSubLabel,
           name: enLabelSet.email,
           id: "email",
           isValid: (): boolean => {
@@ -328,48 +327,8 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
       email: {
         value: null,
         label: labelSet.email,
-        subLabel: labelSet.emailSubLabel,
         name: enLabelSet.email,
         id: "email",
-        isValid: (): boolean => {
-          const thisSection = form()?.generalContactFallback;
-
-          if (
-            thisSection?.preferEmailOrWhatsApp?.value === null ||
-            valIsWhatsApp(thisSection?.preferEmailOrWhatsApp?.value)
-          ) {
-            return true;
-          }
-          return (
-            thisSection?.preferEmailOrWhatsApp?.value === "email" &&
-            thisSection?.email?.value !== null
-          );
-        },
-      },
-      phone: {
-        value: null,
-        label: labelSet.phone,
-        subLabel: labelSet.phoneSubLabel,
-        name: enLabelSet.phone,
-        id: "phone",
-        isValid: (): boolean => {
-          const thisSection = form()?.generalContactFallback;
-          if (
-            thisSection?.preferEmailOrWhatsApp?.value === null ||
-            thisSection?.preferEmailOrWhatsApp?.value === "email"
-          ) {
-            return true;
-          }
-          const phoneEl = document.querySelector(
-            "#phone input[type='phone']"
-          ) as HTMLInputElement | null;
-          const phoneValStatus = !phoneEl || phoneEl?.dataset?.valid === "true";
-          return (
-            valIsWhatsApp(thisSection?.preferEmailOrWhatsApp?.value) &&
-            thisSection?.phone?.value !== null &&
-            phoneValStatus
-          );
-        },
       },
       helpMethods: {
         value: null,
@@ -378,12 +337,11 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
         id: "method",
       },
       message: {
-        value: null, //email or phone
+        value: null,
         label: labelSet.contactFallbackMessage,
         name: enLabelSet.contactFallbackMessage,
         id: "message",
       },
-      // helpMethod
     },
   });
 
@@ -400,9 +358,13 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
     return !!value;
   }
   const doHideRestOfForm = () => {
-    return form()
-      .preliminaryRadios.slice(1)
-      .some((radio) => radio.value !== true);
+    const firstIsWrong = form().preliminaryRadios[0]!.value === "neverWorked";
+    return (
+      firstIsWrong ||
+      form()
+        .preliminaryRadios.slice(1)
+        .some((radio) => radio.value !== true)
+    );
   };
   const doShowDisclaimer = () => {
     const theForm = form();
@@ -1835,29 +1797,11 @@ function FallbackContactForm(props: FallbackContactFormProps) {
   return (
     <div class="flex flex-col gap-8">
       <FallbackDisclaimer />
-      <MultiRadioGroup
-        choices={props.inputChoices.preferredContact!}
-        getLocalizedChoiceWithFallback={props.getLocalizedChoiceWithFallback}
-        field={section().preferEmailOrWhatsApp!}
-        updateForm={(val) => {
-          return updateForm("preferEmailOrWhatsApp", val);
-        }}
+      <TextInput
+        field={section().email!}
+        updateForm={(val) => updateForm("email", val)}
+        type="email"
       />
-      <Switch>
-        <Match when={doShowInput("email")}>
-          <TextInput
-            field={section().email!}
-            updateForm={(val) => updateForm("email", val)}
-            type="email"
-          />
-        </Match>
-        <Match when={doShowInput("whatsapp")}>
-          <TelInput
-            field={section().phone!}
-            onUpdate={(val) => updateForm("phone", val)}
-          />
-        </Match>
-      </Switch>
       <MultiRadioGroup
         choices={props.inputChoices.contactFallbackHelpMethods!}
         getLocalizedChoiceWithFallback={props.getLocalizedChoiceWithFallback}
