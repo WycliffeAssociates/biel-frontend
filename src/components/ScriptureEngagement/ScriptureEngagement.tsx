@@ -702,13 +702,10 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
 }
 function ThankYouSuccess(props: {dict: i18nDictType}) {
   return (
-    // <div
-    // 	innerHTML={props.dict.seSuccessHtml}
-    // 	class="grid h-full w-full min-h-30vh place-content-start"
-    // />
-    <div class="grid h-full w-full min-h-30vh place-content-start">
-      {props.dict.seSuccessHtml}
-    </div>
+    <div
+      innerHTML={props.dict.seSuccessHtml}
+      class="grid h-full w-full min-h-30vh place-content-start"
+    />
   );
 }
 function ValidationErr(props: {errMsg: string | undefined}) {
