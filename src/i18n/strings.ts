@@ -84,6 +84,12 @@ const en = {
   seSection4: "Vision for Scripture Engagement",
   seSection5: "Distribution",
   seSuccessHtml: "Thank you ",
+  seGeneralContactFallback:
+    "This service is designed for our partners who need help after their translation is refined and is ready to be published. However, if we can help you with anything else or answer any questions, please feel free to submit the rest of the form below to leave us a message.",
+  seNotAccessibility:
+    "It sounds like you are almost ready for publishing - congratulations! Please fill out the rest of the form and a member from our Scripture Accessibility team will get back to you as soon as possible.",
+  seNoIdeaOfUse:
+    "Before completing this form, please speak with leaders in your community about how you would like to see your translation used. If you have any questions, you can leave us a message, or you can come back and complete this rest of this form once you've spoken with community leaders.",
 } as const;
 export type i18nKeysType = keyof typeof en;
 const ptbr: Record<i18nKeysType, string> = {

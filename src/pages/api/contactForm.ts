@@ -140,6 +140,7 @@ export function matchHelpMethodToEmailList(
     engagement: string;
     dev: string;
     translationSupport: string;
+    accessibility: string;
     other: string;
   };
   console.log(emailMap, helpMethod);
@@ -158,6 +159,8 @@ export function matchHelpMethodToEmailList(
     case "Tech Support":
       return splitOnCommaAndFilter(emailMap.tech);
     case "Translation Support":
+      return splitOnCommaAndFilter(emailMap.translationSupport);
+    case "Scripture Accessibility":
       return splitOnCommaAndFilter(emailMap.translationSupport);
     case "Other":
       return splitOnCommaAndFilter(emailMap.other);

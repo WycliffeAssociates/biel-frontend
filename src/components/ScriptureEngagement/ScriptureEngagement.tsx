@@ -366,6 +366,26 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
         .some((radio) => radio.value !== true)
     );
   };
+  const getDisclaimerQuestion = () => {
+    if (!doShowDisclaimer()) return null;
+    const theForm = form();
+    const hasNeverDoneWork =
+      theForm.preliminaryRadios[0]!.value === "neverWorked" ||
+      theForm.preliminaryRadios[1]!.value === false;
+    if (hasNeverDoneWork) {
+      return "seGeneralContactFallback";
+    }
+    const hasNotContactAccessibility =
+      theForm.preliminaryRadios[2]!.value === false;
+    if (hasNotContactAccessibility) {
+      return "seNotAccessibility";
+    }
+    const noIdeaOfUse = theForm.preliminaryRadios[3]!.value === false;
+    if (!noIdeaOfUse) {
+      return "seNoIdeaOfUse";
+    }
+    return null;
+  };
   const doShowDisclaimer = () => {
     const theForm = form();
     const hasNeverDoneWork =
@@ -590,6 +610,7 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
                   }
                   i18nDict={props.i18nDict}
                   inputChoices={inputChoices}
+                  getDisclaimerQuestion={getDisclaimerQuestion}
                   setForm={setForm}
                   setTurnstileToken={setTurnstileToken}
                   turnstileToken={turnstileToken}
@@ -1664,15 +1685,8 @@ function Section5(
   );
 }
 
-function FallbackDisclaimer() {
-  return (
-    <div>
-      This service is designed for our partners who need help after their
-      translation is refined and is ready to be published. However, if we can
-      help you with anything else or answer any questions, please feel free to
-      submit the rest of the form below to leave us a message.
-    </div>
-  );
+function FallbackDisclaimer(props: {fallbackDisclaimer: string}) {
+  return <div>{props.fallbackDisclaimer}</div>;
 }
 
 type FallbackContactFormProps = {
@@ -1687,6 +1701,11 @@ type FallbackContactFormProps = {
   turnstileToken: Accessor<string>;
   turnstilePublicKey: string;
   setFormNotSubmittedSuccessfully: Setter<boolean>;
+  getDisclaimerQuestion: () =>
+    | "seGeneralContactFallback"
+    | "seNotAccessibility"
+    | "seNoIdeaOfUse"
+    | null;
 };
 
 function FallbackContactForm(props: FallbackContactFormProps) {
@@ -1706,6 +1725,10 @@ function FallbackContactForm(props: FallbackContactFormProps) {
     ) {
       // email required on other contact form, but this one has an option for whatsapp, so we hardcode a not provided here
       formCopy.generalContactFallback.email!.value = "Not provided";
+    }
+    if (props.getDisclaimerQuestion() === "seNotAccessibility") {
+      formCopy.generalContactFallback.helpMethods!.value =
+        "Scripture Accessibility";
     }
 
     const validatedPayload = Object.values(formCopy.generalContactFallback).map(
@@ -1788,23 +1811,27 @@ function FallbackContactForm(props: FallbackContactFormProps) {
       return newForm;
     });
   };
-
+  const fallbackDisclaimer = props.getDisclaimerQuestion()
+    ? props.i18nDict[props.getDisclaimerQuestion()!]
+    : props.i18nDict.seGeneralContactFallback;
   return (
     <div class="flex flex-col gap-8">
-      <FallbackDisclaimer />
+      <FallbackDisclaimer fallbackDisclaimer={fallbackDisclaimer} />
       <TextInput
         field={section().email!}
         updateForm={(val) => updateForm("email", val)}
         type="email"
       />
-      <MultiRadioGroup
-        choices={props.inputChoices.contactFallbackHelpMethods!}
-        getLocalizedChoiceWithFallback={props.getLocalizedChoiceWithFallback}
-        field={section().helpMethods!}
-        updateForm={(val) => {
-          return updateForm("helpMethods", val);
-        }}
-      />
+      <Show when={props.getDisclaimerQuestion() !== "seNotAccessibility"}>
+        <MultiRadioGroup
+          choices={props.inputChoices.contactFallbackHelpMethods!}
+          getLocalizedChoiceWithFallback={props.getLocalizedChoiceWithFallback}
+          field={section().helpMethods!}
+          updateForm={(val) => {
+            return updateForm("helpMethods", val);
+          }}
+        />
+      </Show>
       <TextAreaInput
         field={section().message!}
         updateForm={(val) => updateForm("message", val)}
