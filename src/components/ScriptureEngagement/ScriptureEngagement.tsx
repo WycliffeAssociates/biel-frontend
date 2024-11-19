@@ -368,6 +368,7 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
     const hasNeverDoneWork =
       theForm.preliminaryRadios[0]!.value === "neverWorked" ||
       theForm.preliminaryRadios[1]!.value === false;
+
     if (hasNeverDoneWork) {
       return "seGeneralContactFallback";
     }
@@ -377,7 +378,7 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
       return "seNotAccessibility";
     }
     const noIdeaOfUse = theForm.preliminaryRadios[3]!.value === false;
-    if (!noIdeaOfUse) {
+    if (noIdeaOfUse) {
       return "seNoIdeaOfUse";
     }
     return null;

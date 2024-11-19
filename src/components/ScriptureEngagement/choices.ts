@@ -352,16 +352,3 @@ export const questionLabels: Record<string, Record<string, string>> = {
     contactFallbackHelpMethod: "How Can We Help You?",
   },
 };
-
-export const disclaimerMessages: Record<string, Record<string, string>> = {
-  en: {
-    forCompletedPartners:
-      "This service is designed for our partners who need help after translation. Please contact us if you have further questions.",
-    forAfterPublish:
-      "This service is designed for our partners who need help after their translation is refined and is ready to be published. Please contact us (or your project manager or RDD) if you have further questions.",
-    forAfterRefinement:
-      "This service is designed for our partners who need help after their translation is refined and is ready to be published. It sounds like you are almost ready—congratulations! Please contact the Scripture Accessibility department first for publication arrangements. Then come back to fill out the rest of this form. ",
-    forDiscussWithCommunity:
-      "Please take time to discuss this with various leaders from your community. Then come back to fill out the rest of this form. ",
-  },
-};
