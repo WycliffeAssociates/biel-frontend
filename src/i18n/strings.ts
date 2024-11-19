@@ -96,7 +96,7 @@ const en = {
   seNoIdeaOfUse:
     "Please take time to discuss this with various leaders from your language group. Then come back to fill out the rest of this form. If you have any questions or we can help you with anything else, you contact us with the form fields below.",
   seNoIdeaOfUseThanks:
-    "Thank you for your message! A member of our team will get back to you as soon as possible. Remember to come back and fill out the rest of this form after you have discussed this with with various leaders from your language group.",
+    "Thank you for your message! A member of our team will get back to you as soon as possible. Remember to come back and fill out the rest of this form after you have discussed this with  various leaders from your language group.",
 } as const;
 export type i18nKeysType = keyof typeof en;
 const ptbr: Record<i18nKeysType, string> = {
