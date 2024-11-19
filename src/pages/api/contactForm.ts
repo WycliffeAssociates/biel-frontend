@@ -1,4 +1,5 @@
 export const prerender = false;
+import {contactFormContactMethodsValues} from "@lib/constants";
 import type {APIRoute} from "astro";
 
 export type RemotePayloadType = {
@@ -31,12 +32,7 @@ export const POST: APIRoute = async ({request, locals}) => {
   const email = requiredFields.email;
   const helpMethod = requiredFields.method;
   const message = requiredFields.message;
-  const approvedHelpMethods = [
-    "Scripture Engagement",
-    "Tech Support",
-    "Translation Support",
-    "Other",
-  ];
+  const approvedHelpMethods = Object.values(contactFormContactMethodsValues);
   if (!email || !helpMethod || !approvedHelpMethods.includes(helpMethod)) {
     return new Response(null, {
       status: 400,
@@ -69,7 +65,7 @@ export const POST: APIRoute = async ({request, locals}) => {
         value: requiredFields["Form Name"],
       },
       {
-        field: "Environment",
+        field: "BIEL Environment",
         value: locals.runtime.env.CONTACT_ENV || "local",
       },
       {

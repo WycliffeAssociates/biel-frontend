@@ -76,9 +76,9 @@ const toGuideLeadersWith = [
     },
   },
   {
-    value: "Church Planting",
+    value: "Church planting",
     labels: {
-      en: "Church Planting",
+      en: "Church planting",
     },
   },
   {
@@ -94,9 +94,9 @@ const toGuideLeadersWith = [
     },
   },
   {
-    value: "Displeship",
+    value: "Discipleship",
     labels: {
-      en: "Displeship",
+      en: "Discipleship",
     },
   },
 ];
@@ -108,9 +108,9 @@ const toGuideMembersWith = [
     },
   },
   {
-    value: "Pray More",
+    value: "Pray more",
     labels: {
-      en: "Pray More",
+      en: "Pray more",
     },
   },
   {
@@ -120,9 +120,9 @@ const toGuideMembersWith = [
     },
   },
   {
-    value: "Apply the Bible To Transform Lives",
+    value: "Apply the Bible to transform lives",
     labels: {
-      en: "Apply the Bible To Transform Lives",
+      en: "Apply the Bible to transform lives",
     },
   },
   {
@@ -195,7 +195,7 @@ export const maturityLevels = [
       en: {
         main: "Spiritual Young Adults",
         explainer:
-          "They are new to Christianity and need to learn the basic truths of the Bible and to learn about Christian habits (disciplines) from a more mature Christian leader.",
+          "They are in the habit of practicing Christian habits (disciplines), and they have a good understanding of what the Bible teaches. They need to (or are ready to) start their personal in-depth Bible studies, apply Scripture no matter what it commands, and help assist in ministry work.",
       },
     },
   },
@@ -295,9 +295,11 @@ export const questionLabels: Record<string, Record<string, string>> = {
     nearlyDoneRefining:
       "Are you nearly done with the refinement stage of your translation?",
     hasContactedScriptureAccessiblity:
-      "Have you contacted the Scripture Accessibility department to arrange publication of your translation? ",
+      "Have you contacted the Scripture Accessibility department to arrange publication of your translation?",
     ideaOfUse:
       "Do you have an idea on how you would like to see your community use the translated Bible?",
+    ideaOfUseSubLabel:
+      "When you answer this question, think about your entire language group who will use this translated Bible.",
     namesOfAssessors: "Name of the assessor(s)",
     namesOfAssessorsSubLabel: "Separate names with commas (,)",
     langNameAndCode: "Language name and code",
@@ -311,14 +313,14 @@ export const questionLabels: Record<string, Record<string, string>> = {
       "Choose the date you expect to begin distributing your Bible",
     communityReligion: "What is the main religion in your community?",
     haveReadBibleOutsideChurch:
-      "Have believers read the Bible outside of church?",
+      "Do believers in your community read the Bible outside of church?",
     haveReadBibleOutsideChurchSubLabel:
-      "Choose what is true for the majority of believers in your community",
+      "Choose what is true for the majority of believers in your community.",
     languagesBibleReadIn:
       "In what language(s) has your community read the Bible?",
     languagesBibleReadInSubLabel: "Select all that apply",
     whyNotReadBibleOutsideChurch:
-      "Please choose a reason why most believers do not read the Bible outside of church.",
+      "Please choose a reason why most believers in your community do not read the Bible outside of church.",
     whyNotReadBibleOutsideChurchSubLabel: "Select all that apply",
     commonReadingMethod: "What is a common reading method used?",
     commonReadingMethodSubLabel: "Select all that apply",
@@ -338,9 +340,9 @@ export const questionLabels: Record<string, Record<string, string>> = {
     questionsFromCommunity:
       "What questions about God or the Bible do you hear from your community?",
     questionsFromCommunitySubLabel:
-      "We many have specific resources to share based on your answer",
+      "We may have specific resources to share based on your answer",
     averageMaturity: "What is the average maturity level of believers?",
-    inChargePrinting: "Who could be in charge of printing digital resources",
+    inChargePrinting: "Who could be in charge of printing digital resources?",
     planToDistribute:
       "How do you plan to distribute the resources and to whom?",
     planToDistributeSubLabel:

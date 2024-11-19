@@ -3,9 +3,10 @@ import {getDict, type i18nDictType} from "@src/i18n/strings";
 import Layout from "@layouts/LayoutNoFooter.astro";
 import {HeaderMenu} from "@components/HeaderMenu";
 import {getMenus, getLanguagesPageSlugs, getWpmlLanguages} from "@src/data/wp";
+import {BreadCrumbs} from "@components/BreadCrumbs";
 import ResourceIndex from "@components/ResourcesPage/ResourcesPage.astro";
 import type {languageType, Menu} from "@customTypes/types";
-import {titleCase} from "@src/utils";
+import {capitalizeFirstLetter, titleCase} from "@src/utils";
 
 type Props = {
   title: string;
@@ -13,6 +14,11 @@ type Props = {
   langInfo: languageType;
   headerMenu: Menu;
   pageDict: i18nDictType;
+  crumbs: {
+    uri: string;
+    slug: string;
+    title: string;
+  }[];
 };
 
 export async function getStaticPaths() {
@@ -61,6 +67,22 @@ export async function getStaticPaths() {
       const headerMenu =
         menus[langInfo.language_code]?.["header-menu"] ||
         menus.en?.["header-menu"]!;
+      const crumbs = slug
+        .split("/")
+        .filter((v) => !!v)
+        .map((crumb, i) => {
+          const uri = `/${slug
+            .split("/")
+            .filter((v) => !!v)
+            .slice(0, i + 1)
+            .join("/")}`;
+          return {
+            uri: uri,
+            slug: "",
+            title: capitalizeFirstLetter(crumb),
+          };
+        });
+
       return {
         params: {
           resourceIndex: slug,
@@ -71,6 +93,7 @@ export async function getStaticPaths() {
           langInfo,
           headerMenu,
           pageDict: getDict(t.languageCode, true)!,
+          crumbs,
         },
       };
     });
@@ -78,7 +101,10 @@ export async function getStaticPaths() {
   return pageData;
 }
 
-const {title, allLangs, langInfo, headerMenu, pageDict} = Astro.props;
+const {title, allLangs, langInfo, headerMenu, pageDict, crumbs} = Astro.props;
+
+// resource/languages
+// es/recursos/idiomas
 const ogImage = `${Astro.site?.origin}/icon-512.png`;
 const {resourceIndex: prefix} = Astro.params;
 ---
@@ -96,15 +122,15 @@ const {resourceIndex: prefix} = Astro.params;
   siteName={pageDict.siteName}
   ogImage={ogImage}
 >
-  <div class="header">
-    <HeaderMenu
-      allLangs={allLangs}
-      currentLang={langInfo}
-      menu={headerMenu}
-      i18nDict={pageDict}
-      client:load
-    />
-  </div>
+  <HeaderMenu
+    allLangs={allLangs}
+    currentLang={langInfo}
+    menu={headerMenu}
+    i18nDict={pageDict}
+    client:load
+  />
+  <BreadCrumbs crumbs={{nodes: crumbs}} />
+
   <ResourceIndex
     server:defer
     i18nDict={pageDict}

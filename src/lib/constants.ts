@@ -17,3 +17,11 @@ export const constants = {
   queryParamsLangContentsChapter: "chapter",
   queryParamsLangContentsDownload: "download",
 };
+
+export const contactFormContactMethodsValues = {
+  tech: "Tech Support",
+  engagement: "Scripture Engagement",
+  translationSupport: "Translation Support",
+  accessibility: "Scripture Accessibility",
+  other: "Other",
+};

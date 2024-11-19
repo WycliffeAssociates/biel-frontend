@@ -1,6 +1,7 @@
 import {test, expect} from "@playwright/test";
 
 // e2e ideas
+// Rendering for each of the
 // resources  resources/lang, se form, search bar, breadcrumbs,
 //
 

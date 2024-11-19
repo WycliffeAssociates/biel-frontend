@@ -83,13 +83,20 @@ const en = {
   seSection3: "Current Scripture Engagement",
   seSection4: "Vision for Scripture Engagement",
   seSection5: "Distribution",
-  seSuccessHtml: "Thank you ",
+  seSuccessHtml:
+    "Thank you for completing this assessment! The Scripture Engagement staff will review the form and get back to you.",
   seGeneralContactFallback:
     "This service is designed for our partners who need help after their translation is refined and is ready to be published. However, if we can help you with anything else or answer any questions, please feel free to submit the rest of the form below to leave us a message.",
+  seGeneralContactFallbackThanks:
+    "Thank you! A member of our team will get back to you soon.",
   seNotAccessibility:
     "It sounds like you are almost ready for publishing - congratulations! Please fill out the rest of the form and a member from our Scripture Accessibility team will get back to you as soon as possible.",
+  seNotAccessibilityThanks:
+    "Thank you!  A member of our team will get back to you as soon as possible.  Remember to come back and fill out the rest of this form after you have arranged for publication.",
   seNoIdeaOfUse:
-    "Before completing this form, please speak with leaders in your community about how you would like to see your translation used. If you have any questions, you can leave us a message, or you can come back and complete this rest of this form once you've spoken with community leaders.",
+    "Please take time to discuss this with various leaders from your language group. Then come back to fill out the rest of this form. If you have any questions or we can help you with anything else, you contact us with the form fields below.",
+  seNoIdeaOfUseThanks:
+    "Thank you for your message! A member of our team will get back to you as soon as possible. Remember to come back and fill out the rest of this form after you have discussed this with with various leaders from your language group.",
 } as const;
 export type i18nKeysType = keyof typeof en;
 const ptbr: Record<i18nKeysType, string> = {

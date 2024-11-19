@@ -9,6 +9,7 @@ import {
 import {Checkbox} from "@kobalte/core/checkbox";
 import {RadioGroup} from "@kobalte/core/radio-group";
 import {TextField} from "@kobalte/core/text-field";
+import {contactFormContactMethodsValues} from "@lib/constants";
 import type {i18nDictType} from "@src/i18n/strings";
 import intlTelInput, {type Iti} from "intl-tel-input";
 import type {HTMLInputElement} from "linkedom";
@@ -95,6 +96,7 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
       {
         value: null,
         label: labelSet.ideaOfUse,
+        subLabel: labelSet.ideaOfUseSubLabel,
         name: enLabelSet.ideaOfUse,
         id: "ideaOfUse",
         show: (): boolean => {
@@ -318,12 +320,6 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
       },
     },
     generalContactFallback: {
-      preferEmailOrWhatsApp: {
-        value: null, //email or phone
-        label: labelSet.prefferredContact,
-        name: enLabelSet.prefferredContact,
-        id: "prefferredContact",
-      },
       email: {
         value: null,
         label: labelSet.email,
@@ -401,7 +397,6 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
       newForm.preliminaryRadios[arrIdx]!.value = value;
       return newForm;
     });
-    console.log(getFlattenFormState());
   }
   function updateRestOfForm(
     section: string,
@@ -413,7 +408,6 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
       newForm.sections[section]![key]!.value = value;
       return newForm;
     });
-    console.log(getFlattenFormState());
   }
   function handleCheckboxFormValues({
     action,
@@ -455,7 +449,6 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
       }
       return newForm;
     });
-    console.log(getFlattenFormState());
   }
   function getFlattenFormState() {
     const preliminaryValues = form().preliminaryRadios.map((input) => {
@@ -507,7 +500,6 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
 
         if (hasCustomValidationFunction) {
           if (!input.isValid!()) {
-            console.log(input.name);
             isValid = false;
             idToScrollTo ??= input.id;
             input.validationError = "Field is required";
@@ -517,22 +509,16 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
           const isStringField = typeof value === "string";
           const isNotEmpty = input.value !== null;
           if (isStringField && !value?.trim().length) {
-            console.log(input.name);
-
             isValid = false;
             idToScrollTo ??= input.id;
             input.validationError = "Field is required";
           }
           if (isArrayField && !value?.length) {
-            console.log(input.name);
-
             isValid = false;
             idToScrollTo ??= input.id;
             input.validationError = "Field is required";
           }
           if (!isNotEmpty) {
-            console.log(input.name);
-
             isValid = false;
             idToScrollTo ??= input.id;
             input.validationError = "Field is required";
@@ -577,7 +563,6 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
       });
       if (res.status === 200) {
         setFormNotSubmittedSuccessfully(true);
-        console.log("all was good");
       }
     } catch (e) {
       console.error(e);
@@ -588,7 +573,12 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
     <div class="seForm py-4 w-full bg-surface-primary md:rounded-80px  md:p-20 max-w-5xl mx-auto">
       <Show
         when={!formNotSubimittedSuccessfully()}
-        fallback={<ThankYouSuccess dict={props.i18nDict} />}
+        fallback={
+          <ThankYouSuccess
+            dict={props.i18nDict}
+            getDisclaimerQuestion={getDisclaimerQuestion}
+          />
+        }
       >
         <div class="flex flex-col gap-20">
           <Section1
@@ -683,10 +673,30 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
     </div>
   );
 }
-function ThankYouSuccess(props: {dict: i18nDictType}) {
+function ThankYouSuccess(props: {
+  dict: i18nDictType;
+  getDisclaimerQuestion: () =>
+    | "seGeneralContactFallback"
+    | "seNotAccessibility"
+    | "seNoIdeaOfUse"
+    | null;
+}) {
+  const message = () => {
+    const disclaimerQuestion = props.getDisclaimerQuestion();
+    if (!disclaimerQuestion) {
+      return props.dict.seSuccessHtml;
+    }
+    const withThankyouSuffix = `${props.dict[disclaimerQuestion]}Thanks`;
+    // @ts-ignore
+    if (!props.dict[withThankyouSuffix]) {
+      return props.dict.seSuccessHtml;
+    }
+    // @ts-ignore
+    return props.dict[withThankyouSuffix];
+  };
   return (
     <div
-      innerHTML={props.dict.seSuccessHtml}
+      innerHTML={message()}
       class="grid h-full w-full min-h-30vh place-content-start"
     />
   );
@@ -988,7 +998,6 @@ function CheckBoxGroup(props: CheckBoxGroupProps) {
             <input
               type="text"
               onChange={(e) => {
-                // console.log(e);
                 props.handleChange("add", `Other - ${e.currentTarget.value}`);
               }}
               class="border-b! border-onSurface-secondary! border-solid! bg-transparent! w-full "
@@ -1728,7 +1737,7 @@ function FallbackContactForm(props: FallbackContactFormProps) {
     }
     if (props.getDisclaimerQuestion() === "seNotAccessibility") {
       formCopy.generalContactFallback.helpMethods!.value =
-        "Scripture Accessibility";
+        contactFormContactMethodsValues.accessibility;
     }
 
     const validatedPayload = Object.values(formCopy.generalContactFallback).map(
@@ -1737,7 +1746,6 @@ function FallbackContactForm(props: FallbackContactFormProps) {
         const hasCustomValidationFunction = Object.hasOwn(input, "isValid");
         if (hasCustomValidationFunction) {
           if (!input.isValid!()) {
-            console.log(input.name);
             isValid = false;
             idToScrollTo ??= input.id;
             input.validationError = "Field is required";
@@ -1814,6 +1822,7 @@ function FallbackContactForm(props: FallbackContactFormProps) {
   const fallbackDisclaimer = props.getDisclaimerQuestion()
     ? props.i18nDict[props.getDisclaimerQuestion()!]
     : props.i18nDict.seGeneralContactFallback;
+
   return (
     <div class="flex flex-col gap-8">
       <FallbackDisclaimer fallbackDisclaimer={fallbackDisclaimer} />
@@ -1858,14 +1867,13 @@ function SubmitSection(props: SubmitSectionProps) {
   onMount(() => {
     if (!hasRenderedTurnstile() && turnstileRef && "turnstile" in window) {
       // @ts-ignore https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/
-      const widget = window.turnstile.render(turnstileRef, {
+      window.turnstile.render(turnstileRef, {
         sitekey: props.turnstilePublicKey,
         callback: (token: string) => {
-          console.log(`Challenge Success ${token}`);
           props.setTurnstileToken(token);
         },
       });
-      console.log({widget});
+
       setHasRenderedTurnstile(true);
     }
   });

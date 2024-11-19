@@ -227,13 +227,13 @@ export const ResourceSingleProvider = (props: ResourceSingleProviderProps) => {
         activeContent.rendered_contents?.htmlChapters[
           activeContent.activeRowIdx
         ];
-      if (currentRow) {
+      if (currentRow && viewType() === "readable") {
         const bookSlug = currentRow.scriptural_rendering_metadata?.book_slug;
         const bookChapter = currentRow.scriptural_rendering_metadata?.chapter;
         if (bookSlug) baseUrl += `&book=${bookSlug}`;
         if (bookChapter) baseUrl += `&chapter=${bookChapter}`;
+        window.history.replaceState(null, "", baseUrl);
       }
-      window.history.replaceState(null, "", baseUrl);
     }
   });
 
