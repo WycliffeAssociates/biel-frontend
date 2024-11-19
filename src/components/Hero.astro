@@ -16,7 +16,7 @@ const {pageOptions, title, featuredImage} = Astro.props;
       class="flex flex-col-reverse md:(grid grid-cols-[1fr_minmax(auto,720px)_minmax(auto,720px)_1fr]) py-0 relative"
     >
       <div
-        class="w-full py-7 md:(grid-col-start-2 self-center py-14) z-10 relative my-8 mr--24 bg-surface-primary flex flex-col gap-4 contain-pad"
+        class="w-full py-7 md:(grid-col-start-2 self-center py-14) z-10 relative my-8 bg-surface-primary flex flex-col gap-4 contain-pad"
       >
         <div class="flex gap-8px mx-auto md:(m-0) items-center">
           {
@@ -65,7 +65,7 @@ const {pageOptions, title, featuredImage} = Astro.props;
       </div>
       {
         featuredImage?.node.sourceUrl && (
-          <div class="md:(grid-col-start-3 grid-col-end-5 mis--4rem) max-md:relative max-h-80vh">
+          <div class="md:(grid-col-start-3 grid-col-end-5) max-md:relative max-h-80vh">
             <Image
               src={featuredImage?.node.sourceUrl}
               loading="eager"

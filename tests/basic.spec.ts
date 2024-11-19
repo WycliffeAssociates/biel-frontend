@@ -1,5 +1,9 @@
 import {test, expect} from "@playwright/test";
 
+// e2e ideas
+// resources  resources/lang, se form, search bar, breadcrumbs,
+//
+
 test("has title", async ({page}) => {
   await page.goto("/");
 
