@@ -35,3 +35,7 @@ notes.md
 scratch.html
 personalUtilities.js
 scratch.txt
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

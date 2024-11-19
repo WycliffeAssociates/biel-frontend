@@ -148,7 +148,11 @@ export function matchHelpMethodToEmailList(
   function splitOnCommaAndFilter(str: string) {
     return str
       .split(",")
-      .filter((s: string) => s.includes("@wycliffeassociates.org"));
+      .filter(
+        (s: string) =>
+          s.includes("@wycliffeassociates.org") ||
+          s.includes("@techadvancement.com")
+      );
   }
   if (formEnv.toLowerCase() === "local") {
     return splitOnCommaAndFilter(emailMap.dev);
