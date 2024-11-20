@@ -86,33 +86,12 @@ test("Reader page prefetches adjacent chapters", async ({browser}) => {
       },
     });
   });
-  // const url = new URL(route.request().url());
-  // if (url.searchParams.get("hash")) {
-  //   return route.fulfill({
-  //     status: 200,
-  //     body: "mocked external",
-  //     headers: {
-  //       "Access-Control-Allow-Origin": "*",
-  //     },
-  //   });
-  // }
-  // console.log(route.request().url());
-  // route.continue();
-  // console.log("mocking external");
-  // return route.fulfill({
-  //   status: 200,
-  //   body: "mocked external",
-  //   headers: {
-  //     "Access-Control-Allow-Origin": "*",
-  //   },
-  // });
-  // });
+
   await page.goto("/resources/languages/en");
   const nextBtn = page.getByTestId("reader-nav-next");
-  const prevBtn = page.getByTestId("reader-nav-prev");
   await nextBtn.hover();
   expect(networkRequestMadeOnHover).toBe(true);
-  await prevBtn.hover();
+
   // await expect(page).toHaveURL(
   //   "/resources/languages/en?resource-type=wycliffeassociates/en_ulb&book=GEN&chapter=2"
   // );
