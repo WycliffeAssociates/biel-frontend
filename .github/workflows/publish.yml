@@ -17,8 +17,6 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env: 
-      SHOULD_RUN_E2E_TESTS: ${{ github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/prod' }}
     permissions:
       contents: read
       deployments: write
@@ -100,14 +98,14 @@ jobs:
       - name: Copy in cf dev vars if testing
         run: |
           printf "%s\n" "$CF_DEV_VARS" > .dev.vars
-        if: env.SHOULD_RUN_E2E_TESTS
+        if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/prod'
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
         # Can skip them if dispatching manually on any branch but prod
-        if: env.SHOULD_RUN_E2E_TESTS
+        if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/prod'
       - name: Run Playwright tests
         run: pnpm exec playwright test
-        if: env.SHOULD_RUN_E2E_TESTS
+        if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/prod'
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
