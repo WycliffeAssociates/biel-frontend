@@ -1,78 +1,78 @@
-import {LangGlobe, SmallArrowDown} from "@components/Icons";
-import type {languageType} from "@customTypes/types";
-import {DropdownMenu} from "@kobalte/core/dropdown-menu";
-import {For} from "solid-js";
+import { LangGlobe, SmallArrowDown } from "@components/Icons";
+import type { languageType } from "@customTypes/types";
+import { DropdownMenu } from "@kobalte/core/dropdown-menu";
+import { For } from "solid-js";
 
 type LangPickerProps = {
-  allLangs: languageType[];
-  currentLang: languageType;
+	allLangs: languageType[];
+	currentLang: languageType;
 };
 
 export function LanguagePicker(props: LangPickerProps) {
-  return (
-    <DropdownMenu placement="bottom-end" flip={false}>
-      <DropdownMenu.Trigger
-        class="flex  gap-2 items-center p-4 border-1 border-surface-border rounded-2xl! text-onSurface-secondary fill-onSurface-secondary hover:(bg-surface-invert! text-onSurface-invert! fill-onSurface-invert) data-[expanded]:(bg-surface-invert! text-onSurface-invert! fill-onSurface-invert)"
-        as={"button"}
-        data-testid="language-picker-trigger"
-      >
-        <DropdownMenu.Icon class="flex gap-2 items-center ">
-          {/* <ChevronDownIcon /> */}
-          <LangGlobe class="fill-inherit" />
-        </DropdownMenu.Icon>
-        <span>{props.currentLang.native_name}</span>
-        <SmallArrowDown class="fill-inherit" />
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Portal>
-        <DropdownMenu.Content class="bg-white z-10 right-0 min-w-80 shadow-dark shadow-xl rounded-xl overflow-hidden">
-          <For each={props.allLangs}>
-            {(item) => (
-              <DropdownMenu.Item>
-                <a
-                  class="text-onSurface-secondary flex w-full font-wdth-90 justify-between p-4 items-center hover:(bg-brand-light) focus:(bg-brand-light)"
-                  href={
-                    item.localizedUrl ||
-                    `${item.code === "en" ? "/" : `/${item.code}`}`
-                  }
-                  data-testid={`language-picker-item-${item.language_code}`}
-                >
-                  <span class="text-onSurface-secondary font-500">
-                    {item.native_name}
-                  </span>
-                  <span class="text-onSurface-tertiary font-size-[var(--step--2)]">
-                    {item.translated_name}
-                  </span>
-                </a>
-              </DropdownMenu.Item>
-            )}
-          </For>
-        </DropdownMenu.Content>
-      </DropdownMenu.Portal>
-    </DropdownMenu>
-  );
+	return (
+		<DropdownMenu placement="bottom-end" flip={false}>
+			<DropdownMenu.Trigger
+				class="flex  gap-2 items-center p-4 border-1 border-surface-border rounded-2xl! text-onSurface-secondary fill-onSurface-secondary hover:(bg-surface-invert! text-onSurface-invert! fill-onSurface-invert) data-[expanded]:(bg-surface-invert! text-onSurface-invert! fill-onSurface-invert)"
+				as={"button"}
+				data-testid="language-picker-trigger"
+			>
+				<DropdownMenu.Icon class="flex gap-2 items-center ">
+					{/* <ChevronDownIcon /> */}
+					<LangGlobe class="fill-inherit" />
+				</DropdownMenu.Icon>
+				<span>{props.currentLang.native_name}</span>
+				<SmallArrowDown class="fill-inherit" />
+			</DropdownMenu.Trigger>
+			<DropdownMenu.Portal>
+				<DropdownMenu.Content class="bg-white z-10 right-0 min-w-80 shadow-dark shadow-xl rounded-xl overflow-hidden">
+					<For each={props.allLangs}>
+						{(item) => (
+							<DropdownMenu.Item>
+								<a
+									class="text-onSurface-secondary flex w-full font-wdth-90 justify-between p-4 items-center hover:(bg-brand-light) focus:(bg-brand-light)"
+									href={
+										item.localizedUrl ||
+										`${item.code === "en" ? "/" : `/${item.code}`}`
+									}
+									data-testid={`language-picker-item-${item.language_code}`}
+								>
+									<span class="text-onSurface-secondary font-500">
+										{item.native_name}
+									</span>
+									<span class="text-onSurface-tertiary font-size-[var(--step--2)]">
+										{item.translated_name}
+									</span>
+								</a>
+							</DropdownMenu.Item>
+						)}
+					</For>
+				</DropdownMenu.Content>
+			</DropdownMenu.Portal>
+		</DropdownMenu>
+	);
 }
 
 export function LanguagePickerMobile(props: LangPickerProps) {
-  return (
-    <ul>
-      <For each={props.allLangs}>
-        {(item) => (
-          <li>
-            <a
-              class="flex w-full justify-between p-3 hover:(bg-brand-light text-brand-base) focus:(bg-brand-light text-brand-base)"
-              href={
-                item.localizedUrl ||
-                `${item.code === "en" ? "/" : `/${item.code}`}`
-              }
-            >
-              <span>{item.native_name}</span>
-              <span class="text-onSurface-tertiary font-size-[var(--step--2)]">
-                {item.translated_name}
-              </span>
-            </a>
-          </li>
-        )}
-      </For>
-    </ul>
-  );
+	return (
+		<ul>
+			<For each={props.allLangs}>
+				{(item) => (
+					<li>
+						<a
+							class="flex w-full justify-between p-3 hover:(bg-brand-light text-brand-base) focus:(bg-brand-light text-brand-base)"
+							href={
+								item.localizedUrl ||
+								`${item.code === "en" ? "/" : `/${item.code}`}`
+							}
+						>
+							<span>{item.native_name}</span>
+							<span class="text-onSurface-tertiary font-size-[var(--step--2)]">
+								{item.translated_name}
+							</span>
+						</a>
+					</li>
+				)}
+			</For>
+		</ul>
+	);
 }
