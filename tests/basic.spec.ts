@@ -60,6 +60,7 @@ test("desktop localization menu items open on click and navigate to the correct 
   await langPicker.click();
   const spanishLink = page.getByTestId("language-picker-item-es");
   await spanishLink.click();
+
   await expect(page).toHaveURL(/es/);
 });
 
@@ -89,10 +90,8 @@ test("Reader page prefetches adjacent chapters", async ({browser}) => {
 
   await page.goto("/resources/languages/en");
   const nextBtn = page.getByTestId("reader-nav-next");
+  const requestPromise = page.waitForRequest(/api\/fetchExternal/);
   await nextBtn.hover();
+  await requestPromise;
   expect(networkRequestMadeOnHover).toBe(true);
-
-  // await expect(page).toHaveURL(
-  //   "/resources/languages/en?resource-type=wycliffeassociates/en_ulb&book=GEN&chapter=2"
-  // );
 });

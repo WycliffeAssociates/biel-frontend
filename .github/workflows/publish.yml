@@ -38,8 +38,8 @@ jobs:
           export-env: true
         env: 
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          CF_ACCOUNT_ID: "op://DevOps/cloudflare-worker-deploy-token/CF_ACCOUNT_ID"
-          CF_API_TOKEN: "op://DevOps/cloudflare-worker-deploy-token/CF_API_TOKEN"
+          CLOUDFLARE_ACCOUNT_ID: "op://DevOps/cloudflare-worker-deploy-token/CF_ACCOUNT_ID"
+          CLOUDFLARE_API_TOKEN: "op://DevOps/cloudflare-worker-deploy-token/CF_API_TOKEN"
           WORDPRESS_REST_MENU_ENDPOINT: "op://DevOps/biel-env-vars/${{ steps.determine_env.outputs.ENV }}/${{ steps.determine_env.outputs.ENV }}-rest-menu-endpoint"
           CMS_URL: "op://DevOps/biel-env-vars/${{ steps.determine_env.outputs.ENV }}/${{ steps.determine_env.outputs.ENV }}-cms-url"
           SITE_URL: "op://DevOps/biel-env-vars/${{ steps.determine_env.outputs.ENV }}/${{ steps.determine_env.outputs.ENV }}-site-url"
@@ -109,6 +109,6 @@ jobs:
       - name: Publish
         uses: cloudflare/wrangler-action@v3
         with:
-          apiToken: ${{ env.CF_API_TOKEN }}
-          accountId: ${{ env.CF_ACCOUNT_ID }}
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name=headless-biel --upload-source-maps=true
