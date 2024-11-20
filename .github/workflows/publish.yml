@@ -99,7 +99,7 @@ jobs:
       
       - name: Copy in cf dev vars if testing
         run: |
-          echo $CF_DEV_VARS > .dev.vars
+          printf $CF_DEV_VARS > .dev.vars
         if: env.SHOULD_RUN_E2E_TESTS
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
@@ -108,11 +108,6 @@ jobs:
       - name: Run Playwright tests
         run: pnpm exec playwright test
         if: env.SHOULD_RUN_E2E_TESTS
-        env:
-          CMS_URL:  ${{ env.CMS_URL }}
-          SITE_URL:  ${{ env.SITE_URL }}
-          WORDPRESS_GQL_URL:  ${{ env.WORDPRESS_GQL_URL }}
-          PUBLIC_DATA_API_URL: ${{ env.PUBLIC_DATA_API_URL }}
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
