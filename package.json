@@ -16,7 +16,8 @@
     "pagefind": "tsx ./makePageFindIndex.js",
     "pflocal": "WORDPRESS_GQL_URL=https://bieldev.wpengine.com/index.php?graphql    PUBLIC_DATA_API_URL=https://api.bibleineverylanguage.org/v1/graphql tsx ./makePageFindIndex.ts",
     "test:e2e": "pnpm exec playwright test",
-    "test:e2e-mock-ci-local": "CI=true pnpm exec playwright test --ui"
+    "test:e2e-mock-ci-local": "CI=true pnpm exec playwright test --ui",
+    "test:e2e:open-report": "pnpm exec playwright show-report"
   },
   "dependencies": {
     "@ark-ui/solid": "^4.5.1",

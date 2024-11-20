@@ -99,7 +99,7 @@ export function HeaderMenu(props: HeaderMenuProps) {
                         >
                           <div
                             data-testid="header-menu-pane"
-                            class="bg-white  absolute top-20 left-0 w-screen mis-[min(0px,_calc(var(--site-container-max)-100vw-1rem)/2)]"
+                            class="bg-surface-primary  absolute top-20 left-0 w-screen mis-[min(0px,_calc(var(--site-container-max)-100vw-1rem)/2)] shadow-menu"
                           >
                             <div class="contain contain-pad py-4 flex gap-10">
                               <div class="p-4 flex flex-col gap-2 w-1/4">

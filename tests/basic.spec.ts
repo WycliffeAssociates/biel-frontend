@@ -97,3 +97,7 @@ test("Reader page prefetches adjacent chapters", async ({browser}) => {
   await requestPromise;
   expect(networkRequestMadeOnHover).toBe(true);
 });
+
+// todo: Group these into mobile and desktop tests, and in the before group set the viewport on them.  I don't think I ataully need more platforms to run against. Mobile of each of those browers should roughly be fine I think
+
+// todo: tests for urls of a resource in search respose being resource-type?
