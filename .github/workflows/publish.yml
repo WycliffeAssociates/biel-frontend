@@ -99,7 +99,7 @@ jobs:
       
       - name: Copy in cf dev vars if testing
         run: |
-          printf $CF_DEV_VARS > .dev.vars
+          echo $CF_DEV_VARS > .dev.vars
         if: env.SHOULD_RUN_E2E_TESTS
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
