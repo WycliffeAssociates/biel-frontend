@@ -17,6 +17,8 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env: 
+      SHOULD_RUN_E2E_TESTS: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/prod'
     permissions:
       contents: read
       deployments: write
@@ -46,6 +48,7 @@ jobs:
           WORDPRESS_GQL_URL: "op://DevOps/biel-env-vars/${{ steps.determine_env.outputs.ENV }}/${{ steps.determine_env.outputs.ENV }}-graphql-url"
           PUBLIC_DATA_API_URL: "op://DevOps/biel-env-vars/${{ steps.determine_env.outputs.ENV }}/${{ steps.determine_env.outputs.ENV }}-public-data-api-url"
           TURNSTILE_PUBLIC_KEY: "op://DevOps/biel-env-vars/common/turnstile-public-key"
+          CF_DEV_VARS: "op://DevOps/biel-env-vars/common/cf-dev-vars"
       - name: set prod variables
         uses: 1password/load-secrets-action@v1
         with:
@@ -94,13 +97,22 @@ jobs:
             WORDPRESS_GQL_URL:  ${{ env.WORDPRESS_GQL_URL }}
             PUBLIC_DATA_API_URL: ${{ env.PUBLIC_DATA_API_URL }}
       
+      - name: Copy in cf dev vars if testing
+        run: |
+          echo ${{ env.CF_DEV_VARS }} > .dev.vars
+        if: env.SHOULD_RUN_E2E_TESTS
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
         # Can skip them if dispatching manually on any branch but prod
-        if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/prod'
+        if: env.SHOULD_RUN_E2E_TESTS
       - name: Run Playwright tests
         run: pnpm exec playwright test
-        if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/prod'
+        if: env.SHOULD_RUN_E2E_TESTS
+        env:
+          CMS_URL:  ${{ env.CMS_URL }}
+          SITE_URL:  ${{ env.SITE_URL }}
+          WORDPRESS_GQL_URL:  ${{ env.WORDPRESS_GQL_URL }}
+          PUBLIC_DATA_API_URL: ${{ env.PUBLIC_DATA_API_URL }}
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
