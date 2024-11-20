@@ -18,7 +18,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env: 
-      SHOULD_RUN_E2E_TESTS: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/prod'
+      SHOULD_RUN_E2E_TESTS: ${{ github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/prod' }}
     permissions:
       contents: read
       deployments: write
@@ -99,7 +99,7 @@ jobs:
       
       - name: Copy in cf dev vars if testing
         run: |
-          echo $CF_DEV_VARS > .dev.vars
+          printf "%s\n" "$CF_DEV_VARS" > .dev.vars
         if: env.SHOULD_RUN_E2E_TESTS
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
