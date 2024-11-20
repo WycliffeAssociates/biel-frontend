@@ -96,9 +96,6 @@ function replaceAllAbsoluteLinksToCms({
   aTags.forEach((tag) => {
     const newHref = tag.href.replace(baseUrl, "");
     tag.setAttribute("href", newHref);
-    if (tag.href.includes("resources")) {
-      console.log(tag.href);
-    }
     if (englishUriMap && currentLangCode) {
       // home link, special:
       const regexMatchHash = newHref.match(/#(.*)$/);
@@ -129,7 +126,6 @@ function replaceAllAbsoluteLinksToCms({
         const newUrl = makeUrl(
           englishUriMap[upUntilSearchParams]![currentLangCode]!
         );
-        // console.log({newUrl});
         tag.setAttribute("href", newUrl);
       }
     }

@@ -538,9 +538,7 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
     // If there is a custom validation property, call it.  validation functions should return a message as well. Default will be just a strictly null check and field is required;
     //
   }
-  function doShowSubmitBtn() {
-    return form()?.preliminaryRadios.every((r) => r.value !== null);
-  }
+
   async function onSubmit() {
     // todo: validate and show errors
     // Take flattened form state and send to enpoint;
@@ -658,8 +656,6 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
                 i18nDict={props.i18nDict}
               />
             </section>
-          </Show>
-          <Show when={doShowSubmitBtn()}>
             <div>
               <SubmitSection
                 i18nDict={props.i18nDict}

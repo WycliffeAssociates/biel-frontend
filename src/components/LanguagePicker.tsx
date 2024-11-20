@@ -14,6 +14,7 @@ export function LanguagePicker(props: LangPickerProps) {
       <DropdownMenu.Trigger
         class="flex  gap-2 items-center p-4 border-1 border-surface-border rounded-2xl! text-onSurface-secondary fill-onSurface-secondary hover:(bg-surface-invert! text-onSurface-invert! fill-onSurface-invert) data-[expanded]:(bg-surface-invert! text-onSurface-invert! fill-onSurface-invert)"
         as={"button"}
+        data-testid="language-picker-trigger"
       >
         <DropdownMenu.Icon class="flex gap-2 items-center ">
           {/* <ChevronDownIcon /> */}
@@ -33,6 +34,7 @@ export function LanguagePicker(props: LangPickerProps) {
                     item.localizedUrl ||
                     `${item.code === "en" ? "/" : `/${item.code}`}`
                   }
+                  data-testid={`language-picker-item-${item.language_code}`}
                 >
                   <span class="text-onSurface-secondary font-500">
                     {item.native_name}

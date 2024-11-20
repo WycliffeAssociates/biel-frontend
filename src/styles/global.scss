@@ -93,7 +93,8 @@ body {
     font-size: var(--step--1);
   }
 }
-.headless-insertion p:not(.platform-detect p, p.has-text-color) {
+.headless-insertion
+  :where(p, ul, ol, li):not(.platform-detect p, p.has-text-color) {
   @apply text-onSurface-secondary;
 }
 .headless-insertion
@@ -102,6 +103,9 @@ body {
     :where(#download h1, #download h2, #download h3, #download h4)
   ) {
   @apply text-onSurface-primary;
+}
+.headless-insertion :where(p, ul, ol) + :where(p, ul, ol) {
+  margin-block-start: 0.75rem;
 }
 button,
 button:hover,
@@ -329,7 +333,9 @@ main img {
     @apply relative;
   }
 }
-
+.site-hero + .site-container > *:first-child {
+  @apply my-10 md:my-20;
+}
 .scripture-engagement-page .site-hero {
   padding: 0;
   margin: 0;
@@ -368,6 +374,10 @@ main img {
 }
 .wp-blocks a:where(:not(.gb-button):not(footer a)):hover {
   color: hsla(var(--clr-brand-dark));
+}
+.site-footer a:hover {
+  color: hsla(var(--clr-brand-base));
+  transition: color 0.2s ease-in-out;
 }
 .safe-svg-inside svg {
   width: 100% !important;

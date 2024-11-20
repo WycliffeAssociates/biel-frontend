@@ -36,9 +36,9 @@ const languagesBibleReadIn = [
     },
   },
   {
-    value: "In there mother-tongue language",
+    value: "In their mother-tongue language",
     labels: {
-      en: "In there mother-tongue language",
+      en: "In their mother-tongue language",
     },
   },
 ];
@@ -190,12 +190,12 @@ export const maturityLevels = [
   },
   {
     value:
-      "Spiritual Young Adults - They are in the habit of practicing Christian habits (disciplines), and they have a good understanding of what the Bible teaches. They are ready to either start their personal in-depth Bible studies, apply Scripture no matter what it commands, or help assist in ministry work.",
+      "Spiritual Young Adults - They regularly practice Christian habits (disciplines), and they have a good understanding of what the Bible teaches. They are ready to either start their personal in-depth Bible studies, apply Scripture no matter what it commands, or help assist in ministry work.",
     labels: {
       en: {
         main: "Spiritual Young Adults",
         explainer:
-          "They are in the habit of practicing Christian habits (disciplines), and they have a good understanding of what the Bible teaches. They need to (or are ready to) start their personal in-depth Bible studies, apply Scripture no matter what it commands, and help assist in ministry work.",
+          "They regularly practice Christian habits (disciplines), and they have a good understanding of what the Bible teaches. They need to (or are ready to) start their personal in-depth Bible studies, apply Scripture no matter what it commands, and help assist in ministry work.",
       },
     },
   },
@@ -306,7 +306,7 @@ export const questionLabels: Record<string, Record<string, string>> = {
     prefferredContact: "How do you preferred to be contacted?",
     email: "Email Address",
     phone: "WhatsApp Number",
-    phoneSubLabel: "What is the best number we can contact you?",
+    phoneSubLabel: "What is the best number for contacting you?",
     managerName: "Name of Project Manager",
     expectedLaunchDate: "Expected Bible launch date",
     expectedLaunchDateSubLabel:
@@ -325,7 +325,7 @@ export const questionLabels: Record<string, Record<string, string>> = {
     commonReadingMethod: "What is a common reading method used?",
     commonReadingMethodSubLabel: "Select all that apply",
     whyReadThisWay: "Why do you think they read in this way?",
-    desireToUse: "How do you desire for your commnity to use the Bible?",
+    desireToUse: "How do you desire for your community to use the Bible?",
     desireToUseSubLabel:
       "What would help your community better use their Bible?",
     wouldHelpBetterUse: "To guides pastors and leaders with:",
