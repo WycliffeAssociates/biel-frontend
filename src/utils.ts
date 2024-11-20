@@ -417,7 +417,9 @@ type getEnvArgs = {
 export function getEnv({Astro, key}: getEnvArgs) {
   if (Astro) {
     return (
-      Astro.locals.runtime.env[key] || import.meta.env[key] || process.env[key]
+      Astro.locals?.runtime?.env[key] ||
+      import.meta.env[key] ||
+      process.env[key]
     );
   }
   return import.meta.env[key] || process.env[key];
