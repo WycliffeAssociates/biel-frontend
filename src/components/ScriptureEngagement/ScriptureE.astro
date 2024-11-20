@@ -2,6 +2,7 @@
 import "intl-tel-input/build/css/intlTelInput.css";
 import {ScriptureEngagementForm} from "./ScriptureEngagement";
 import type {i18nDictType} from "@src/i18n/strings";
+import {getEnv} from "@src/utils";
 type Props = {
   langCode: string;
   i18nDict: i18nDictType;
@@ -15,7 +16,7 @@ const {langCode, i18nDict} = Astro.props;
   <ScriptureEngagementForm
     languageCode={langCode}
     i18nDict={i18nDict}
-    turnstilePublicKey={import.meta.env.TURNSTILE_PUBLIC_KEY}
+    turnstilePublicKey={getEnv({Astro, key: "TURNSTILE_PUBLIC_KEY"})}
     client:load
   />
 </div>

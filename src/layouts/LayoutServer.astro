@@ -5,7 +5,7 @@ import "../styles/vars.scss";
 import type {languageType} from "@customTypes/types";
 import {getEnglishUriMap, getFooter} from "@src/data/wp";
 import Blocks from "@components/Blocks.astro";
-import {adjustCmsDomLinks, hrefLangUrl} from "@src/utils";
+import {adjustCmsDomLinks, getEnv, hrefLangUrl} from "@src/utils";
 interface Props {
   title: string;
   langInfo: languageType;
@@ -17,10 +17,14 @@ interface Props {
   siteName: string;
   ogImage: string;
 }
-const gqlUrl =
-  import.meta.env.WORDPRESS_GQL_URL ||
-  Astro.locals.runtime.env?.WORDPRESS_GQL_URL;
-const cmsBaseUrl = import.meta.env.CMS_URL || Astro.locals.runtime.env?.CMS_URL;
+const gqlUrl = getEnv({
+  Astro,
+  key: "WORDPRESS_GQL_URL",
+});
+const cmsBaseUrl = getEnv({
+  Astro,
+  key: "CMS_URL",
+});
 
 const {
   title,

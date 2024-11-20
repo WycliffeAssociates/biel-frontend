@@ -28,6 +28,7 @@ import {
   determineShowGlobal,
   doShowPageTitle,
   doShowTopBlurb,
+  getEnv,
   getNonHiddenPages,
   getOtherLanguagesPagesList,
   isNotCustomPage,
@@ -54,12 +55,14 @@ export async function getStaticPaths() {
     const pages = getDevCachedPages(forceRefresh);
     if (pages) return pages;
   }
-  const gqlUrl =
-    import.meta.env.WORDPRESS_GQL_URL ||
-    Astro.locals.runtime.env?.WORDPRESS_GQL_URL;
-  const restUrl =
-    import.meta.env.WORDPRESS_REST_MENU_ENDPOINT ||
-    Astro.locals.runtime.env?.WORDPRESS_REST_MENU_ENDPOINT;
+  const gqlUrl = getEnv({
+    Astro,
+    key: "WORDPRESS_GQL_URL",
+  });
+  const restUrl = getEnv({
+    Astro,
+    key: "WORDPRESS_REST_MENU_ENDPOINT",
+  });
 
   try {
     const [

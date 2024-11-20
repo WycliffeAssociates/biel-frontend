@@ -6,16 +6,18 @@ import {BreadCrumbs} from "@components/BreadCrumbs";
 import Layout from "@layouts/LayoutNoFooter.astro";
 import {getMenus, getLanguagesPageSlugs, getWpmlLanguages} from "@src/data/wp";
 import {getDict} from "@src/i18n/strings";
-import {capitalizeFirstLetter, titleCase} from "@src/utils";
+import {capitalizeFirstLetter, getEnv, titleCase} from "@src/utils";
 
 const {resourceLang} = Astro.params;
 if (!resourceLang) return Astro.redirect("/404");
-const gqlUrl =
-  import.meta.env.WORDPRESS_GQL_URL ||
-  Astro.locals.runtime.env?.WORDPRESS_GQL_URL;
-const restUrl =
-  import.meta.env.WORDPRESS_REST_MENU_ENDPOINT ||
-  Astro.locals.runtime.env?.WORDPRESS_REST_MENU_ENDPOINT;
+const gqlUrl = getEnv({
+  Astro,
+  key: "WORDPRESS_GQL_URL",
+});
+const restUrl = getEnv({
+  Astro,
+  key: "WORDPRESS_REST_MENU_ENDPOINT",
+});
 
 const [wpmlLangDict, menus, languagePageSlugs] = await Promise.all([
   getWpmlLanguages({gqlUrl}),
