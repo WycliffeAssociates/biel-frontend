@@ -65,29 +65,18 @@ export async function getStaticPaths() {
   });
 
   try {
-    const [
-      {pagesByLangCode},
-      menus,
-      contactGlobal,
-      ctaGlobal,
-      wpmlLangDict,
-      {englishUriMap},
-    ] = await Promise.all([
-      getAllPages({gqlUrl}),
-      getMenus({restUrl}),
-      getGlobal({
-        slug: "contact",
-        langCode: "en",
-        gqlUrl,
-      }),
-      getGlobal({
-        slug: "cta-interior-2",
-        langCode: "en",
-        gqlUrl,
-      }),
-      getWpmlLanguages({gqlUrl}),
-      getEnglishUriMap({gqlUrl}),
-    ]);
+    const [{pagesByLangCode}, menus, ctaGlobal, wpmlLangDict, {englishUriMap}] =
+      await Promise.all([
+        getAllPages({gqlUrl}),
+        getMenus({restUrl}),
+        getGlobal({
+          slug: "cta-interior-2",
+          langCode: "en",
+          gqlUrl,
+        }),
+        getWpmlLanguages({gqlUrl}),
+        getEnglishUriMap({gqlUrl}),
+      ]);
 
     const ctaGlobalAll = ctaGlobal?.allLangsGlobal;
     const nonHiddenLanguages = new Set(Object.keys(menus));
@@ -106,10 +95,7 @@ export async function getStaticPaths() {
       const dom = new DOMParser().parseFromString(pageRendered, "text/html");
       enPage.inlineStyles = collectInlineStyles({
         dom,
-        additionalStyles: [
-          contactGlobal?.inlineStyles,
-          ctaGlobal?.inlineStyles,
-        ],
+        additionalStyles: [ctaGlobal?.inlineStyles],
       });
       return {pageId: enPageId, page: enPage};
     });

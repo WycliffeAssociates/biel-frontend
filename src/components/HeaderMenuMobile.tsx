@@ -124,7 +124,7 @@ export function HeaderMenuMobile(props: HeaderMenuProps) {
                             class="font-500 font-step-0"
                             href={shapeLink(menuLink)}
                           >
-                            {menuLink.title}
+                            <span innerHTML={menuLink.title} />
                           </a>
                           <span
                             class="inline-block transform -rotate-90 cursor-pointer"
@@ -180,7 +180,7 @@ export function HeaderMenuMobile(props: HeaderMenuProps) {
                             class="font-500 font-step-0"
                             href={shapeLink(menuLink)}
                           >
-                            {menuLink.title}
+                            <span innerHTML={menuLink.title} />
                           </a>
                         </li>
                       </Show>

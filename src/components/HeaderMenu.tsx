@@ -87,7 +87,7 @@ export function HeaderMenu(props: HeaderMenuProps) {
                             onClick={() => setActiveIdx(index)}
                             // href={`${shapeLink(menuLink)}`}
                           >
-                            {menuLink.title}
+                            <span innerHTML={menuLink.title} />
                             <Show when={isParent(menuLink)}>
                               <SmallArrowDown />
                             </Show>
