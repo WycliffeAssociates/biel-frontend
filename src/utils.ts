@@ -260,12 +260,7 @@ export function determineShowGlobal({
   global: Record<string, any> | null | undefined;
 }) {
   // maybe opt into wp pages that opt in or out of their globals?
-  return (
-    !page.isContactPage &&
-    !page.isHomePage &&
-    !page.isScriptureEngagmentPage &&
-    !!global
-  );
+  return !page.isContactPage && !page.isScriptureEngagmentPage && !!global;
 }
 
 export function doShowPageTitle(page: WpPage) {

@@ -6,12 +6,19 @@ import Layout from "@layouts/Layout.astro";
 import {cacheHomePageDev, getDevHomePage} from "@lib/caching";
 import {
   getEnglishUriMap,
+  getGlobal,
   getHomePage,
   getMenus,
   getWpmlLanguages,
 } from "@src/data/wp";
 import {getDict} from "@src/i18n/strings";
-import {adjustCmsDomLinks, getEnv, titleCase} from "@src/utils";
+import {
+  addOptionalSectionsToCmsPages,
+  adjustCmsDomLinks,
+  collectInlineStyles,
+  getEnv,
+  titleCase,
+} from "@src/utils";
 import {DOMParser} from "linkedom/worker";
 // !NOTE: THIS IS ONLY THE ENGLISH PAGE, HECNE THE COERCCIONES AND HARDCODES TO .EN. THIS IS DUE TO WANTING TO ROUTE THE HOME PAGE TO /, BUT THE OTHER HOME PAGES ARE LOCALE PREFIXED /ES FOR EXAMPLE
 const forceRefresh = true;
@@ -31,24 +38,21 @@ const data =
 if (import.meta.env.DEV) cacheHomePageDev(data);
 const {title, editorBlocks, link} = data.page;
 let inlineStyles: string[] = [];
+const ctaGlobal = await getGlobal({
+  slug: "cta-interior-2",
+  langCode: "en",
+  gqlUrl,
+});
+const ctaGlobalAll = ctaGlobal?.allLangsGlobal;
 
 try {
   const enSrcResponse = await fetch(link);
   const pageRendered = await enSrcResponse.text();
-
   const dom = new DOMParser().parseFromString(pageRendered, "text/html");
-  const inlineStyleIds = [
-    "generateblocks-inline-css",
-    "global-styles-inline-css",
-    "generate-style-inline-css",
-  ];
 
-  inlineStyles = inlineStyleIds.map((id) => {
-    const styleTag: HTMLStyleElement | undefined = dom.querySelector(`#${id}`);
-    if (styleTag) {
-      return styleTag.innerText;
-    }
-    return "";
+  inlineStyles = collectInlineStyles({
+    dom,
+    additionalStyles: [ctaGlobal?.inlineStyles],
   });
 } catch (e) {
   console.error("home page fetch for inline styles failed");
@@ -69,6 +73,10 @@ const langSwitcherList = Object.values(wpmlLangDict)
     return lang;
   });
 const langInfo = wpmlLangDict.en!;
+const ctaSection = addOptionalSectionsToCmsPages({
+  targetLang: langInfo.code,
+  sectionToAdd: ctaGlobalAll,
+});
 
 const blockHtmlWithClientInjections = editorBlocks
   .filter((b) => b.parentClientId == null)
@@ -123,5 +131,14 @@ const pageDict = getDict(langInfo.code, true)!;
           );
         })
     }
+    <div class="headless-insertion overflow-hidden">
+      <Blocks
+        content={adjustCmsDomLinks({
+          stringToParse: ctaSection?.content!,
+          englishUriMap,
+          currentLangCode: langInfo.code,
+        })}
+      />
+    </div>
   </main>
 </Layout>
