@@ -103,6 +103,7 @@ export function HeaderMenuMobile(props: HeaderMenuProps) {
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen())}
+            data-testid="headerMenuMobileOpen"
             class="active:(outline-primary bg-none) hover:(!bg-transparent text-primary!) focus:(!bg-transparent outline-primary outline-1) icon  text-black!"
           >
             <Show when={!isOpen()} fallback={<CloseCircle />}>
@@ -119,7 +120,10 @@ export function HeaderMenuMobile(props: HeaderMenuProps) {
                   return (
                     <>
                       <Show when={isParent(menuLink)}>
-                        <li class="py-4 w-full flex justify-between content-center flex-shrink-0 last:(border-b border-surface-border pb-12)">
+                        <li
+                          data-testid="headerMenuItem"
+                          class="py-4 w-full flex justify-between content-center flex-shrink-0 last:(border-b border-surface-border pb-12)"
+                        >
                           <a
                             class="font-500 font-step-0"
                             href={shapeLink(menuLink)}
@@ -193,6 +197,7 @@ export function HeaderMenuMobile(props: HeaderMenuProps) {
               <button
                 type="button"
                 class="p-3 flex w-full items-center justify-between  active:(bg-brand-base text-surface-invert) border border-surface-border rounded-lg"
+                data-testid="headerOpenLocalizeMenu"
                 onClick={() => setActivePane("language")}
               >
                 <span class="flex gap-2">

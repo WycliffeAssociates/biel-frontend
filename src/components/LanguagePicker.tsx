@@ -64,6 +64,7 @@ export function LanguagePickerMobile(props: LangPickerProps) {
                 item.localizedUrl ||
                 `${item.code === "en" ? "/" : `/${item.code}`}`
               }
+              data-testid={`language-picker-item-${item.language_code}`}
             >
               <span>{item.native_name}</span>
               <span class="text-onSurface-tertiary font-size-[var(--step--2)]">
