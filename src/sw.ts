@@ -102,11 +102,12 @@ registerRoute(
     const sameOriginCache = ["script", "style"];
     const anyOriginCache = ["image", "font"];
     const isFavicon = request.url.includes("favicon.svg");
+    const isSvg = request.url.endsWith(".svg");
 
     if (sameOrigin) {
       return sameOriginCache.includes(destination) || isFavicon;
     }
-    return anyOriginCache.includes(destination);
+    return anyOriginCache.includes(destination) || isSvg;
   },
   // Hashes should guarantee strong caching that doesn't need expiring, so go cache first on those, but route through CF as well
   new CacheFirst({

@@ -13,13 +13,10 @@
       <h2>Pages</h2>
       <ul>
         <li>
-          Currently, everything that is not Resources/ and Resources/{lang} is a
-          statically rendered page. All data wordpress Data is fetched at
-          build/deploy time. There's about 10-15 static pages right now
-        </li>
-        <li>
-          Everything at /resources and /resources {lang} is a dynamically
-          rendered page.
+          Currently, everything that is not resources/languages and
+          Resources/languages/lang is a statically rendered page. All wordpress
+          Data is fetched at build/deploy time. There's about 10-15 static pages
+          right now
         </li>
         <li>
           The web framework is called <a href="https://astro.build">Astro</a>.
@@ -40,7 +37,8 @@
         </li>
         <li>
           Advanced Custom Fields (For some structured content. Namely the menu
-          and the hero)
+          and the hero). (subscription. Structured Data isn't super
+          straightforward in WP without it)
         </li>
         <li>
           Native WP menu for header - WPML provides all translations for
