@@ -21,11 +21,9 @@ const en = {
   contactEmailPlaceholder: "Email",
   contactMessageInput: "Your Message",
   contactMessagePlaceholder: "Your message here...",
-  successHtml:
-    "<p>Your email was successfully submitted to our tech support team. We will contact you as soon as possible.</p><p>You may also reach us on our English | Français | 普通话 中文 | Portuguese Telegram channels.</p>",
   contactSuccessTitle: "Thank you!",
   contactSuccessBody:
-    "<p>Thank you for your message. We will get back to you as soon as possible.</p><p>You may also reach us on our English |(francés) | 普通话 (中文) | Portuguese Telegram channels.</p>",
+    "<p>Thank you for your message. We will get back to you as soon as possible.</p>",
   contactSuccessButtonText: "Go Home",
   formFailed:
     "Something went wrong.  Please contact us through phone or email.",
@@ -123,11 +121,9 @@ const ptbr: Record<i18nKeysType, string> = {
   contactEmailPlaceholder: "Email",
   contactMessageInput: "Seu Mensagem",
   contactMessagePlaceholder: "Digite aqui seu mensagem...",
-  successHtml:
-    "<p>Seu email foi enviado com sucesso para o nosso time de suporte técnico. Entraremos em contato com você o mais rápido possível.</p><p>Você também pode nos chegar pelos canais Telegram em Português.</p>",
   contactSuccessTitle: "Obrigado!",
   contactSuccessBody:
-    "<p>Obrigado por seu mensagem. Entraremos em contato com você o mais rápido possível.</p><p>Você também pode nos chegar pelos canais Telegram em Português.</p>",
+    "<p>Obrigado por seu mensagem. Entraremos em contato com você o mais rápido possível.</p>",
   contactSuccessButtonText: "Voltar para o Home",
   formFailed:
     "Algo deu errado. Por favor, entre em contato conosco através do telefone ou email.",
@@ -225,11 +221,9 @@ const es: Record<i18nKeysType, string> = {
   contactEmailPlaceholder: "Email",
   contactMessageInput: "Su Mensaje",
   contactMessagePlaceholder: "Su mensaje aquí...",
-  successHtml:
-    "<p>Su correo electrónico fue enviado con éxito a nuestro equipo de soporte técnico. Nos pondremos en contacto contigo lo antes posible.</p><p>También puedes ponerte en contacto con nosotros en nuestros canales de Telegram en inglés | Français | 普通话 中文 | portugués.</p>",
   contactSuccessTitle: "¡Gracias!",
   contactSuccessBody:
-    "<p>Gracias por tu mensaje. Nos pondremos en contacto contigo lo antes posible.</p><p>También puedes contactar con nosotros en nuestros canales de Telegram en inglés |(francés) | 普通话 (中文) | portugués.</p>",
+    "<p>Gracias por tu mensaje. Nos pondremos en contacto contigo lo antes posible.</p>",
   contactSuccessButtonText: "Go Home",
   formFailed:
     "Algo ha ido mal.  Por favor, ponte en contacto con nosotros a través del teléfono o correo electrónico.",
@@ -327,11 +321,9 @@ const fr: Record<i18nKeysType, string> = {
   contactEmailPlaceholder: "Email",
   contactMessageInput: "Votre message",
   contactMessagePlaceholder: "Votre message ici...",
-  successHtml:
-    "<p>Votre courriel a été soumis avec succès à notre équipe d'assistance technique. Nous vous contacterons dès que possible.</p><p>Vous pouvez également nous contacter sur nos canaux Telegram anglais | français | 普通话 中文 | portugais.</p>",
-  contactSuccessTitle: "Thank you !",
+  contactSuccessTitle: "Merci!",
   contactSuccessBody:
-    "<p>Merci pour votre message. Nous vous répondrons dans les plus brefs délais.</p><p>Vous pouvez également nous joindre sur nos canaux Telegram anglais |(francés) | 普通话 (中文) | portugais.</p>",
+    "<p>Merci pour votre message. Nous vous répondrons dans les plus brefs délais.</p>",
   contactSuccessButtonText: "Rentrer à la maison",
   formFailed:
     "Quelque chose n'a pas fonctionné.  Veuillez nous contacter par téléphone ou par e-mail.",
@@ -429,11 +421,9 @@ const id: Record<i18nKeysType, string> = {
   contactEmailPlaceholder: "Email",
   contactMessageInput: "Pesan Anda",
   contactMessagePlaceholder: "Pesan Anda di sini...",
-  successHtml:
-    "<p>Email Anda berhasil dikirim ke tim dukungan teknis kami. Kami akan menghubungi Anda sesegera mungkin.</p><p>Anda juga dapat menghubungi kami melalui saluran Telegram dalam bahasa Inggris | Français | 普通话 中文 | Portugis.</p>",
   contactSuccessTitle: "Terima kasih!",
   contactSuccessBody:
-    "<p>Terima kasih atas pesan Anda. Kami akan menghubungi Anda sesegera mungkin.</p><p>Anda juga dapat menghubungi kami melalui saluran Telegram dalam bahasa Inggris | Français | 普通话 中文 | Portugis.</p>",
+    "<p>Terima kasih atas pesan Anda. Kami akan menghubungi Anda sesegera mungkin.</p>",
   contactSuccessButtonText: "Kembali ke Beranda",
   formFailed:
     "Ada yang salah. Silakan hubungi kami melalui telepon atau email.",

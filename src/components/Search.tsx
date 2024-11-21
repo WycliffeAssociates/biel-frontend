@@ -174,8 +174,8 @@ export function Search(props: SearchProps) {
         return;
       }
 
-      // no more than 30 results likely needed on this small a site
-      for (const result of search.results.slice(0, 30)) {
+      // no more than 20 results likely needed on this small a site
+      for (const result of search.results.slice(0, 20)) {
         const data = await result.data();
         res.push(data);
       }
