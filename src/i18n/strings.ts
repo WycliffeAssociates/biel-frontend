@@ -236,9 +236,9 @@ const es: Record<i18nKeysType, string> = {
   backToHome: "Volver a casa",
   submitForm: "Enviar mensaje",
   resource: "Recurso",
-  recursos: "Recursos",
-  página: "Página",
-  páginas: "Páginas",
+  resources: "Recursos",
+  page: "Página",
+  pages: "Páginas",
   software: "Software",
   ls_ResourceType: "Tipo de recurso",
   ls_Loading: "Cargando",
@@ -279,23 +279,23 @@ const es: Record<i18nKeysType, string> = {
   rl_LangName: "Nombre del idioma",
   rl_Anglicized: "Nombre anglicismo",
   home: "Hogar",
-  actualizado: "Actualizado:",
+  updated: "Actualizado:",
   mostRecentlyUpdated: "Actualizado más recientemente",
   leastRecentlyUpdated: "Actualizado más recientemente",
   seSection1: "¿Está preparado para el compromiso con las Escrituras?",
-  seSección2: "Contacto/Información sobre la comunidad",
+  seSection2: "Contacto/Información sobre la comunidad",
   seSection3: "Compromiso actual con las Escrituras",
-  seSección4: "Visión del compromiso con las Escrituras",
-  seSección5: "Distribución",
+  seSection4: "Visión del compromiso con las Escrituras",
+  seSection5: "Distribución",
   seSuccessHtml:
     "¡Gracias por completar esta evaluación! El personal de Compromiso con las Escrituras revisará el formulario y se pondrá en contacto con usted",
   seGeneralContactFallback:
     "Este servicio está diseñado para nuestros socios que necesitan ayuda una vez que su traducción se ha perfeccionado y está lista para publicarse. No obstante, si podemos ayudarle en algo más o responder a alguna pregunta, no dude en enviar el resto del formulario que aparece a continuación para dejarnos un mensaje",
-  seGeneralContactFallbackGracias:
+  seGeneralContactFallbackThanks:
     "¡Gracias! Un miembro de nuestro equipo se pondrá en contacto con usted en breve",
   seNotAccessibility:
     "Parece que está casi listo para publicar - ¡felicidades! Rellene el resto del formulario y un miembro de nuestro equipo de Accesibilidad a las Escrituras se pondrá en contacto con usted lo antes posible",
-  seNotAccessibilityGracias:
+  seNotAccessibilityThanks:
     "¡Gracias!  Un miembro de nuestro equipo se pondrá en contacto contigo lo antes posible.  Recuerde volver y rellenar el resto de este formulario después de haber organizado la publicación",
   seNoIdeaOfUse:
     "Por favor, tómese su tiempo para discutir esto con varios líderes de su grupo lingüístico. Después vuelva a rellenar el resto de este formulario. Si tiene alguna duda, o si podemos ayudarle en algo más, puede ponerse en contacto con nosotros a través del siguiente formulario",
@@ -337,8 +337,8 @@ const fr: Record<i18nKeysType, string> = {
     "Quelque chose n'a pas fonctionné.  Veuillez nous contacter par téléphone ou par e-mail.",
   backToHome: "Rentrez chez vous",
   submitForm: "Envoyer un message",
-  ressource: "Ressource",
-  ressources: "Ressources",
+  resource: "Ressource",
+  resources: "Ressources",
   page: "Page",
   pages: "Pages",
   software: "Logiciel",
