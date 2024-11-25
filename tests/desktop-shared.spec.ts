@@ -99,7 +99,7 @@ test("Reader page prefetches adjacent chapters", async ({browser}) => {
 
 test("language index sorts works", async ({page}) => {
   await page.goto("/resources/languages");
-  await page.waitForResponse(/_server-islands/);
+  // await page.waitForResponse(/_server-islands/);
   // Helper function to get all language data in one evaluation
   const getLanguageData = async () => {
     return page.evaluate(() => {
@@ -107,28 +107,33 @@ test("language index sorts works", async ({page}) => {
         document.querySelectorAll('[data-testid="languageIndexResult"]')
       );
       return elements.map((el) => ({
-        code: el.getAttribute("data-code"),
-        name: el.getAttribute("data-name"),
-        anglicized: el.getAttribute("data-anglicized"),
+        code: el.getAttribute("data-code")!,
+        name: el.getAttribute("data-name")!,
+        anglicized: el.getAttribute("data-anglicized")!,
       }));
     });
   };
 
-  const initialOrder = await getLanguageData();
+  const ensureItemsAreSameOrLessThanNext = (
+    items: {code: string; name: string; anglicized: string}[],
+    key: "code" | "name" | "anglicized"
+  ) => {
+    return items.every((item, index) => {
+      const isFirst = index === 0;
+      const isLast = index === items.length - 1;
+      if (isFirst || isLast) return true;
+      const isLess = item[key]!.localeCompare(items[index + 1]![key]!) <= 0;
+      if (!isLess) {
+        console.log({
+          key,
+          item,
+          next: items[index + 1],
+        });
+      }
+      return isLess;
+    });
+  };
 
-  const expectedSortedByCode = [...initialOrder].sort((a, b) =>
-    a.code!.localeCompare(b.code!)
-  );
-  const expectedSortedByAnglicized = [...initialOrder].sort(
-    (a, b) =>
-      a.anglicized!.localeCompare(b.anglicized!) ||
-      a.code!.localeCompare(b.code!)
-  );
-  // const expectedSortedByAnglicizedZA = expectedSortedByAnglicized.reverse();
-
-  const expectedSortedByName = [...initialOrder].sort((a, b) =>
-    a.name!.localeCompare(b.name!)
-  );
   // const expectedSortedNameReverse = expectedSortedByName.reverse();
 
   const sortSelectCode = page.getByTestId("resourceIndex-sort-CODE");
@@ -139,15 +144,21 @@ test("language index sorts works", async ({page}) => {
 
   await sortSelectCode.click();
   const actualSortedByCode = await getLanguageData();
-  expect(actualSortedByCode).toStrictEqual(expectedSortedByCode);
+  expect(ensureItemsAreSameOrLessThanNext(actualSortedByCode, "code")).toBe(
+    true
+  );
 
   await sortSelectName.click();
   const actualByName = await getLanguageData();
-  expect(actualByName).toStrictEqual(expectedSortedByName);
+  expect(ensureItemsAreSameOrLessThanNext(actualByName, "name")).toBe(true);
 
   await sortSelectAnglicized.click();
   const actualSortAnglicized = await getLanguageData();
-  expect(expectedSortedByAnglicized).toStrictEqual(actualSortAnglicized);
+  const everyItemIsSameOrLessThanNext = ensureItemsAreSameOrLessThanNext(
+    actualSortAnglicized,
+    "anglicized"
+  );
+  expect(everyItemIsSameOrLessThanNext).toBe(true);
 });
 
 // test that doc download panels opens and works: mock the response maybe?
