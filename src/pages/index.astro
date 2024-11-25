@@ -16,20 +16,19 @@ import {
   addOptionalSectionsToCmsPages,
   adjustCmsDomLinks,
   collectInlineStyles,
-  getEnv,
   titleCase,
 } from "@src/utils";
 import {DOMParser} from "linkedom/worker";
 // !NOTE: THIS IS ONLY THE ENGLISH PAGE, HECNE THE COERCCIONES AND HARDCODES TO .EN. THIS IS DUE TO WANTING TO ROUTE THE HOME PAGE TO /, BUT THE OTHER HOME PAGES ARE LOCALE PREFIXED /ES FOR EXAMPLE
 const forceRefresh = true;
-const gqlUrl = getEnv({
-  Astro,
-  key: "WORDPRESS_GQL_URL",
-});
-const resMenuUrl = getEnv({
-  Astro,
-  key: "WORDPRESS_REST_MENU_ENDPOINT",
-});
+const gqlUrl =
+  Astro.locals?.runtime?.env.WORDPRESS_GQL_URL ||
+  import.meta.env.WORDPRESS_GQL_URL ||
+  process.env.WORDPRESS_GQL_URL;
+const resMenuUrl =
+  Astro.locals?.runtime?.env.WORDPRESS_REST_MENU_ENDPOINT ||
+  import.meta.env.WORDPRESS_REST_MENU_ENDPOINT ||
+  process.env.WORDPRESS_REST_MENU_ENDPOINT;
 
 const data =
   import.meta.env.DEV && getDevHomePage(forceRefresh)

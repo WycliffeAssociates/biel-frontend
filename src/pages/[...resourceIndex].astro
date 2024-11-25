@@ -6,7 +6,7 @@ import {getMenus, getLanguagesPageSlugs, getWpmlLanguages} from "@src/data/wp";
 import {BreadCrumbs} from "@components/BreadCrumbs";
 import ResourceIndex from "@components/ResourcesPage/ResourcesPage.astro";
 import type {languageType, Menu} from "@customTypes/types";
-import {capitalizeFirstLetter, getEnv, titleCase} from "@src/utils";
+import {capitalizeFirstLetter, titleCase} from "@src/utils";
 
 type Props = {
   title: string;
@@ -22,14 +22,14 @@ type Props = {
 };
 
 export async function getStaticPaths() {
-  const gqlUrl: string = getEnv({
-    Astro,
-    key: "WORDPRESS_GQL_URL",
-  });
-  const restUrl = getEnv({
-    Astro,
-    key: "WORDPRESS_REST_MENU_ENDPOINT",
-  });
+  const gqlUrl: string =
+    Astro.locals?.runtime?.env.WORDPRESS_GQL_URL ||
+    import.meta.env.WORDPRESS_GQL_URL ||
+    process.env.WORDPRESS_GQL_URL;
+  const restUrl: string =
+    Astro.locals?.runtime?.env.WORDPRESS_REST_MENU_ENDPOINT ||
+    import.meta.env.WORDPRESS_REST_MENU_ENDPOINT ||
+    process.env.WORDPRESS_REST_MENU_ENDPOINT;
   const [wpmlLangDict, menus, languagePageSlugs] = await Promise.all([
     getWpmlLanguages({gqlUrl}),
     getMenus({restUrl}),

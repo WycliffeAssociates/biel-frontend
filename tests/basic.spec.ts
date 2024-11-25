@@ -1,5 +1,4 @@
 import {expect, test} from "@playwright/test";
-
 // e2e ideas
 // Rendering for each of the
 // resources  resources/lang, se form, search bar, breadcrumbs,
@@ -156,3 +155,27 @@ test("language index sorts works", async ({page}) => {
 // todo: Group these into mobile and desktop tests, and in the before group set the viewport on them.  I don't think I ataully need more platforms to run against. Mobile of each of those browers should roughly be fine I think
 
 // todo: tests for urls of a resource in search respose being resource-type?
+test("Content Results in Search Link straight to resource", async ({page}) => {
+  await page.goto("/");
+  const searchBar = page.getByTestId("searchBar");
+  await searchBar.click();
+  await searchBar.fill("blv");
+  // await searchBar.focus();
+  const searchResult = page.locator("[data-testid='searchResult']", {
+    hasText: /blv/i,
+  });
+  console.log(searchResult);
+  await searchResult.click();
+  const selected = page.locator("[data-testid='availableResource']", {
+    hasText: /Portuguese Free Bible/i,
+  });
+  const isSelctedUi = await selected.getAttribute("data-selected");
+  expect(isSelctedUi).toBe("true");
+});
+test("Doc UI popover opens on desktop", async ({page}) => {
+  await page.goto("/resources/languages/en");
+  const openDownloadOpts = page.getByTestId("openDownloadOptions");
+  await openDownloadOpts.click();
+  const opts = page.getByTestId("downloadOptionsModal");
+  await expect(opts).toBeVisible();
+});

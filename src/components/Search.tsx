@@ -126,25 +126,29 @@ export function Search(props: SearchProps) {
     setSearchFocused(false);
   }
   type handleInputArgs = {
-    event?: KeyboardEvent;
+    event?: KeyboardEvent | InputEvent;
     stringToSearch?: string;
   };
   const handleInput = async ({event, stringToSearch}: handleInputArgs) => {
     if (!event && !stringToSearch) return;
-    if (event?.key) {
-      setIsTyping(true);
-      const curTimeout = isTypingTimeout();
-      if (curTimeout) {
-        clearTimeout(curTimeout);
-        setIsTypingTimeout(null);
-      }
-      const to = setTimeout(() => {
-        setIsTyping(false);
-        setIsTypingTimeout(null);
-      }, 450);
-      setIsTypingTimeout(to);
+    const target = event?.target as HTMLInputElement;
+
+    if (event && "key" in event && event?.key) {
+      batch(() => {
+        setIsTyping(true);
+        const curTimeout = isTypingTimeout();
+        if (curTimeout) {
+          clearTimeout(curTimeout);
+          setIsTypingTimeout(null);
+        }
+        const to = setTimeout(() => {
+          setIsTyping(false);
+          setIsTypingTimeout(null);
+        }, 450);
+        setIsTypingTimeout(to);
+      });
     }
-    if (event?.key && event.key === "Escape") {
+    if (event && "key" in event && event.key === "Escape") {
       setQuery("");
       setResults(undefined);
       setSearchFocused(false);
@@ -152,7 +156,7 @@ export function Search(props: SearchProps) {
 
     const inputValue =
       // @ts-ignore
-      stringToSearch || (event?.target?.value as HTMLInputElement);
+      stringToSearch || target?.value;
 
     if (!inputValue) setResults();
     if (!import.meta.env.SSR) {
@@ -161,15 +165,17 @@ export function Search(props: SearchProps) {
       if (!window.pagefind) {
         //@ts-ignore
         window.pagefind = await import("../pagefind/pagefind.js");
+        console.log("pagefind", window.pagefind);
       }
       // Search the index using the input value
+      console.log("doing search");
       const search = await window.pagefind.debouncedSearch(inputValue, {}, 150);
 
       // Add the new results
       // biome-ignore lint/suspicious/noExplicitAny: <not sure on pagefind type>
       const res: any[] = [];
-
       if (search?.results && !search?.results?.length) {
+        console.log("no search results");
         setResults(null);
         return;
       }
@@ -180,6 +186,7 @@ export function Search(props: SearchProps) {
         res.push(data);
       }
       const grouped = groupBy((result) => result.meta.type, res);
+      console.log({grouped, query: query(), isTyping: isTyping()});
       setResults(grouped);
     }
   };
@@ -247,13 +254,13 @@ export function Search(props: SearchProps) {
             }}
             id="search"
             data-js="search"
+            data-testid="searchBar"
             type="search"
             placeholder={dict.search}
             value={query()}
             onInput={(e) => {
-              batch(() => {
-                setQuery(e.target.value);
-              });
+              setQuery(e.currentTarget.value);
+              handleInput({event: e});
             }}
             onKeyUp={(e) => handleInput({event: e})}
             // @ts-ignore chrome only
@@ -399,13 +406,14 @@ function SearchItem(props: {item: any; escapeSearch: () => void}) {
     <Switch>
       <Match when={props.item.meta.type && props.item.meta.type !== "software"}>
         <li
-          class="font-step--1 cursor-pointer hover:(bg-brand-light) "
+          class="font-step--1 cursor-pointer hover:(bg-brand-light)"
           onClick={() => window.open(props.item.url, "_self")}
           onKeyDown={(e) => e.key === "Enter" && window.open(props.item.url)}
         >
           <p class="text-base!  text-onSurface-primary">
             <a
               data-js="searchResult"
+              data-testid="searchResult"
               class="decoration-none! font-bold focus:(ring ring-brand-base ring-offset-2 outline-none)  py-1"
               href={props.item.url}
               onKeyDown={(e) => e.key === "Escape" && props.escapeSearch()}
@@ -475,6 +483,7 @@ function SearchItemSoftware(props: SearchItemSoftwareProps) {
         </span>
         <a
           data-js="searchResult"
+          data-testid="searchResult"
           class="decoration-none! focus:(outline-none)"
           href={props.item.url}
           onKeyDown={(e) => e.key === "Escape" && props.escapeSearch()}
@@ -699,6 +708,7 @@ function LocalizeActions(props: LocalizeActionsProps) {
             <li>
               <a
                 data-js="searchResult"
+                data-testid="searchResult"
                 class="bg-surface-tertiary px-2 py-1 rounded-2xl decoration-none! inline-flex items-center gap-2 hover:(bg-brand-base text-brand-light) focus:(bg-brand-base text-brand-light) cursor-pointer"
                 href={l.localizedUrl!}
               >

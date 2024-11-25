@@ -19,11 +19,11 @@ interface Props {
   ogImage: string;
 }
 import {cacheFooterForDev, getCachedFooter} from "@lib/caching";
-import {adjustCmsDomLinks, getEnv, hrefLangUrl} from "@src/utils";
-const gqlUrl = getEnv({
-  Astro,
-  key: "WORDPRESS_GQL_URL",
-});
+import {adjustCmsDomLinks, hrefLangUrl} from "@src/utils";
+const gqlUrl =
+  Astro.locals?.runtime?.env.WORDPRESS_GQL_URL ||
+  import.meta.env.WORDPRESS_GQL_URL ||
+  process.env.WORDPRESS_GQL_URL;
 
 const {
   title,

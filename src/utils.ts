@@ -404,18 +404,3 @@ export function titleCase({lang = "en", str}: TitleCaseArgs) {
   ).map((word) => word.segment.charAt(0).toUpperCase() + word.segment.slice(1));
   return words.join(" ");
 }
-
-type getEnvArgs = {
-  Astro?: AstroGlobal;
-  key: string;
-};
-export function getEnv({Astro, key}: getEnvArgs) {
-  if (Astro) {
-    return (
-      Astro.locals?.runtime?.env[key] ||
-      import.meta.env[key] ||
-      process.env[key]
-    );
-  }
-  return import.meta.env[key] || process.env[key];
-}
