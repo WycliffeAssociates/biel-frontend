@@ -118,6 +118,9 @@ button:focus {
   text-decoration: none;
   // color: inherit;
 }
+a.underline {
+  text-decoration: underline;
+}
 .site-footer a {
   text-decoration: underline;
   color: inherit;
@@ -499,6 +502,17 @@ main img {
 }
 summary.webkit-hide-summary-arrow::-webkit-details-marker {
   display: none;
+}
+
+.resources-lang-listing > * {
+  position: relative;
+  margin-block: 0;
+}
+.resources-lang-listing > *:not(:last-child)::after {
+  content: "|";
+  margin-inline-start: 8px;
+  margin-block: 0;
+  display: inline-block;
 }
 
 // hide search icon webkit injects in serach boxes
