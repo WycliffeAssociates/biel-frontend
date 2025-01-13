@@ -37,13 +37,14 @@ export const POST: APIRoute = async ({request}) => {
 
   const totalSize = predictLength(payloadToPredict);
   const stream: Response = downloadZip(zipTsFiles(payload, originUrl.origin));
-  let streamToReturn = stream.body;
-  if (import.meta.env.PROD) {
-    // @ts-ignore.  https://developers.cloudflare.com/workers/runtime-apis/streams/transformstream/#fixedlengthstream.  We know the length, but this is a platform api that is cloufdlare specific, so we can't just return the content length header. Cloudflare will override it.
-    const {readable, writable} = new FixedLengthStream(totalSize);
-    stream.body?.pipeTo(writable);
-    streamToReturn = readable as ReadableStream<Uint8Array>;
-  }
+  const streamToReturn = stream.body;
+  // todo: debug this later in prod.  It worked with cf preview, but in prod the fixed length stream was throwing re. not having enough bytes before close.
+  // if (import.meta.env.PROD) {
+  //   // @ts-ignore.  https://developers.cloudflare.com/workers/runtime-apis/streams/transformstream/#fixedlengthstream.  We know the length, but this is a platform api that is cloufdlare specific, so we can't just return the content length header. Cloudflare will override it.
+  //   const {readable, writable} = new FixedLengthStream(totalSize);
+  //   stream.body?.pipeTo(writable);
+  //   streamToReturn = readable as ReadableStream<Uint8Array>;
+  // }
   return new Response(streamToReturn, {
     headers: {
       "Content-Length": String(totalSize),

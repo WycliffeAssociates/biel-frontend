@@ -115,7 +115,6 @@ export function ScripturalView() {
       const bibleCommentaryPopups: Array<HTMLAnchorElement> = Array.from(
         document.querySelectorAll("a[href*='popup://']")
       );
-      console.log("bibleCommentaryPopups", bibleCommentaryPopups);
       for (const link of internalTnLinks) {
         // These have a data-chapter, and data-book.  Change the state to that on click;
         link.addEventListener("click", handleInternalTnLinks);
