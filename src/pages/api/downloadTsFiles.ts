@@ -30,21 +30,20 @@ export const POST: APIRoute = async ({request}) => {
   const originUrl = new URL(request.url);
   const payloadToPredict = payload.map((f) => {
     return {
-      name: cutFilePrefixIfOver3Parts(f.path),
+      name: normalizeFileName(cutFilePrefixIfOver3Parts(f.path)),
       size: f.size,
     };
   });
 
   const totalSize = predictLength(payloadToPredict);
   const stream: Response = downloadZip(zipTsFiles(payload, originUrl.origin));
-  const streamToReturn = stream.body;
-  // todo: debug this later in prod.  It worked with cf preview, but in prod the fixed length stream was throwing re. not having enough bytes before close.
-  // if (import.meta.env.PROD) {
-  //   // @ts-ignore.  https://developers.cloudflare.com/workers/runtime-apis/streams/transformstream/#fixedlengthstream.  We know the length, but this is a platform api that is cloufdlare specific, so we can't just return the content length header. Cloudflare will override it.
-  //   const {readable, writable} = new FixedLengthStream(totalSize);
-  //   stream.body?.pipeTo(writable);
-  //   streamToReturn = readable as ReadableStream<Uint8Array>;
-  // }
+  let streamToReturn = stream.body;
+  if (import.meta.env.PROD) {
+    // @ts-ignore.  https://developers.cloudflare.com/workers/runtime-apis/streams/transformstream/#fixedlengthstream.  We know the length, but this is a platform api that is cloufdlare specific, so we can't just return the content length header. Cloudflare will override it.
+    const {readable, writable} = new FixedLengthStream(totalSize);
+    stream.body?.pipeTo(writable);
+    streamToReturn = readable as ReadableStream<Uint8Array>;
+  }
   return new Response(streamToReturn, {
     headers: {
       "Content-Length": String(totalSize),
@@ -89,4 +88,13 @@ function cutFilePrefixIfOver3Parts(fileName: string) {
     return split.slice(2).join("/");
   }
   return fileName;
+}
+function normalizeFileName(fileName: string) {
+  return (
+    fileName
+      .normalize("NFC")
+      .toLowerCase()
+      // biome-ignore lint/suspicious/noMisleadingCharacterClass: <Not sure now to fix or if is really a problem. >
+      .replace(/[\u0300-\u036f]/gu, "")
+  );
 }
