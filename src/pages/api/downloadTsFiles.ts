@@ -91,9 +91,9 @@ function cutFilePrefixIfOver3Parts(fileName: string) {
 }
 function normalizeFileName(fileName: string) {
   return (
+    // https://stackoverflow.com/questions/990904/remove-accents-diacritics-in-a-string-in-javascript
     fileName
-      .normalize("NFC")
-      .toLowerCase()
+      .normalize("NFD")
       // biome-ignore lint/suspicious/noMisleadingCharacterClass: <Not sure now to fix or if is really a problem. >
       .replace(/[\u0300-\u036f]/gu, "")
   );
