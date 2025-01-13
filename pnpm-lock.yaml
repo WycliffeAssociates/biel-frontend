@@ -47,6 +47,9 @@ importers:
       client-zip:
         specifier: ^2.4.6
         version: 2.4.6
+      htmlrewriter:
+        specifier: ^0.0.12
+        version: 0.0.12
       intl-tel-input:
         specifier: ^25.2.1
         version: 25.2.1
@@ -3926,6 +3929,9 @@ packages:
 
   htmlparser2@9.1.0:
     resolution: {integrity: sha512-5zfg6mHUoaer/97TxnGpxmbR7zJtPwIYFMZ/H5ucTlPZhKvtum05yiPK3Mgai3a0DyVxv7qYqoweaEd2nrYQzQ==}
+
+  htmlrewriter@0.0.12:
+    resolution: {integrity: sha512-Tw+wORUlNL9+JQCIo7J4SuX/T3M1xRAC/0XaifnRPLHCX95jbZy/0CI06n7BhuFQJhSdNA7ZoxnStJmF31FZRw==}
 
   http-cache-semantics@4.1.1:
     resolution: {integrity: sha512-er295DKPVsV82j5kw1Gjt+ADA/XYHsajl82cGNQG2eyoPkvgUhX+nDIyelzhIWbbsXP39EHcI6l5tYs2FYqYXQ==}
@@ -10874,6 +10880,8 @@ snapshots:
       domhandler: 5.0.3
       domutils: 3.2.1
       entities: 4.5.0
+
+  htmlrewriter@0.0.12: {}
 
   http-cache-semantics@4.1.1: {}
 

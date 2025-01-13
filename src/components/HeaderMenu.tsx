@@ -118,7 +118,7 @@ export function HeaderMenu(props: HeaderMenuProps) {
                                 </div>
                                 <p>{menuLink.parent_description}</p>
                                 <a
-                                  class="mbs-8 text-brand-base! underline font-500!  hover:cursor-pointer"
+                                  class="mbs-8 text-brand-base! underline font-500!  hover:cursor-pointer bg-brand-light p-4 rounded-4 w-max"
                                   href={shapeLink(menuLink)}
                                 >
                                   {props.i18nDict.readMoreLink}

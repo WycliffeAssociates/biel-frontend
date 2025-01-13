@@ -38,10 +38,10 @@ const {data: languageData, wasCached} = data;
 const {contents, language: lang} = languageData;
 const endTime = performance.now();
 const totalTime = endTime - startTime;
-console.log(
-  `Time for language ${languageToFetch} route on server ${totalTime} ms.  
-  Was cache match is ${wasCached}`
-);
+// console.log(
+//   `Time for language ${languageToFetch} route on server ${totalTime} ms.
+//   Was cache match is ${wasCached}`
+// );
 
 const resource = paramsLower.get(constants.queryParamResourceType) || null;
 const book = paramsLower.get(constants.queryParamsLangContentsBook) || null;

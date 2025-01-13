@@ -585,12 +585,12 @@ input[type="search"]::-webkit-search-results-decoration {
 .theText ul {
   list-style-type: disc;
   padding-inline-start: 1rem;
-  list-style-position: inside;
+  list-style-position: outside;
 }
 .theText ol {
   list-style-type: decimal;
   padding-inline-start: 1rem;
-  list-style-position: inside;
+  list-style-position: outside;
 }
 .theText [id] {
   margin-block-start: 1rem;
