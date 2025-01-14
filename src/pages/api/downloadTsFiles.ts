@@ -37,7 +37,10 @@ export const POST: APIRoute = async ({request}) => {
   const totalSize = predictLength(payloadToPredict);
   console.log(`Predicted Size for download is ${totalSize}`);
   console.log({payloadToPredict});
-  const stream: Response = downloadZip(zipTsFiles(payload, originUrl.origin));
+  const stream: Response = downloadZip(zipTsFiles(payload, originUrl.origin), {
+    buffersAreUTF8: true,
+    length: totalSize,
+  });
   let streamToReturn = stream.body;
   if (import.meta.env.PROD) {
     console.log(`Creating a stream of size ${totalSize}`);
@@ -75,10 +78,10 @@ async function* zipTsFiles(
         resHeaderLength: res.headers.get("Content-Length"),
         predictedLength: f.size,
       });
-
       yield {
         name: normalizeFileName(cutFilePrefixIfOver3Parts(f.path)),
-        input: res,
+        input: res.body!,
+        lastModified: f.lastUpdated,
       };
     } catch (error) {
       console.error(error);
