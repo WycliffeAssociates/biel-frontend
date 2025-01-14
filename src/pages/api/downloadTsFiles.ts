@@ -92,8 +92,8 @@ function cutFilePrefixIfOver3Parts(fileName: string) {
   return fileName;
 }
 function normalizeFileName(fileName: string) {
+  // https://stackoverflow.com/questions/990904/remove-accents-diacritics-in-a-string-in-javascript
   return (
-    // https://stackoverflow.com/questions/990904/remove-accents-diacritics-in-a-string-in-javascript
     fileName
       .normalize("NFD")
       // biome-ignore lint/suspicious/noMisleadingCharacterClass:
