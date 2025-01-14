@@ -67,7 +67,7 @@ async function* zipTsFiles(
       const res = await fetch(prefixedUrl);
 
       yield {
-        name: cutFilePrefixIfOver3Parts(f.path),
+        name: normalizeFileName(cutFilePrefixIfOver3Parts(f.path)),
         input: res,
       };
     } catch (error) {
@@ -94,7 +94,7 @@ function normalizeFileName(fileName: string) {
     // https://stackoverflow.com/questions/990904/remove-accents-diacritics-in-a-string-in-javascript
     fileName
       .normalize("NFD")
-      // biome-ignore lint/suspicious/noMisleadingCharacterClass: <Not sure now to fix or if is really a problem. >
+      // biome-ignore lint/suspicious/noMisleadingCharacterClass:
       .replace(/[\u0300-\u036f]/gu, "")
   );
 }
