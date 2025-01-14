@@ -96,7 +96,6 @@ export async function getTsFiles(language: string | undefined) {
   }, {});
   const training = folderStructure.training?.folders[language];
   const supplemental = folderStructure.supplemental?.folders[language];
-  console.log({training, supplemental});
   return {trainingFiles: training, supplementalFiles: supplemental};
 }
 

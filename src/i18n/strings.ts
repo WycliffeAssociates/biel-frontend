@@ -239,7 +239,7 @@ const es: Record<i18nKeysType, string> = {
   ls_ResourceType: "Tipo de recurso",
   ls_Loading: "Cargando",
   ls_LoadingPercent: "Cargando",
-  ls_DownloadButton: "Descargando",
+  ls_DownloadButton: "Descargar",
   ls_StartDownlaod: "Iniciar descarga",
   ls_OpenInDoc: "Abrir en DOC (externo)",
   ls_DownloadOptionsTitle: "Opciones de descarga",

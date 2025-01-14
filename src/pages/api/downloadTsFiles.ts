@@ -36,6 +36,8 @@ export const POST: APIRoute = async ({request}) => {
   });
 
   const totalSize = predictLength(payloadToPredict);
+  console.log({totalSize});
+  console.log({payloadToPredict});
   const stream: Response = downloadZip(zipTsFiles(payload, originUrl.origin));
   let streamToReturn = stream.body;
   if (import.meta.env.PROD) {
@@ -65,7 +67,7 @@ async function* zipTsFiles(
       )}&hash=${f.sha}`;
       // proxy through fetchExternal due to sha for strong cachign
       const res = await fetch(prefixedUrl);
-
+      console.log(f.url, res.status);
       yield {
         name: normalizeFileName(cutFilePrefixIfOver3Parts(f.path)),
         input: res,

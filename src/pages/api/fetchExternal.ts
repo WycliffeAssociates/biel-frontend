@@ -12,6 +12,7 @@ export const GET: APIRoute = async ({url, locals}) => {
   const queryParams = url.searchParams;
   const urlToFetch = queryParams.get("url");
   const hashParam = queryParams.get("hash");
+  const rewrite = queryParams.get("rewrite") || false;
   const resourceType = queryParams.get("resource-type");
   const runtime = locals.runtime;
   // console.log({urlToFetch, hashParam});
@@ -52,18 +53,24 @@ export const GET: APIRoute = async ({url, locals}) => {
   if (contentLength) {
     resHeaders.set("Content-Length", contentLength);
   }
-  const resourceTypeContext = resourceType || "DEFAULT";
-  const rewriter = new HTMLRewriter();
-  const aHandler = new ATagHandler(resourceTypeContext as handlerTypes);
-  const imgHandler = new ImgTagRemover();
-  const deadLinkHandler = new SpanifyDeadALinks();
+  if (rewrite) {
+    const resourceTypeContext = resourceType || "DEFAULT";
+    const rewriter = new HTMLRewriter();
+    const aHandler = new ATagHandler(resourceTypeContext as handlerTypes);
+    const imgHandler = new ImgTagRemover();
+    const deadLinkHandler = new SpanifyDeadALinks();
 
-  return rewriter
-    .on("a[data-is-rc-link]", aHandler)
-    .on("a[href*='html']", aHandler)
-    .on("a[href^='rc://']", deadLinkHandler)
-    .on("img[src*='content.bibletranslationtools.org'", imgHandler)
-    .transform(new Response(res.body, {headers: resHeaders}));
+    return rewriter
+      .on("a[data-is-rc-link]", aHandler)
+      .on("a[href*='html']", aHandler)
+      .on("a[href^='rc://']", deadLinkHandler)
+      .on("img[src*='content.bibletranslationtools.org'", imgHandler)
+      .transform(new Response(res.body, {headers: resHeaders}));
+    // biome-ignore lint/style/noUselessElse: <explanation>
+  } else {
+    return new Response(res.body, {headers: resHeaders});
+  }
+
   // return new Response(res.body, {
   //   headers: resHeaders,
   // });

@@ -260,7 +260,7 @@ function PeripheralView(props: {content: ScriptureStoreState}) {
     if (!twState()?.html && printAllFile) {
       setTimeout(() => setDoShowProgress(true), 100);
       const res = await fetch(
-        `${globalThis.origin}/api/fetchExternal?url=${printAllFile.url}&hash=${printAllFile.hash}&resource-type=TW`
+        `${globalThis.origin}/api/fetchExternal?url=${printAllFile.url}&hash=${printAllFile.hash}&resource-type=TW&rewrite=true`
       );
       const reader = res.body?.getReader();
       if (!reader) {
