@@ -41,15 +41,16 @@ export const POST: APIRoute = async ({request}) => {
     buffersAreUTF8: true,
     length: totalSize,
   });
-  let streamToReturn = stream.body;
-  if (import.meta.env.PROD) {
-    console.log(`Creating a stream of size ${totalSize}`);
-    // @ts-ignore.  https://developers.cloudflare.com/workers/runtime-apis/streams/transformstream/#fixedlengthstream.  We know the length, but this is a platform api that is cloufdlare specific, so we can't just return the content length header. Cloudflare will override it.
-    const {readable, writable} = new FixedLengthStream(totalSize);
+  const streamToReturn = stream.body;
+  // todo: Can't figure out some bug with accentend characters (i.e. é) in cloudflare when using a fixed lenght stream.  It errors on filenames that have such despit stripping them out of response.  So just abandon and return the stream.
+  // if (import.meta.env.PROD) {
+  //   console.log(`Creating a stream of size ${totalSize}`);
+  //   // @ts-ignore.  https://developers.cloudflare.com/workers/runtime-apis/streams/transformstream/#fixedlengthstream.  We know the length, but this is a platform api that is cloufdlare specific, so we can't just return the content length header. Cloudflare will override it.
+  //   const {readable, writable} = new FixedLengthStream(totalSize);
 
-    stream.body?.pipeTo(writable);
-    streamToReturn = readable as ReadableStream<Uint8Array>;
-  }
+  //   stream.body?.pipeTo(writable);
+  //   streamToReturn = readable as ReadableStream<Uint8Array>;
+  // }
 
   return new Response(streamToReturn, {
     headers: {
