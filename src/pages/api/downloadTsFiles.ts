@@ -34,18 +34,20 @@ export const POST: APIRoute = async ({request}) => {
       size: f.size,
     };
   });
-
   const totalSize = predictLength(payloadToPredict);
-  console.log({totalSize});
+  console.log(`Predicted Size for download is ${totalSize}`);
   console.log({payloadToPredict});
   const stream: Response = downloadZip(zipTsFiles(payload, originUrl.origin));
   let streamToReturn = stream.body;
   if (import.meta.env.PROD) {
+    console.log(`Creating a stream of size ${totalSize}`);
     // @ts-ignore.  https://developers.cloudflare.com/workers/runtime-apis/streams/transformstream/#fixedlengthstream.  We know the length, but this is a platform api that is cloufdlare specific, so we can't just return the content length header. Cloudflare will override it.
     const {readable, writable} = new FixedLengthStream(totalSize);
+
     stream.body?.pipeTo(writable);
     streamToReturn = readable as ReadableStream<Uint8Array>;
   }
+
   return new Response(streamToReturn, {
     headers: {
       "Content-Length": String(totalSize),
@@ -67,7 +69,13 @@ async function* zipTsFiles(
       )}&hash=${f.sha}`;
       // proxy through fetchExternal due to sha for strong cachign
       const res = await fetch(prefixedUrl);
-      console.log(f.url, res.status);
+      console.log({
+        url: f.url,
+        status: res.status,
+        resHeaderLength: res.headers.get("Content-Length"),
+        predictedLength: f.size,
+      });
+
       yield {
         name: normalizeFileName(cutFilePrefixIfOver3Parts(f.path)),
         input: res,
