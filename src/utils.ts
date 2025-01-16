@@ -89,9 +89,21 @@ function replaceAllAbsoluteLinksToCms({
   currentLangCode,
 }: replaceAllAbsoluteLinksToCms) {
   const baseUrl = import.meta.env.CMS_URL;
-  const aTags: NodeListOf<HTMLAnchorElement> = dom
-    .querySelectorAll(`a[href^="${baseUrl}"]`)
-    .filter((tag: HTMLAnchorElement) => !tag.hasAttribute("download"));
+  const allTags: Array<HTMLAnchorElement> = Array.from(
+    dom.querySelectorAll(`a[href^="${baseUrl}"]`)
+  );
+  const binaryTags = allTags.filter(
+    (tag: HTMLAnchorElement) =>
+      tag.href.endsWith(".pdf") ||
+      tag.href.endsWith(".docx") ||
+      tag.href.endsWith(".epub") ||
+      tag.href.endsWith(".zip") ||
+      tag.href.endsWith(".ppt")
+  );
+  addDownloadAttrToBinaryTags(binaryTags);
+  const aTags = allTags.filter(
+    (tag: HTMLAnchorElement) => !binaryTags.includes(tag)
+  );
 
   aTags.forEach((tag) => {
     const newHref = tag.href.replace(baseUrl, "");
@@ -131,7 +143,9 @@ function replaceAllAbsoluteLinksToCms({
     }
   });
 }
-
+function addDownloadAttrToBinaryTags(tags: Array<HTMLAnchorElement>) {
+  tags.forEach((tag) => tag.setAttribute("download", ""));
+}
 type OptionalSectionsArg = {
   targetLang: string;
   sectionToAdd:
