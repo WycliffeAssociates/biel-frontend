@@ -118,10 +118,10 @@ export function HeaderMenu(props: HeaderMenuProps) {
                                 </div>
                                 <p>{menuLink.parent_description}</p>
                                 <a
-                                  class="mbs-8 text-brand-base! underline font-500!  hover:cursor-pointer bg-brand-light p-4 rounded-4 w-max"
+                                  class="mbs-8 text-brand-base! underline font-500!  hover:cursor-pointer w-max"
                                   href={shapeLink(menuLink)}
                                 >
-                                  {props.i18nDict.readMoreLink}
+                                  {props.i18nDict.learnMoreLink}
                                 </a>
                               </div>
                               <Show when={menuLink.children?.featured}>
@@ -142,7 +142,7 @@ export function HeaderMenu(props: HeaderMenuProps) {
                                     {(nonFeatured) => (
                                       <li>
                                         <a
-                                          class="w-full flex py-2 justify-between hover:(bg-surface-secondary) rounded-xl p-2"
+                                          class="w-full flex py-2 justify-between  rounded-xl p-2 text-brand-base! underline"
                                           href={shapeLink(nonFeatured)}
                                         >
                                           {nonFeatured.title}
@@ -205,7 +205,7 @@ export function FeaturedMenuItem(props: FeaturedMenuItemProps) {
           {props.featured.title}
         </h3>
         <p class="flex items-baseline justify-between">
-          <span class="block max-w-95%">
+          <span class="block max-w-95%  font-400">
             {props.featured.featured_description}
           </span>
           <span class="block transform -rotate-90 color-onSurface-tertiary font-size-[var(--step--2)]">

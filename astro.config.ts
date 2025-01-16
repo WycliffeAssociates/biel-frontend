@@ -51,7 +51,7 @@ export default defineConfig({
   integrations: [
     AstroPWA({
       devOptions: {
-        enabled: true,
+        enabled: false,
         type: "module",
       },
       strategies: "injectManifest",

@@ -95,7 +95,7 @@ const en = {
     "Please take time to discuss this with various leaders from your language group. Then come back to fill out the rest of this form. If you have any questions, or if we can help you with anything else, you can contact us using the form below.",
   seNoIdeaOfUseThanks:
     "Thank you for your message! A member of our team will get back to you as soon as possible. Remember to come back and fill out the rest of this form after you have discussed this with  various leaders from your language group.",
-  readMoreLink: "Read More",
+  learnMoreLink: "Learn More",
 } as const;
 export type i18nKeysType = keyof typeof en;
 const ptbr: Record<i18nKeysType, string> = {
@@ -196,7 +196,7 @@ const ptbr: Record<i18nKeysType, string> = {
     "Por favor, tenha uma discussão com líderes de seu grupo de língua. Em seguida, volte aqui para preencher o restante deste formulário. Se precisarmos ajudá-lo com algo mais ou responder algumas perguntas, você pode entrar em contato conosco através desta forma.",
   seNoIdeaOfUseThanks:
     "Obrigado por seu mensagem! Um membro de nosso time entraremos em contato com você o mais rápido possível. Volte aqui após a discussão com líderes de seu grupo de língua.",
-  readMoreLink: "Ler Mais",
+  learnMoreLink: "Saiba Mais",
 };
 const es: Record<i18nKeysType, string> = {
   ...en,
@@ -297,7 +297,7 @@ const es: Record<i18nKeysType, string> = {
     "Por favor, tómese su tiempo para discutir esto con varios líderes de su grupo lingüístico. Después vuelva a rellenar el resto de este formulario. Si tiene alguna duda, o si podemos ayudarle en algo más, puede ponerse en contacto con nosotros a través del siguiente formulario",
   seNoIdeaOfUseThanks:
     "¡Gracias por tu mensaje! Un miembro de nuestro equipo se pondrá en contacto contigo lo antes posible. No olvide volver y rellenar el resto de este formulario después de haberlo comentado con varios responsables de su grupo lingüístico",
-  readMoreLink: "Leer Mas",
+  learnMoreLink: "Aprender más",
 };
 const fr: Record<i18nKeysType, string> = {
   ...en,
@@ -398,7 +398,7 @@ const fr: Record<i18nKeysType, string> = {
     "Prenez le temps d'en discuter avec plusieurs responsables de votre groupe linguistique. Revenez ensuite pour remplir le reste de ce formulaire. Si vous avez des questions ou si nous pouvons vous aider, vous pouvez nous contacter en utilisant le formulaire ci-dessous",
   seNoIdeaOfUseThanks:
     "Merci pour votre message ! Un membre de notre équipe vous répondra dans les plus brefs délais. N'oubliez pas de revenir remplir le reste de ce formulaire après en avoir discuté avec plusieurs responsables de votre groupe linguistique",
-  readMoreLink: "Lire Plus",
+  learnMoreLink: "En savoir plus",
 };
 const id: Record<i18nKeysType, string> = {
   ...en,
@@ -499,7 +499,7 @@ const id: Record<i18nKeysType, string> = {
     "Silakan luangkan waktu untuk mendiskusikan ini dengan berbagai pemimpin dari kelompok bahasa Anda. Kemudian kembali untuk mengisi sisa formulir ini. Jika Anda memiliki pertanyaan, atau jika kami dapat membantu Anda dengan hal lain, Anda dapat menghubungi kami menggunakan formulir di bawah ini.",
   seNoIdeaOfUseThanks:
     "Terima kasih atas pesan Anda! Anggota tim kami akan segera menghubungi Anda. Ingatlah untuk kembali dan mengisi sisa formulir ini setelah Anda mendiskusikannya dengan berbagai pemimpin dari kelompok bahasa Anda.",
-  readMoreLink: "Baca Lebih Lanjut",
+  learnMoreLink: "Pelajari Lebih Lanjut",
 };
 
 export function getDict(lang: string, returnDefaultEn = false) {

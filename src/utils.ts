@@ -89,9 +89,9 @@ function replaceAllAbsoluteLinksToCms({
   currentLangCode,
 }: replaceAllAbsoluteLinksToCms) {
   const baseUrl = import.meta.env.CMS_URL;
-  const aTags: NodeListOf<HTMLAnchorElement> = dom.querySelectorAll(
-    `a[href^="${baseUrl}"]`
-  );
+  const aTags: NodeListOf<HTMLAnchorElement> = dom
+    .querySelectorAll(`a[href^="${baseUrl}"]`)
+    .filter((tag: HTMLAnchorElement) => !tag.hasAttribute("download"));
 
   aTags.forEach((tag) => {
     const newHref = tag.href.replace(baseUrl, "");

@@ -130,7 +130,6 @@ export function ScripturalView() {
           }
         );
         if (!matchingRecord) return;
-        // link.href = `${globalThis.origin}/api/fetchExternal?url=${matchingRecord.url}&hash=${matchingRecord.hash}`;
         link.href = matchingRecord.url;
         link.target = "_blank";
       });
