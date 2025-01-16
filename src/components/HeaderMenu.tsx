@@ -118,7 +118,7 @@ export function HeaderMenu(props: HeaderMenuProps) {
                                 </div>
                                 <p>{menuLink.parent_description}</p>
                                 <a
-                                  class="mbs-8 text-brand-base! underline font-500!  hover:cursor-pointer w-max"
+                                  class="mbs-8 text-brand-base! underline! font-500!  hover:cursor-pointer w-max"
                                   href={shapeLink(menuLink)}
                                 >
                                   {props.i18nDict.learnMoreLink}
@@ -142,7 +142,7 @@ export function HeaderMenu(props: HeaderMenuProps) {
                                     {(nonFeatured) => (
                                       <li>
                                         <a
-                                          class="w-full flex py-2 justify-between  rounded-xl p-2 text-brand-base! underline"
+                                          class="w-full flex py-2 justify-between  rounded-xl p-2 text-brand-base! underline!"
                                           href={shapeLink(nonFeatured)}
                                         >
                                           {nonFeatured.title}
