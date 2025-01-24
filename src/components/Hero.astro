@@ -6,11 +6,12 @@ interface Props {
   pageOptions: WpPage["pageOptions"];
   title: string;
   featuredImage: WpPage["featuredImage"];
+  readMoreAnchorWords: string;
 }
-const {pageOptions, title, featuredImage} = Astro.props;
+const {pageOptions, title, featuredImage, readMoreAnchorWords} = Astro.props;
 ---
 
-<header class="full-bleed hero-inner-shadow pr-0! pl-0!">
+<header class="full-bleed pr-0! pl-0!">
   <div class="contain md:(w-full!)">
     <div
       class="flex flex-col-reverse md:(grid grid-cols-[1fr_minmax(auto,720px)_minmax(auto,720px)_1fr]) py-0 relative"
@@ -59,6 +60,26 @@ const {pageOptions, title, featuredImage} = Astro.props;
                   </a>
                 );
               })}
+            </div>
+          )
+        }
+        {
+          !pageOptions.heroLinks && (
+            <div class="flex flex-col md:flex-row gap-4 mbs-6">
+              <a
+                href={"#mainContent"}
+                class={
+                  "inline-flex items-center gap-2 w-max py-2 px-12 rounded-2xl decoration-none! border-x-2 border-t border-b-2 border-solid border-brand-darkest bg-brand-dark text-onSurface-invert!"
+                }
+              >
+                {/* {link.heroLinkIcon && (
+                      <span
+                        class="font-size-[var(--step-0)]"
+                        set:html={link.heroLinkIcon}
+                      />
+                    )} */}
+                {readMoreAnchorWords}
+              </a>
             </div>
           )
         }

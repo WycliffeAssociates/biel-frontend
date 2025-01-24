@@ -6,6 +6,7 @@ export async function getTsFiles(language: string | undefined) {
   const REPO = "TS-biel-files";
   // const USER = "wa-biel";
   // const REPO = "biel-files";
+  // https://api.github.com/repos/WycliffeAssociates/TS-biel-files/git/trees?recursive=true
   const endpoint = `https://api.github.com/repos/${USER}/${REPO}/git/trees/master?recursive=1`;
   const metadataDatesEngpoint = `https://raw.githubusercontent.com/${USER}/${REPO}/refs/heads/master/metadata.json`;
 

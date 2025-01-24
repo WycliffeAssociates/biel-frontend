@@ -152,6 +152,7 @@ const pageDict = getDict(langInfo.code, true)!;
             pageOptions={page.pageOptions}
             title={page.title}
             featuredImage={page.featuredImage}
+            readMoreAnchorWords={pageDict.learnMoreLink}
           />
         </div>
       )
@@ -160,6 +161,7 @@ const pageDict = getDict(langInfo.code, true)!;
       // handle all but hardcoded pages of translations/contact
       isNotCustomPage(page) && (
         <div
+          id="mainContent"
           class={`headless-insertion wp-blocks ${
             !page.isHomePage && "site-container"
           }`}
