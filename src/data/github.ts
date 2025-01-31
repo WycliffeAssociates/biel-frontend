@@ -59,12 +59,18 @@ export async function getTsFiles(language: string | undefined) {
   const metaDataJson = metaDataRes.ok
     ? ((await metaDataRes.json()) as Record<string, string>)
     : undefined;
-
+  // console.log(json.tree);
   const blobsOnly = json.tree.filter((t) => {
     const parts = t.path.split("/");
     const lang = parts[1];
-    return lang === language && t.type === "blob";
+    // console.log({lang, language});
+    return (
+      lang?.toLowerCase()?.includes(`(${language.toLowerCase()})`) &&
+      t.type === "blob"
+    );
   });
+  // console.log({blobsOnly});
+
   if (!blobsOnly.length) return undefined; // no files in this language
 
   const folderStructure = blobsOnly.reduce((acc: DirectoryListing, file) => {
@@ -95,8 +101,14 @@ export async function getTsFiles(language: string | undefined) {
     });
     return acc;
   }, {});
-  const training = folderStructure.training?.folders[language];
-  const supplemental = folderStructure.supplemental?.folders[language];
+  const trainingFolderKey = Object.keys(
+    folderStructure.training?.folders || {}
+  ).find((k) => k.toLowerCase().includes(language.toLowerCase()));
+  const supplementalKey = Object.keys(
+    folderStructure.supplemental?.folders || {}
+  ).find((k) => k.toLowerCase().includes(language.toLowerCase()));
+  const training = folderStructure.training?.folders[trainingFolderKey!];
+  const supplemental = folderStructure.supplemental?.folders[supplementalKey!];
   return {trainingFiles: training, supplementalFiles: supplemental};
 }
 
