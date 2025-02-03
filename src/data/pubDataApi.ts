@@ -299,9 +299,12 @@ export async function getLangsWithContentNames({
     }
     lang.contents.forEach((c) => {
       c.displayName =
-        resourceTypeToDisplayName.get(c.resource_type) ||
+        resourceTypeToDisplayName.get(`${lang.ietf_code}-${c.resource_type}`) ||
         c.title ||
         `${lang.national_name} ${c.resource_type}`;
+      if (lang.ietf_code === "en") {
+        console.log(c);
+      }
     });
   });
   return json;
