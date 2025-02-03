@@ -173,9 +173,8 @@ test("Content Results in Search Link straight to resource", async ({page}) => {
   await searchBar.fill("blv");
   // await searchBar.focus();
   const searchResult = page.locator("[data-testid='searchResult']", {
-    hasText: /blv/i,
+    hasText: /Bíblia Livre/i,
   });
-  console.log(searchResult);
   await searchResult.click();
   const selected = page.locator("[data-testid='availableResource']", {
     hasText: /Portuguese Free Bible/i,
