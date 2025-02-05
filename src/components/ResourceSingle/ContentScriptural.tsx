@@ -4,6 +4,7 @@ import {Dialog} from "@kobalte/core/dialog";
 import {createMediaQuery} from "@solid-primitives/media";
 import type {RenderedContentRow} from "@src/data/gqlQueries/queries";
 import type {i18nDictType} from "@src/i18n/strings";
+
 import {
   For,
   Match,
@@ -14,9 +15,9 @@ import {
   createEffect,
   createResource,
   createSignal,
-  onMount,
   on,
   onCleanup,
+  onMount,
 } from "solid-js";
 import type {SetStoreFunction} from "solid-js/store";
 import {DownloadOptions} from "./DownloadOptions";
@@ -52,6 +53,18 @@ export function ScripturalView() {
       ssrLoadFrom: "initial",
     }
   );
+  const [modalOpen, setModalOpen] = createSignal(false);
+  type ModalContent =
+    | {
+        title: string;
+        body: string;
+      }
+    | undefined;
+  const [modalContent, setModalContent] = createSignal<ModalContent>();
+  const [modalContentStack, setModalContentStack] = createSignal<
+    ModalContent[]
+  >([]);
+  let modalContentRef: HTMLElement | undefined;
   onMount(() => {
     // Deferring fething the initial html for resource so it gets cached in SW and in Cloudlare by its url, by also speeds up perception of things happening since we see the shell and in case this call to resource takes a second
     refetch();
@@ -107,32 +120,101 @@ export function ScripturalView() {
       }
     }
   }
+  function popModalStack() {
+    const existingStack = structuredClone(modalContentStack());
+    const history = existingStack.pop();
+    if (history) {
+      setModalContentStack(existingStack);
+      modalContentRef?.scroll({
+        top: 0,
+      });
+      setModalContent(history);
+      scanForBcLinks();
+    }
+  }
+  const modalStackHasHistory = () => {
+    console.log("checking hiostyr");
+    return modalContentStack().length >= 1;
+  };
+
+  async function fetchModalContent(url: string) {
+    try {
+      const response = await fetch(url);
+      const data = await response.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(data, "text/html");
+      const h1 = doc.querySelector("h1");
+      const body = doc.querySelector("body");
+      if (h1 && body) {
+        const contentLeaving = modalContent();
+        if (contentLeaving) {
+          const existingStack = structuredClone(modalContentStack());
+          existingStack.push(contentLeaving);
+          setModalContentStack(existingStack);
+        }
+        modalContentRef?.scroll({
+          top: 0,
+        });
+        setModalContent({
+          title: h1.innerHTML,
+          body: body.innerHTML,
+        });
+        setModalOpen(true);
+        scanForBcLinks();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function bcLinkEventListner(event: MouseEvent) {
+    event.preventDefault();
+    // debugger;
+    const target = event.target as HTMLAnchorElement;
+    const datasetMatchingRecord = target.dataset.matchingRecord;
+    if (datasetMatchingRecord) {
+      const parsed = JSON.parse(datasetMatchingRecord) as {
+        url: string;
+        hash: string;
+      };
+      fetchModalContent(
+        `${globalThis.origin}/api/fetchExternal?url=${parsed.url}&hash=${parsed.hash}&rewrite=true`
+      );
+    }
+  }
+  function scanForBcLinks() {
+    const bibleCommentaryPopups: Array<HTMLAnchorElement> = Array.from(
+      document.querySelectorAll("a[href*='popup://']")
+    );
+    bibleCommentaryPopups.forEach((link) => {
+      const split = link.href.split("//");
+      const name = split[1];
+      if (!name) return;
+      const matchingRecord = content.rendered_contents.otherFiles.find(
+        (row) => {
+          return row.url.includes(name);
+        }
+      );
+
+      if (!matchingRecord) return;
+      link.dataset.matchingRecord = JSON.stringify(matchingRecord);
+      // always remove first to avoid dups
+      link.removeEventListener("click", bcLinkEventListner);
+      link.addEventListener("click", bcLinkEventListner);
+      // link.href = matchingRecord.url;
+      // link.target = "_blank";
+    });
+  }
   createEffect(
     on(text, () => {
       const internalTnLinks: Array<HTMLAnchorElement> = Array.from(
         document.querySelectorAll("[data-internalTn]")
       );
-      const bibleCommentaryPopups: Array<HTMLAnchorElement> = Array.from(
-        document.querySelectorAll("a[href*='popup://']")
-      );
       for (const link of internalTnLinks) {
         // These have a data-chapter, and data-book.  Change the state to that on click;
         link.addEventListener("click", handleInternalTnLinks);
       }
-      bibleCommentaryPopups.forEach((link) => {
-        const split = link.href.split("//");
-        const name = split[1];
-        if (!name) return;
-
-        const matchingRecord = content.rendered_contents.otherFiles.find(
-          (row) => {
-            return row.url.includes(name);
-          }
-        );
-        if (!matchingRecord) return;
-        link.href = matchingRecord.url;
-        link.target = "_blank";
-      });
+      scanForBcLinks();
 
       onCleanup(() => {
         for (const link of internalTnLinks) {
@@ -157,6 +239,55 @@ export function ScripturalView() {
           {/* hides text scrolling undernath  */}
           <div class="bg-surface-primary absolute bottom-0 w-full h-full z--1" />
         </div>
+      </Show>
+      <Show when={modalOpen()}>
+        <Dialog
+          open={modalOpen()}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setModalContentStack([]);
+              setModalContent(undefined);
+            }
+          }}
+        >
+          <Dialog.Portal>
+            <Dialog.Overlay class="bg-black/70 z-20 absolute inset-0" />
+            <div class="absolute inset-6  bg-pink z-20 rounded-xl shadow-lg  bg-surface-primary max-w-prose mx-auto p-2">
+              <Dialog.Content
+                ref={modalContentRef}
+                data-js="modalContentRef"
+                class="px-4 pb-4 overflow-y-auto max-h-90vh theText"
+                onInteractOutside={() => setModalOpen(false)}
+                onEscapeKeyDown={() => setModalOpen(false)}
+              >
+                <div class="relative sticky top-0 bg-surface-primary pbs-4 flex items-center justify-between">
+                  <div class="flex gap-4 items-center">
+                    <Show when={modalStackHasHistory()}>
+                      <button
+                        type="button"
+                        class="p-1 rounded-lg bg-surface-secondary!"
+                        onClick={() => popModalStack()}
+                      >
+                        <span class="i-ic:round-arrow-back rtl:rotate-180 w-1.25em h-1.25em inline-block bg-onSurface-secondary" />
+                      </button>
+                    </Show>
+                    <Dialog.Title
+                      class="font-step-2! font-700 m-0!"
+                      innerHTML={modalContent()?.title}
+                    />
+                  </div>
+                  <Dialog.CloseButton
+                    class="p-1 rounded-lg bg-surface-secondary!"
+                    onClick={() => setModalOpen(false)}
+                  >
+                    <span class="i-ic:round-close w-1.25em h-1.25em inline-block bg-onSurface-secondary" />
+                  </Dialog.CloseButton>
+                </div>
+                <Dialog.Description class="" innerHTML={modalContent()?.body} />
+              </Dialog.Content>
+            </div>
+          </Dialog.Portal>
+        </Dialog>
       </Show>
     </div>
   );
@@ -289,7 +420,7 @@ function MenuDialog(props: MenuDialogProps) {
           >
             <Dialog.Content class="absolute top-0 left-0  max-h-screen md:max-h-70vh min-h-200px overflow-auto bg-surface-primary w-full shadow-lg shadow-dark md:rounded-lg">
               <Show when={!isBig()}>
-                <div class="sticky top-0 py-4 px-1 bg-surface-primary   flex justify-between items-center">
+                <div class="sticky top-0 py-4 px-1 bg-surface-primary   flex justify-between items-center z-2">
                   <div class="flex gap-4 items-center">
                     <button
                       type="button"
@@ -485,7 +616,7 @@ function TextOfResource(props: {
 }) {
   return (
     <div
-      class="relative px-3 theText max-h-60vh pb-16 overflow-y-auto md:(max-h-unset pb-auto)"
+      class="relative px-3 theText max-h-90% pb-16 overflow-y-auto md:( pb-auto max-h-unset)"
       data-css="theText"
       data-js="theText"
       data-testid="theText"

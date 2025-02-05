@@ -229,6 +229,7 @@ export type DirectoryListing = {
 };
 export type TsDirectoryLang = {
 	folders: DirectoryListing;
+	slug: string;
 	files: Array<TsDirectoryFile>;
 };
 export type TsDirectoryFile = {
