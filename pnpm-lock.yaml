@@ -45,8 +45,8 @@ importers:
         specifier: ^5.1.2
         version: 5.1.2(@types/node@22.10.5)(jiti@2.4.2)(rollup@2.79.2)(sass@1.83.0)(terser@5.37.0)(tsx@4.19.2)(typescript@5.7.2)(yaml@2.7.0)
       client-zip:
-        specifier: ^2.4.6
-        version: 2.4.6
+        specifier: 1.6.2
+        version: 1.6.2
       htmlrewriter:
         specifier: ^0.0.12
         version: 0.0.12
@@ -3241,8 +3241,8 @@ packages:
     resolution: {integrity: sha512-/lzGpEWL/8PfI0BmBOPRwp0c/wFNX1RdUML3jK/RcSBA9T8mZDdQpqYBKtCFTOfQbwPqWEOpjqW+Fnayc0969g==}
     engines: {node: '>=10'}
 
-  client-zip@2.4.6:
-    resolution: {integrity: sha512-e7t1u14h/yT0A12qBwFsaus8UZZ8+MCaNAEn/z53mrukLq/LFcKX7TkbntAppGu8he2p8pz9vc5NEGE/h4ohlw==}
+  client-zip@1.6.2:
+    resolution: {integrity: sha512-WcYO8auQC2qGK1JgfjK/NBPkwebgB/319k6fOz1xStnQ4nwXxBu/ahW+SzU1e92etG6qls9zw4Un05RBdvUUmQ==}
 
   clipboard@2.0.11:
     resolution: {integrity: sha512-C+0bbOqkezLIsmWSvlsXS0Q0bmkugu7jcfMIACB+RDEntIzQIkdr148we28AfSloQLRdZlYL/QYyrq05j/3Faw==}
@@ -10025,7 +10025,7 @@ snapshots:
 
   cli-boxes@3.0.0: {}
 
-  client-zip@2.4.6: {}
+  client-zip@1.6.2: {}
 
   clipboard@2.0.11:
     dependencies:
