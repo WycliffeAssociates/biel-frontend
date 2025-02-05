@@ -402,7 +402,7 @@ function TsFileDownload(props: {
           window.history.replaceState(
             null,
             "",
-            `?download=${props.topLevelFolder}`
+            `?download=${slugify(props.topLevelFolder)}`
           );
           if (props.additionalOnClick) props.additionalOnClick();
         }}

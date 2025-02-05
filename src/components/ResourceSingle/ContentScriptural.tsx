@@ -491,8 +491,14 @@ function MenuDialog(props: MenuDialogProps) {
                                     const theText = document.querySelector(
                                       "[data-js='theText']"
                                     );
+                                    const theCol = document.querySelector(
+                                      "[data-js='rightCol']"
+                                    );
                                     if (theText) {
                                       theText.scrollTop = 0;
+                                    }
+                                    if (theCol) {
+                                      theCol.scrollTop = 0;
                                     }
                                   }
                                   setDialogOpen(false);
@@ -562,11 +568,15 @@ function NavAdjacentButton(props: NavAdjacentButtonProps) {
       const theText = document.querySelector("[data-js='theText']");
 
       const theContent = document.querySelector("[data-js='contentView']");
+      const theCol = document.querySelector("[data-js='rightCol']");
       if (theText) {
         theText.scrollTop = 0;
       }
       if (theContent) {
         theContent.scrollTop = 0;
+      }
+      if (theCol) {
+        theCol.scrollTop = 0;
       }
     }
   };
@@ -616,7 +626,7 @@ function TextOfResource(props: {
 }) {
   return (
     <div
-      class="relative px-3 theText max-h-90% pb-16 overflow-y-auto md:( pb-auto max-h-unset)"
+      class="relative px-3 theText max-h-90% pb-16 overflow-y-auto md:(pb-auto max-h-unset)"
       data-css="theText"
       data-js="theText"
       data-testid="theText"

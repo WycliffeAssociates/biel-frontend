@@ -30,7 +30,8 @@ export const POST: APIRoute = async ({request}) => {
   const originUrl = new URL(request.url);
   const payloadToPredict = payload.map((f) => {
     return {
-      name: normalizeFileName(cutFilePrefixIfOver3Parts(f.path)),
+      // name: normalizeFileName(cutFilePrefixIfOver3Parts(f.path)),
+      name: f.path,
       size: f.size,
     };
   });
@@ -41,16 +42,16 @@ export const POST: APIRoute = async ({request}) => {
     buffersAreUTF8: true,
     length: totalSize,
   });
-  const streamToReturn = stream.body;
+  let streamToReturn = stream.body;
   // todo: Can't figure out some bug with accentend characters (i.e. é) in cloudflare when using a fixed lenght stream.  It errors on filenames that have such despit stripping them out of response.  So just abandon and return the stream.
-  // if (import.meta.env.PROD) {
-  //   console.log(`Creating a stream of size ${totalSize}`);
-  //   // @ts-ignore.  https://developers.cloudflare.com/workers/runtime-apis/streams/transformstream/#fixedlengthstream.  We know the length, but this is a platform api that is cloufdlare specific, so we can't just return the content length header. Cloudflare will override it.
-  //   const {readable, writable} = new FixedLengthStream(totalSize);
+  if (import.meta.env.PROD) {
+    console.log(`Creating a stream of size ${totalSize}`);
+    // @ts-ignore.  https://developers.cloudflare.com/workers/runtime-apis/streams/transformstream/#fixedlengthstream.  We know the length, but this is a platform api that is cloufdlare specific, so we can't just return the content length header. Cloudflare will override it.
+    const {readable, writable} = new FixedLengthStream(totalSize);
 
-  //   stream.body?.pipeTo(writable);
-  //   streamToReturn = readable as ReadableStream<Uint8Array>;
-  // }
+    stream.body?.pipeTo(writable);
+    streamToReturn = readable as ReadableStream<Uint8Array>;
+  }
 
   return new Response(streamToReturn, {
     headers: {
@@ -80,7 +81,8 @@ async function* zipTsFiles(
         predictedLength: f.size,
       });
       yield {
-        name: normalizeFileName(cutFilePrefixIfOver3Parts(f.path)),
+        // name: normalizeFileName(cutFilePrefixIfOver3Parts(f.path)),
+        name: f.path,
         input: res.body!,
         lastModified: f.lastUpdated,
       };
@@ -96,19 +98,19 @@ async function* zipTsFiles(
   }
 }
 
-function cutFilePrefixIfOver3Parts(fileName: string) {
-  const split = fileName.split("/");
-  if (split.length > 3) {
-    return split.slice(2).join("/");
-  }
-  return fileName;
-}
-function normalizeFileName(fileName: string) {
-  // https://stackoverflow.com/questions/990904/remove-accents-diacritics-in-a-string-in-javascript
-  return (
-    fileName
-      .normalize("NFD")
-      // biome-ignore lint/suspicious/noMisleadingCharacterClass:
-      .replace(/[\u0300-\u036f]/gu, "")
-  );
-}
+// function cutFilePrefixIfOver3Parts(fileName: string) {
+//   const split = fileName.split("/");
+//   if (split.length > 3) {
+//     return split.slice(2).join("/");
+//   }
+//   return fileName;
+// }
+// function normalizeFileName(fileName: string) {
+//   // https://stackoverflow.com/questions/990904/remove-accents-diacritics-in-a-string-in-javascript
+//   return (
+//     fileName
+//       .normalize("NFD")
+//       // biome-ignore lint/suspicious/noMisleadingCharacterClass:
+//       .replace(/[\u0300-\u036f]/gu, "")
+//   );
+// }

@@ -278,7 +278,10 @@ function PeripheralView(props: {content: ScriptureStoreState}) {
           chunks.push(value);
           received += value.length;
           setFetchProgress(
-            Math.round((received / printAllFile.file_size_bytes) * 100)
+            Math.min(
+              100,
+              Math.round((received / printAllFile.file_size_bytes) * 100)
+            )
           );
         }
       }

@@ -114,7 +114,7 @@ function DownloadLoadableTypeMenu(props: {
 
   return (
     <div data-name="downloadable-menu-wrapper" class="flex flex-col gap-6">
-      <div class="flex justify-between align-center">
+      <div class="flex justify-between align-center py-4 ">
         <div class="flex items-center gap-2">
           <Checkbox
             // checked={wholeFolderChecked()}
