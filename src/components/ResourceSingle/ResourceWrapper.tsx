@@ -17,12 +17,12 @@ export function ResourceWrapper(props: ContentListingProps) {
       tsFiles={props.tsFiles}
     >
       <div class="h-full grid items-stretch grid-rows-[max-content_1fr] overflow-hidden md:(gap-x-30 gap-y-4 justify-center  grid-cols-[max-content_85ch] items-start justify-between grid-rows-[100%] )">
-        <div class="h-max md:(h-full flex flex-col gap-4 overflow-y-scroll)">
+        <div class="h-max md:(h-full flex flex-col gap-4 overflow-y-auto)">
           <SearchBar classes="hidden md:block pie-4" />
           <AvailableResources classes={""} tsFiles={props.tsFiles} />
         </div>
         <div
-          class="h-full overflow-y-scroll md:(flex flex-col gap-2 overflow-y-auto)"
+          class="h-full overflow-y-auto md:(flex flex-col gap-2 overflow-y-auto)"
           data-name="rightCol"
           data-js="rightCol"
         >

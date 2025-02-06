@@ -2,7 +2,6 @@ export const prerender = false;
 import type {TsDirectoryFile} from "@customTypes/types";
 import type {APIRoute} from "astro";
 import {downloadZip, predictLength} from "client-zip";
-
 type downloadTsFilesBody = {
   payload: TsDirectoryFile[];
   name: string;
@@ -25,37 +24,36 @@ export const POST: APIRoute = async ({request}) => {
     });
   }
   const {payload, name} = parsed;
-  // const {payload, name} = body;
-
-  const originUrl = new URL(request.url);
-  const payloadToPredict = payload.map((f) => {
+  const payloadWithShortenedNames = payload.map((p) => {
     return {
-      // name: normalizeFileName(cutFilePrefixIfOver3Parts(f.path)),
-      name: f.path,
-      size: f.size,
+      ...p,
+      fileName: normalizeFileName(cutFilePrefixIfOver3Parts(p.path)),
     };
   });
-  const totalSize = predictLength(payloadToPredict);
-  console.log(`Predicted Size for download is ${totalSize}`);
-  console.log({payloadToPredict});
-  const stream: Response = downloadZip(zipTsFiles(payload, originUrl.origin), {
-    buffersAreUTF8: true,
-    // length: totalSize,
-  });
-  const streamToReturn = stream.body;
-  // todo: Can't figure out some bug with accentend characters (i.e. é) in cloudflare when using a fixed lenght stream.  It errors on filenames that have such despit stripping them out of response.  So just abandon and return the stream.
-  // if (import.meta.env.PROD) {
-  //   console.log(`Creating a stream of size ${totalSize}`);
-  //   // @ts-ignore.  https://developers.cloudflare.com/workers/runtime-apis/streams/transformstream/#fixedlengthstream.  We know the length, but this is a platform api that is cloufdlare specific, so we can't just return the content length header. Cloudflare will override it.
-  //   const {readable, writable} = new FixedLengthStream(totalSize);
-
-  //   stream.body?.pipeTo(writable);
-  //   streamToReturn = readable as ReadableStream<Uint8Array>;
-  // }
+  const predictedLength = predictLength(
+    payloadWithShortenedNames.map((p) => {
+      return {
+        name: p.fileName,
+        size: p.size,
+      };
+    })
+  );
+  console.log({predictedLength});
+  // const tStream = getResFflate(payload, locals.runtime.ctx);
+  const clientZipStream = downloadZip(
+    getResClientZip(payloadWithShortenedNames)
+  );
+  let streamToReturn = clientZipStream.body;
+  if (import.meta.env.PROD) {
+    // @ts-ignore.  https://developers.cloudflare.com/workers/runtime-apis/streams/transformstream/#fixedlengthstream.  We know the length, but this is a platform api that is cloufdlare specific, so we can't just return the content length header. Cloudflare will override it.
+    const {readable, writable} = new FixedLengthStream(predictedLength);
+    clientZipStream.body?.pipeTo(writable);
+    streamToReturn = readable;
+  }
 
   return new Response(streamToReturn, {
     headers: {
-      "Content-Length": String(totalSize),
+      "Content-Length": String(predictedLength),
       "Access-Control-Allow-Origin": "*",
       "Content-Disposition": `attachment; filename="${name}.zip"`,
       "Content-Type": "application/octet-stream",
@@ -63,26 +61,29 @@ export const POST: APIRoute = async ({request}) => {
   });
 };
 
-async function* zipTsFiles(
-  payload: TsDirectoryFile[],
-  originPrefixedUrl: string
-) {
+function cutFilePrefixIfOver3Parts(fileName: string) {
+  const split = fileName.split("/");
+  if (split.length > 3) {
+    return split.slice(2).join("/");
+  }
+  return fileName;
+}
+function normalizeFileName(fileName: string) {
+  // https://stackoverflow.com/questions/990904/remove-accents-diacritics-in-a-string-in-javascript
+  return (
+    fileName
+      .normalize("NFD")
+      // biome-ignore lint/suspicious/noMisleadingCharacterClass:
+      .replace(/[\u0300-\u036f]/gu, "")
+  );
+}
+
+async function* getResClientZip(payload: TsDirectoryFile[]) {
   for (const f of payload) {
     try {
-      const prefixedUrl = `${originPrefixedUrl}/api/fetchExternal?url=${encodeURIComponent(
-        f.url
-      )}&hash=${f.sha}`;
-      // proxy through fetchExternal due to sha for strong cachign
-      const res = await fetch(prefixedUrl);
-      console.log({
-        url: f.url,
-        status: res.status,
-        resHeaderLength: res.headers.get("Content-Length"),
-        predictedLength: f.size,
-      });
+      const res = await fetch(encodeURI(f.url));
       yield {
-        // name: normalizeFileName(cutFilePrefixIfOver3Parts(f.path)),
-        name: f.path,
+        name: f.fileName,
         input: res.body!,
         lastModified: f.lastUpdated,
       };
@@ -97,20 +98,3 @@ async function* zipTsFiles(
     }
   }
 }
-
-// function cutFilePrefixIfOver3Parts(fileName: string) {
-//   const split = fileName.split("/");
-//   if (split.length > 3) {
-//     return split.slice(2).join("/");
-//   }
-//   return fileName;
-// }
-// function normalizeFileName(fileName: string) {
-//   // https://stackoverflow.com/questions/990904/remove-accents-diacritics-in-a-string-in-javascript
-//   return (
-//     fileName
-//       .normalize("NFD")
-//       // biome-ignore lint/suspicious/noMisleadingCharacterClass:
-//       .replace(/[\u0300-\u036f]/gu, "")
-//   );
-// }
