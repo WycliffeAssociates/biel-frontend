@@ -203,7 +203,12 @@ export async function getLanguageContents({
   if (!lang) {
     throw new Error(`no language found for ${language}`);
   }
-  if (lang.wa_language_metadata && !lang.wa_language_metadata?.is_gateway) {
+  if (
+    doCollateContent({
+      ietf: lang.ietf_code,
+      isGateway: lang.wa_language_metadata?.is_gateway,
+    })
+  ) {
     lang.contents = collateGatewayContent({
       contents: lang.contents,
       langName: lang.national_name,
@@ -290,7 +295,12 @@ export async function getLangsWithContentNames({
     new Map()
   );
   json.data.language.forEach((lang) => {
-    if (!lang.wa_language_metadata?.is_gateway) {
+    if (
+      doCollateContent({
+        ietf: lang.ietf_code,
+        isGateway: lang.wa_language_metadata?.is_gateway,
+      })
+    ) {
       // @ts-ignore: I know that collateGatewayContent isn't going to set a displayName: I'm doing that below for all languages regardless of is gateway status
       lang.contents = collateGatewayContent({
         contents: lang.contents,
@@ -548,4 +558,18 @@ async function refreshCfCache({
   } catch (error) {
     console.error(error);
   }
+}
+
+function isKnownGatewayContentFormatException(ietf: string) {
+  const exceptions = ["ceb"];
+  return exceptions.includes(ietf);
+}
+function doCollateContent({
+  isGateway,
+  ietf,
+}: {
+  isGateway: boolean | undefined;
+  ietf: string;
+}) {
+  return isGateway || isKnownGatewayContentFormatException(ietf);
 }
