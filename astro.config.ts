@@ -16,9 +16,6 @@ export default defineConfig({
     build: {
       // toggle if neeing to debug locally.
       minify: true,
-      rollupOptions: {
-        external: import.meta.env.PROD ? ["/pagefind/pagefind.js"] : [],
-      },
     },
     ssr: {
       noExternal: [],

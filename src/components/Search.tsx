@@ -11,7 +11,6 @@ import {
   type Setter,
   Show,
   Switch,
-  batch,
   createSignal,
   onCleanup,
   onMount,
@@ -32,10 +31,9 @@ export function Search(props: SearchProps) {
     // biome-ignore lint/suspicious/noExplicitAny: <not sure on pagefind type>
     Record<any, any[]>
   > | null>();
+  const [searchPromises, setSearchPromises] = createSignal<Promise<void>[]>([]);
+
   const [searchFocused, setSearchFocused] = createSignal(false);
-  const [isTyping, setIsTyping] = createSignal(false);
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  const [isTypingTimeout, setIsTypingTimeout] = createSignal<any>(null);
 
   const mobileClassNames = "mobile";
   const bigClassNames =
@@ -44,14 +42,7 @@ export function Search(props: SearchProps) {
   onMount(async () => {
     // eagerly fetch this
     // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-    let pageFind: any = null;
-    // console.log
-    if (import.meta.env.DEV) {
-      pageFind = await import("../pagefind/pagefind.js");
-    } else {
-      // @ts-ignore
-      pageFind = await import("/pagefind/pagefind.js");
-    }
+    const pageFind = (await import("../pagefind/pagefind.js")) as any;
     // const pageFind = (await import(pathToImport)) as any;
     pageFind.init();
     await pageFind.options({
@@ -141,21 +132,6 @@ export function Search(props: SearchProps) {
     if (!event && !stringToSearch) return;
     const target = event?.target as HTMLInputElement;
 
-    if (event && "key" in event && event?.key) {
-      batch(() => {
-        setIsTyping(true);
-        const curTimeout = isTypingTimeout();
-        if (curTimeout) {
-          clearTimeout(curTimeout);
-          setIsTypingTimeout(null);
-        }
-        const to = setTimeout(() => {
-          setIsTyping(false);
-          setIsTypingTimeout(null);
-        }, 450);
-        setIsTypingTimeout(to);
-      });
-    }
     if (event && "key" in event && event.key === "Escape") {
       setQuery("");
       setResults(undefined);
@@ -177,25 +153,33 @@ export function Search(props: SearchProps) {
       }
       // Search the index using the input value
       console.log("doing search");
-      const search = await window.pagefind.debouncedSearch(inputValue, {}, 100);
+      const searchPromise = (async () => {
+        const search = await window.pagefind.debouncedSearch(
+          inputValue,
+          {},
+          100
+        );
+        // Add the new results
+        // biome-ignore lint/suspicious/noExplicitAny: <not sure on pagefind type>
+        const res: any[] = [];
+        if (!search || (search?.results && !search?.results?.length)) {
+          console.log("no search results");
+          setResults(null);
+          return;
+        }
 
-      // Add the new results
-      // biome-ignore lint/suspicious/noExplicitAny: <not sure on pagefind type>
-      const res: any[] = [];
-      if (search?.results && !search?.results?.length) {
-        console.log("no search results");
-        setResults(null);
-        return;
-      }
-
-      // no more than 20 results likely needed on this small a site
-      for (const result of search.results.slice(0, 20)) {
-        const data = await result.data();
-        res.push(data);
-      }
-      const grouped = groupBy((result) => result.meta.type, res);
-      console.log({grouped, query: query(), isTyping: isTyping()});
-      setResults(grouped);
+        // no more than 20 results likely needed on this small a site
+        for (const result of search.results.slice(0, 20)) {
+          const data = await result.data();
+          res.push(data);
+        }
+        const grouped = groupBy((result) => result.meta.type, res);
+        setResults(grouped);
+      })();
+      setSearchPromises((prev) => [...prev, searchPromise]);
+      searchPromise.finally(() => {
+        setSearchPromises((prev) => prev.filter((p) => p !== searchPromise));
+      });
     }
   };
 
@@ -219,6 +203,12 @@ export function Search(props: SearchProps) {
   const setSearchRefValue = (value: string) => {
     setQuery(value);
     handleInput({stringToSearch: value});
+  };
+
+  const thereAreNoSearchResults = () => {
+    return (
+      query().length >= 2 && results() === null && searchPromises().length === 0
+    );
   };
 
   onCleanup(() => {
@@ -305,7 +295,7 @@ export function Search(props: SearchProps) {
               </ul>
             </div>
           </Show>
-          <Show when={query().length >= 2 && results() === null && !isTyping()}>
+          <Show when={thereAreNoSearchResults()}>
             <div
               data-js="searchSuggestions"
               class={`${props.isBig ? bigClassNames : mobileClassNames} ${
@@ -378,6 +368,7 @@ export function Search(props: SearchProps) {
           setResults={setResults}
           suggestLocalizeSiteOptions={suggestLocalizeSite}
           langCode={props.langCode}
+          thereAreNoSearchResults={thereAreNoSearchResults}
         />
       </Show>
     </>
@@ -515,6 +506,7 @@ type SearchAsPageProps = {
   suggestLocalizeSiteOptions: () => languageType[] | undefined;
   langCode: string;
   escapeSearch: () => void;
+  thereAreNoSearchResults: () => boolean;
 };
 function SearchAsPage(props: SearchAsPageProps) {
   const [tabActive, setTabActive] = createSignal<
@@ -603,40 +595,53 @@ function SearchAsPage(props: SearchAsPageProps) {
           />
 
           {/* search results */}
-          <ul class="list-none! flex flex-col gap-4 pbs-4 min-h-screen searchResults">
-            <Switch>
-              <Match when={tabActive() === "PAGES"}>
-                <For each={props.results()?.page || []}>
-                  {(item) => (
-                    <SearchPageResultItem
-                      escapeSearch={props.escapeSearch}
-                      item={item}
-                    />
-                  )}
-                </For>
-              </Match>
-              <Match when={tabActive() === "RESOURCES"}>
-                <For each={props.results()?.resource || []}>
-                  {(item) => (
-                    <SearchPageResultItem
-                      escapeSearch={props.escapeSearch}
-                      item={item}
-                    />
-                  )}
-                </For>
-              </Match>
-              <Match when={tabActive() === "SOFTWARE"}>
-                <For each={props.results()?.software || []}>
-                  {(item) => (
-                    <SearchPageResultItem
-                      escapeSearch={props.escapeSearch}
-                      item={item}
-                    />
-                  )}
-                </For>
-              </Match>
-            </Switch>
-          </ul>
+          <Show when={!props.thereAreNoSearchResults()}>
+            <ul class="list-none! flex flex-col gap-4 pbs-4 min-h-screen searchResults">
+              <Switch>
+                <Match when={tabActive() === "PAGES"}>
+                  <For each={props.results()?.page || []}>
+                    {(item) => (
+                      <SearchPageResultItem
+                        escapeSearch={props.escapeSearch}
+                        item={item}
+                      />
+                    )}
+                  </For>
+                </Match>
+                <Match when={tabActive() === "RESOURCES"}>
+                  <For each={props.results()?.resource || []}>
+                    {(item) => (
+                      <SearchPageResultItem
+                        escapeSearch={props.escapeSearch}
+                        item={item}
+                      />
+                    )}
+                  </For>
+                </Match>
+                <Match when={tabActive() === "SOFTWARE"}>
+                  <For each={props.results()?.software || []}>
+                    {(item) => (
+                      <SearchPageResultItem
+                        escapeSearch={props.escapeSearch}
+                        item={item}
+                      />
+                    )}
+                  </For>
+                </Match>
+              </Switch>
+            </ul>
+          </Show>
+          <Show when={props.thereAreNoSearchResults()}>
+            <div
+              data-js="searchSuggestions"
+              class={" pbs-4 min-h-screen searchResults"}
+            >
+              {props.dict.searchNotFound.replace(
+                /\{\{([^}]*)\}\}/,
+                props.query()
+              )}
+            </div>
+          </Show>
         </div>
       </div>
     </div>
