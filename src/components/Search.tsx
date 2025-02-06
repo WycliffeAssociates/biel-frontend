@@ -43,16 +43,24 @@ export function Search(props: SearchProps) {
 
   onMount(async () => {
     // eagerly fetch this
-    // @ts-ignore
     // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-    const pageFind = (await import("../pagefind/pagefind.js")) as any;
+    let pageFind: any = null;
+    // console.log
+    if (import.meta.env.DEV) {
+      pageFind = await import("../pagefind/pagefind.js");
+    } else {
+      // @ts-ignore
+      pageFind = await import("/pagefind/pagefind.js");
+    }
+    // const pageFind = (await import(pathToImport)) as any;
     pageFind.init();
     await pageFind.options({
       excerptLength: 5,
-
       baseUrl: "/",
     });
-
+    ["bible", "mast", "reg"].forEach((term) => {
+      pageFind.preload(term);
+    });
     window.pagefind = pageFind;
 
     document.body.addEventListener("click", (e) => {
@@ -169,7 +177,7 @@ export function Search(props: SearchProps) {
       }
       // Search the index using the input value
       console.log("doing search");
-      const search = await window.pagefind.debouncedSearch(inputValue, {}, 150);
+      const search = await window.pagefind.debouncedSearch(inputValue, {}, 100);
 
       // Add the new results
       // biome-ignore lint/suspicious/noExplicitAny: <not sure on pagefind type>

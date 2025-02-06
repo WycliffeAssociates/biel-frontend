@@ -2,6 +2,7 @@ import type {TsDirectoryFile} from "@customTypes/types";
 
 export const bielExternalCacheName = "biel-external";
 export const bielStaticCacheName = "biel-static";
+export const bielPagefindCacheName = "biel-pagefind";
 
 export function isAbsoluteUrl(str: string) {
   const isAbsoluteRegex = /^(?:[a-z+]+:)?\/\//i;

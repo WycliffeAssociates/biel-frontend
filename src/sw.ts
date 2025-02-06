@@ -10,6 +10,7 @@ import {CacheFirst, StaleWhileRevalidate} from "workbox-strategies";
 import {constants} from "./lib/constants";
 import {
   bielExternalCacheName,
+  bielPagefindCacheName,
   bielStaticCacheName,
   fetchExternalUsfmAndCache,
 } from "./lib/web";
@@ -153,4 +154,29 @@ registerRoute(
     ],
   }),
   "POST"
+);
+
+// pf_meta, pf_index, pf_fragment:
+registerRoute(
+  ({sameOrigin, request}) => {
+    // https://developer.mozilla.org/en-US/docs/Web/API/Request/destination#font
+    // todo: debug if this is caching images or not. It seems like it's not caching the webps for some reason
+    const isPageFind = ["pf_meta", "pf_index", "pf_fragment"].some((item) =>
+      request.url.includes(item)
+    );
+    return isPageFind && sameOrigin;
+  },
+  // Hashes should guarantee strong caching that doesn't need expiring, so go cache first on those, but route through CF as well
+  new CacheFirst({
+    cacheName: bielPagefindCacheName,
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 2000,
+        purgeOnQuotaError: true,
+      }),
+      new CacheableResponsePlugin({
+        statuses: [0, 200, 304],
+      }),
+    ],
+  })
 );
