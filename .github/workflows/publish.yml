@@ -8,6 +8,12 @@ on:
     - cron: '6 4 * * *'
   push:
   workflow_dispatch:
+    inputs:
+      skipTests:
+        type: boolean
+        required: false
+        default: false
+        description: Whether to skip e2e tests for this run
 
 # Cancel in progress if making multiple prs or pushes to a branch. 
 concurrency:
@@ -101,11 +107,10 @@ jobs:
         if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/prod'
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
-        # Can skip them if dispatching manually on any branch but prod
-        if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/prod'
+        if: ${{inputs.skipTests != true}} || (github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/prod')
       - name: Run Playwright tests
         run: pnpm exec playwright test
-        if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/prod'
+        if: ${{inputs.skipTests != true}} || (github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/prod')
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
