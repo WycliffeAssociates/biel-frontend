@@ -86,6 +86,6 @@ export default defineConfig({
   }),
   image: {
     // todo env var: idk if we want to redirect or just give new biel the old domain?
-    domains: ["https://bieldev.wpengine.com"],
+    domains: ["https://bieldev.wpengine.com", "https://biel.wpengine.com"],
   },
 });
