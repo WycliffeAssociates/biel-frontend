@@ -140,7 +140,7 @@ function AvailableResourcesSmall(props: AvailableResourcesProps) {
   return (
     <div
       data-name="AvailableResourcesSmall"
-      class={`flex flex-col w-full sticky top-0 bg-surface-primary mx-auto gap-4 items-center z-5 ${
+      class={`flex flex-col w-full sticky top-0 bg-surface-primary mx-auto gap-4 items-center  ${
         props.classes || ""
       }`}
     >
