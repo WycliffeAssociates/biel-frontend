@@ -107,10 +107,10 @@ jobs:
         if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/prod'
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
-        if: ${{inputs.skipTests != true}} || (github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/prod')
+        if: ${{inputs.skipTests != true}}
       - name: Run Playwright tests
         run: pnpm exec playwright test
-        if: ${{inputs.skipTests != true}} || (github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/prod')
+        if: ${{inputs.skipTests != true}}
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
