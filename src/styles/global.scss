@@ -121,6 +121,11 @@ button:focus {
 a.underline {
   text-decoration: underline;
 }
+.linkReset,
+.linkReset * {
+  text-decoration: none !important;
+  color: inherit !important;
+}
 .site-footer a {
   text-decoration: underline;
   color: inherit;
