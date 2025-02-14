@@ -84,8 +84,11 @@ export function ContactForm(props: ContactFormProps) {
   }
   async function submit(e: SubmitEvent) {
     e.preventDefault();
-    setFormStatus((prev) => ({...prev, status: statuses.submitted}));
     const formData = new FormData(e.target as HTMLFormElement);
+    if (!formData.get("cf-turnstile-response")) {
+      return;
+    }
+    setFormStatus((prev) => ({...prev, status: statuses.submitted}));
     formData.append("Form Name", "Biel General Contact Form");
     try {
       const res = await fetch("/api/contactForm", {
@@ -183,12 +186,16 @@ export function ContactForm(props: ContactFormProps) {
                 class="w-full py-2 px-2 rounded-lg border border-surface-border text-onSurface-tertiary bg-surface-secondary! focus:(bg-surface-primary!)"
               />
             </FormLabel>
-            <div
-              class="cf-turnstile"
-              data-theme="light"
-              data-size=""
-              data-sitekey={import.meta.env.TURNSTILE_PUBLIC_KEY}
-            />
+
+            <div class="flex flex-col">
+              <RequiredIndicator dict={props.dict} />
+              <div
+                class="cf-turnstile"
+                data-theme="light"
+                data-size=""
+                data-sitekey={import.meta.env.TURNSTILE_PUBLIC_KEY}
+              />
+            </div>
             <SubmitBtn
               disabled={formStatus().status === statuses.submitted}
               text={props.dict.submitForm}

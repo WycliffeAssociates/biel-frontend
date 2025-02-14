@@ -120,6 +120,15 @@ const {englishUriMap} = await getEnglishUriMap({gqlUrl});
   </body>
 </html>
 
+{
+  import.meta.env.PROD && (
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-ZJECQPPTKR"
+    />
+  )
+}
+
 <script>
   if (import.meta.env.PROD) {
     // @ts-ignore
