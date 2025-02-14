@@ -13,6 +13,10 @@ declare global {
       match(request: Request | string): Promise<Response | undefined>;
     };
   }
+  interface Window {
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+    dataLayer: Record<string, any>;
+  }
 }
 
 export type MenuItem = {

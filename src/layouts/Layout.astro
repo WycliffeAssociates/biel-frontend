@@ -119,3 +119,15 @@ const {englishUriMap} = await getEnglishUriMap({gqlUrl});
     </div>
   </body>
 </html>
+
+<script>
+  if (import.meta.env.PROD) {
+    // @ts-ignore
+    const gtag: Gtag.Gtag = function () {
+      window.dataLayer.push(arguments);
+    };
+    window.dataLayer = window.dataLayer || [];
+    gtag("js", new Date());
+    gtag("config", "G-ZJECQPPTKR");
+  }
+</script>
