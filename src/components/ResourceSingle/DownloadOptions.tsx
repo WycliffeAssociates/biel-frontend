@@ -107,7 +107,7 @@ export function DownloadOptions() {
         // hard code a single book for like TW
         {
           book_code: "mat",
-          lang_code: langCode.toLowerCase(),
+          lang_code: langCode,
           resource_type: activeContent.resource_type.toLowerCase(),
         },
       ];
@@ -130,7 +130,7 @@ export function DownloadOptions() {
         )
         .map((bookSlug) => {
           return {
-            lang_code: langCode.toLowerCase(),
+            lang_code: langCode,
             resource_type: activeContent.resource_type.toLowerCase(),
             book_code: bookSlug?.toLowerCase(),
           };

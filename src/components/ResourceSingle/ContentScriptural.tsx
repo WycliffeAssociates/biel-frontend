@@ -169,7 +169,6 @@ export function ScripturalView() {
 
   function bcLinkEventListner(event: MouseEvent) {
     event.preventDefault();
-    // debugger;
     const target = event.target as HTMLAnchorElement;
     const datasetMatchingRecord = target.dataset.matchingRecord;
     if (datasetMatchingRecord) {
