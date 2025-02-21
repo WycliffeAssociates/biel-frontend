@@ -263,6 +263,7 @@ export async function getLanguageContents({
         isGateway: lang.wa_language_metadata?.is_gateway,
         code: lang.ietf_code,
         englishName: lang.english_name,
+        national_name: lang.national_name,
       },
       contents: content,
     },

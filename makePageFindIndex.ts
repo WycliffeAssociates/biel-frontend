@@ -3,9 +3,11 @@ import * as pagefind from "pagefind";
 import {getLangsWithContentNames} from "./src/data/pubDataApi";
 import {getLanguagesPageSlugs, getPage, getWpmlLanguages} from "./src/data/wp";
 import {nonHiddenLanguageCodes} from "./src/i18n/strings";
+import {XMLParser, XMLBuilder} from "fast-xml-parser";
+import fs from "node:fs/promises";
 
 // Create a Pagefind search index to work with
-
+console.log("creating page find index");
 const {index} = await pagefind.createIndex({});
 if (!index) {
   console.error("Could not create Pagefind index");
@@ -13,13 +15,17 @@ if (!index) {
 }
 
 // Index all HTML files in a directory
+console.log("adding dist");
 await index.addDirectory({
   path: "dist",
 });
 
 const wpInstanceUrl = `${process.env.WORDPRESS_GQL_URL}`;
 const pubDataUrl = `${process.env.PUBLIC_DATA_API_URL}`;
+const siteUrl = `${process.env.SITE_URL}`;
+console.log("getting languages");
 const langs = await getWpmlLanguages({gqlUrl: wpInstanceUrl});
+
 const pubDataResource = await getLangsWithContentNames({
   pubDataUrl: pubDataUrl,
 });
@@ -116,7 +122,8 @@ for await (const page of softwarePages) {
     }
   }
 }
-
+const siteMapAdditions: string[] = [];
+console.log("generating resources pages");
 const requests = Object.values(langs)
   .filter((l) =>
     nonHiddenLanguageCodes.includes(
@@ -126,18 +133,19 @@ const requests = Object.values(langs)
   .map((wpmlLang) => {
     // const siteDict = getDict(wpmlLang.code, true)!;
     return pubDataResource.data.language.map((pubDataResourceLanguage) => {
+      const resourcePageSlug =
+        wpmlLang.code === "en"
+          ? "/resources/languages"
+          : resourcePageSlugs.data.page.translations.find(
+              (t) => t.languageCode === wpmlLang.code
+            )?.uri!;
+      const baseUrl =
+        wpmlLang.code === "en"
+          ? `${resourcePageSlug}/${pubDataResourceLanguage.ietf_code}`
+          : // uri comes with trailing slash from wp
+            `${resourcePageSlug}${pubDataResourceLanguage.ietf_code}`;
+      siteMapAdditions.push(`${siteUrl}${baseUrl}`);
       return pubDataResourceLanguage.contents.map((c) => {
-        const resourcePageSlug =
-          wpmlLang.code === "en"
-            ? "/resources/languages"
-            : resourcePageSlugs.data.page.translations.find(
-                (t) => t.languageCode === wpmlLang.code
-              )?.uri!;
-        const baseUrl =
-          wpmlLang.code === "en"
-            ? `${resourcePageSlug}/${pubDataResourceLanguage.ietf_code}`
-            : // uri comes with trailing slash from wp
-              `${resourcePageSlug}${pubDataResourceLanguage.ietf_code}`;
         function insertEnglishNameIfDifferent() {
           if (
             pubDataResourceLanguage.english_name !==
@@ -167,7 +175,9 @@ const requests = Object.values(langs)
   .flat(2);
 
 let counter = 0;
-console.log(`${requests.length} req2`);
+console.log(`${requests.length} req`);
+
+console.log(siteMapAdditions);
 
 for await (const request of requests) {
   if (counter % 100 === 0) {
@@ -189,6 +199,29 @@ const prodPageFindFilesWritten = await index.writeFiles({
   outputPath: "./dist/pagefind",
 });
 console.log({prodPageFindFilesWritten});
+
+async function updateSitemap0Xml() {
+  try {
+    const xmlPath = "./dist/sitemap-0.xml";
+    const distXml = await fs.readFile(xmlPath, {
+      encoding: "utf-8",
+    });
+    const parser = new XMLParser();
+    const parsed = parser.parse(distXml);
+    siteMapAdditions.forEach((add) => {
+      parsed.urlset.url.push(add);
+    });
+    console.log(`There are ${parsed.urlset.url.length} entries in sitemap`);
+    const builder = new XMLBuilder();
+    const built = builder.build(parsed);
+    await fs.writeFile(xmlPath, built);
+    // console.log({built});
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+await updateSitemap0Xml();
 
 // clean up
 await pagefind.close();
