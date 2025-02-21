@@ -7,6 +7,8 @@ import Layout from "@layouts/LayoutNoFooter.astro";
 import {getMenus, getLanguagesPageSlugs, getWpmlLanguages} from "@src/data/wp";
 import {getDict} from "@src/i18n/strings";
 import {capitalizeFirstLetter, titleCase} from "@src/utils";
+import {constants} from "@lib/constants";
+import {getLanguageContents} from "@src/data/pubDataApi";
 
 const {resourceLang} = Astro.params;
 if (!resourceLang) return Astro.redirect("/404");
@@ -18,6 +20,17 @@ const restUrl =
   Astro.locals?.runtime?.env.WORDPRESS_REST_MENU_ENDPOINT ||
   import.meta.env.WORDPRESS_REST_MENU_ENDPOINT ||
   process.env.WORDPRESS_REST_MENU_ENDPOINT;
+
+const pubDataApiUrl = Astro.locals?.runtime?.env.PUBLIC_DATA_API;
+const paramsLower = new URLSearchParams(
+  Array.from(Astro.url.searchParams, ([key, value]) => [
+    key.toLowerCase(),
+    value,
+  ])
+);
+const doBustCache = !!paramsLower.get(constants.queryParamCacheBust);
+const cache = Astro.locals.runtime.caches.default;
+const ctx = Astro.locals.runtime.ctx;
 
 const [wpmlLangDict, menus, languagePageSlugs] = await Promise.all([
   getWpmlLanguages({gqlUrl}),
@@ -129,12 +142,23 @@ const crumbs = {
   nodes: nodes,
 };
 const ogImage = `${Astro.site?.origin}/icon-512.png`;
+
+// language api data:
+const data = await getLanguageContents({
+  language: pubDataIetf,
+  cache,
+  ctx,
+  pubDataApiUrl,
+  doBustCache,
+  siteLanguage: langInfo.code,
+});
+const {data: languageData} = data;
 ---
 
 <Layout
   title={titleCase({
     lang: langInfo.code,
-    str: `${i18nDict!.siteName} - ${parts.join(" ")}`,
+    str: `${languageData.language.englishName} ${i18nDict!.siteName}`,
   })}
   inlineCss={[]}
   description={`${i18nDict!.siteName} - ${parts[parts.length - 1]}`}
@@ -155,6 +179,7 @@ const ogImage = `${Astro.site?.origin}/icon-512.png`;
 
   <div class="md:pt-12 mx-auto h-full overflow-auto w-full contain contain-pad">
     <ResourceSingle
+      languageData={languageData}
       languageToFetch={pubDataIetf}
       i18nDict={i18nDict!}
       siteLanguage={langInfo.code}

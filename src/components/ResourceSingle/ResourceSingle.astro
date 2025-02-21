@@ -4,18 +4,15 @@ interface Props {
   languageToFetch: string;
   i18nDict: i18nDictType;
   siteLanguage: string;
+  languageData: LangWithContent;
 }
 import {ResourceWrapper} from "@components/ResourceSingle/ResourceWrapper";
 import {constants} from "@lib/constants";
 import {getTsFiles} from "@src/data/github";
-import {getLanguageContents} from "@src/data/pubDataApi";
+import type {LangWithContent} from "@src/data/gqlQueries/queries";
 
-const {languageToFetch, i18nDict, siteLanguage} = Astro.props;
-const startTime = performance.now();
+const {languageToFetch, i18nDict, siteLanguage, languageData} = Astro.props;
 const tsFiles = await getTsFiles(languageToFetch);
-const cache = Astro.locals.runtime.caches.default;
-const ctx = Astro.locals.runtime.ctx;
-const pubDataApiUrl = Astro.locals?.runtime?.env.PUBLIC_DATA_API;
 const docUiUrl = Astro.locals?.runtime?.env.DOC_UI_URL as string;
 const paramsLower = new URLSearchParams(
   Array.from(Astro.url.searchParams, ([key, value]) => [
@@ -23,25 +20,8 @@ const paramsLower = new URLSearchParams(
     value,
   ])
 );
-const doBustCache = !!paramsLower.get(constants.queryParamCacheBust);
-
-const data = await getLanguageContents({
-  language: languageToFetch,
-  cache,
-  ctx,
-  pubDataApiUrl,
-  doBustCache,
-  siteLanguage,
-});
-const {data: languageData, wasCached} = data;
 
 const {contents, language: lang} = languageData;
-const endTime = performance.now();
-const totalTime = endTime - startTime;
-// console.log(
-//   `Time for language ${languageToFetch} route on server ${totalTime} ms.
-//   Was cache match is ${wasCached}`
-// );
 
 const resource = paramsLower.get(constants.queryParamResourceType) || null;
 const book = paramsLower.get(constants.queryParamsLangContentsBook) || null;
