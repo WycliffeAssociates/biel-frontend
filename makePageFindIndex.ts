@@ -3,7 +3,6 @@ import * as pagefind from "pagefind";
 import {getLangsWithContentNames} from "./src/data/pubDataApi";
 import {getLanguagesPageSlugs, getPage, getWpmlLanguages} from "./src/data/wp";
 import {nonHiddenLanguageCodes} from "./src/i18n/strings";
-import {XMLParser, XMLBuilder} from "fast-xml-parser";
 import fs from "node:fs/promises";
 
 // Create a Pagefind search index to work with
@@ -206,15 +205,16 @@ async function updateSitemap0Xml() {
     const distXml = await fs.readFile(xmlPath, {
       encoding: "utf-8",
     });
-    const parser = new XMLParser();
-    const parsed = parser.parse(distXml);
-    siteMapAdditions.forEach((add) => {
-      parsed.urlset.url.push(add);
-    });
-    console.log(`There are ${parsed.urlset.url.length} entries in sitemap`);
-    const builder = new XMLBuilder();
-    const built = builder.build(parsed);
-    await fs.writeFile(xmlPath, built);
+    const endOfUrlSetIdx = distXml.indexOf("</urlset>");
+    if (!endOfUrlSetIdx) return;
+    const firstPart = distXml.slice(0, endOfUrlSetIdx);
+    const additions = siteMapAdditions
+      .map((a) => `<url>\n<loc>${a}</loc>\n</url>`)
+      .join("\n");
+    const end = distXml.slice(endOfUrlSetIdx);
+    const newString = `${firstPart}\n${additions}\n${end}`;
+
+    await fs.writeFile(xmlPath, newString);
     // console.log({built});
   } catch (error) {
     console.error(error);
