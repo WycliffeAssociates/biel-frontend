@@ -45,6 +45,7 @@ interface Props {
   langSwitcherList: languageType[];
   inlineStyles: string[];
   englishUriMap: Record<string, Record<string, string>>;
+  scriptureEngagementPages: Record<string, string>;
 }
 
 export async function getStaticPaths() {
@@ -64,18 +65,23 @@ export async function getStaticPaths() {
     process.env.WORDPRESS_REST_MENU_ENDPOINT;
 
   try {
-    const [{pagesByLangCode}, menus, ctaGlobal, wpmlLangDict, {englishUriMap}] =
-      await Promise.all([
-        getAllPages({gqlUrl}),
-        getMenus({restUrl}),
-        getGlobal({
-          slug: "cta-interior-2",
-          langCode: "en",
-          gqlUrl,
-        }),
-        getWpmlLanguages({gqlUrl}),
-        getEnglishUriMap({gqlUrl}),
-      ]);
+    const [
+      {pagesByLangCode, scriptureEngagementPages},
+      menus,
+      ctaGlobal,
+      wpmlLangDict,
+      {englishUriMap},
+    ] = await Promise.all([
+      getAllPages({gqlUrl}),
+      getMenus({restUrl}),
+      getGlobal({
+        slug: "cta-interior-2",
+        langCode: "en",
+        gqlUrl,
+      }),
+      getWpmlLanguages({gqlUrl}),
+      getEnglishUriMap({gqlUrl}),
+    ]);
 
     const ctaGlobalAll = ctaGlobal?.allLangsGlobal;
     const nonHiddenLanguages = new Set(Object.keys(menus));
@@ -170,6 +176,7 @@ export async function getStaticPaths() {
           langSwitcherList,
           inlineStyles: page.inlineStyles,
           englishUriMap: englishUriMap,
+          scriptureEngagementPages: scriptureEngagementPages,
         },
       };
 
@@ -196,6 +203,7 @@ const {
   inlineStyles,
   englishUriMap,
   ctaSection,
+  scriptureEngagementPages,
 } = Astro.props;
 const blockHtmlWithClientInjections = page.editorBlocks
   .filter((b) => b.parentClientId == null)
@@ -292,6 +300,7 @@ const pageDict = getDict(langInfo.code, true)!;
           editorBlocks={page.editorBlocks}
           notTranslatedYet={blocksAreEmpty(page.editorBlocks)}
           dict={pageDict}
+          scriptureEngagementPages={scriptureEngagementPages}
         />
       )
     }

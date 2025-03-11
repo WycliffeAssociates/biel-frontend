@@ -1,11 +1,12 @@
 import type {i18nDictType} from "@src/i18n/strings";
 import {render} from "solid-js/web";
 
-import {type JSX, Show, createSignal} from "solid-js";
+import {type JSX, type Setter, Show, createSignal} from "solid-js";
 
 type ContactFormProps = {
   dict: i18nDictType;
   languageCode: string;
+  localizedSeLink: string;
 };
 export function ContactForm(props: ContactFormProps) {
   const statuses = {
@@ -17,6 +18,7 @@ export function ContactForm(props: ContactFormProps) {
     success: false,
     errored: false,
   });
+  const [seRadioPicked, setSeRadioPicked] = createSignal(false);
 
   async function fadeOutCmsFormIntro() {
     const cmsData = document.querySelector(
@@ -158,21 +160,40 @@ export function ContactForm(props: ContactFormProps) {
                 <RadioAndLabel
                   value="Scripture Engagement"
                   label={props.dict.contactMethodScriptureEngagement}
+                  setSeRadioPicked={setSeRadioPicked}
                 />
                 <RadioAndLabel
                   value="Tech Support"
                   label={props.dict.contactMethodTechSupport}
+                  setSeRadioPicked={setSeRadioPicked}
                 />
                 <RadioAndLabel
                   value="Translation Support"
                   label={props.dict.contactMethodTranslationSupport}
+                  setSeRadioPicked={setSeRadioPicked}
                 />
                 <RadioAndLabel
                   value="Other"
                   label={props.dict.contactMethodOther}
+                  setSeRadioPicked={setSeRadioPicked}
                 />
               </div>
             </FormLabel>
+            <Show when={seRadioPicked()}>
+              <div class="flex flex-col gap-1">
+                <p class="font-step--1!">
+                  {props.dict.contactRedirectToSeText}
+                </p>
+                <a
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="cursor-pointer font-step--1!"
+                  href={props.localizedSeLink}
+                >
+                  {props.dict.learnMoreLink}
+                </a>
+              </div>
+            </Show>
 
             <FormLabel
               dict={props.dict}
@@ -197,7 +218,9 @@ export function ContactForm(props: ContactFormProps) {
               />
             </div>
             <SubmitBtn
-              disabled={formStatus().status === statuses.submitted}
+              disabled={
+                formStatus().status === statuses.submitted || seRadioPicked()
+              }
               text={props.dict.submitForm}
             />
           </div>
@@ -348,12 +371,24 @@ function SVGSuccess() {
   );
 }
 
-function RadioAndLabel(props: {label: string; value: string}) {
+function RadioAndLabel(props: {
+  label: string;
+  value: string;
+  setSeRadioPicked: Setter<boolean>;
+}) {
   return (
     <label class="flex items-center gap-3">
       <input
         type="radio"
         name="method"
+        onInput={(e) => {
+          const checked = e.currentTarget.checked;
+          if (checked && props.value === "Scripture Engagement") {
+            props.setSeRadioPicked(true);
+          } else {
+            props.setSeRadioPicked(false);
+          }
+        }}
         required
         value={props.value}
         class="accent-brand-base peer"

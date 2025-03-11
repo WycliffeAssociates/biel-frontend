@@ -96,6 +96,35 @@ export async function getLanguagesPageSlugs({gqlUrl}: {gqlUrl: string}) {
   return json;
 }
 
+export async function getSeFormPage({gqlUrl}: {gqlUrl: string}) {
+  const query = `
+  query seContactFormPage {
+  page(id: "church-owned-bible-translation/scripture-engagement", idType: URI) {
+    id
+    uri
+    translations {
+      languageCode
+      uri
+    }
+  }
+}`;
+  const response = await fetch(gqlUrl, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({query}),
+  });
+  const json = (await response.json()) as {data: {page: WpPage}};
+  const dict: Record<string, string> = json.data.page.translations.reduce(
+    (acc: Record<string, string>, current) => {
+      acc[current.languageCode] = current.uri;
+      return acc;
+    },
+    {}
+  );
+  dict.en = json.data.page.uri;
+  return dict;
+}
+
 export async function getPage({
   uri,
   langCode,
@@ -342,6 +371,10 @@ export async function getAllPages({gqlUrl}: {gqlUrl: string}) {
   > = {
     en: {},
   };
+  const scriptureEngagementPages: Record<string, string> = {
+    en: "/church-owned-bible-translation/scripture-engagement",
+  };
+
   // languages is ssr, not static.
   const filteredNodes = pages.nodes.filter((p) => {
     return p.title.toLowerCase() !== "languages";
@@ -415,6 +448,9 @@ export async function getAllPages({gqlUrl}: {gqlUrl: string}) {
       translation.isContactPage = enPage.isContactPage;
       translation.isSearchPage = enPage.isSearchPage;
       translation.isScriptureEngagmentPage = enPage.isScriptureEngagmentPage;
+      if (translation.isScriptureEngagmentPage) {
+        scriptureEngagementPages[translation.languageCode] = translation.uri;
+      }
       if (enPage.uri === "/") {
         // Wpml / WP also have these uri's as /, but they are really /langCode cause we aren't ssr rendering / to whatever lang you want.  It's got to be at a different uri
         translation.uri = `/${translation.languageCode}`;
@@ -466,7 +502,7 @@ export async function getAllPages({gqlUrl}: {gqlUrl: string}) {
     });
   }
 
-  return {pagesByLangCode};
+  return {pagesByLangCode, scriptureEngagementPages};
 }
 
 /**

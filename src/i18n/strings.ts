@@ -25,6 +25,8 @@ const en = {
   contactSuccessBody:
     "<p>Thank you for your message. We will get back to you as soon as possible.</p>",
   contactSuccessButtonText: "Go Home",
+  contactRedirectToSeText:
+    "Please see our dedicated form for Scripture Engagement",
   formFailed:
     "Something went wrong.  Please contact us through phone or email.",
   backToHome: "Go Home",
@@ -126,6 +128,8 @@ const ptbr: Record<i18nKeysType, string> = {
   contactSuccessBody:
     "<p>Obrigado por seu mensagem. Entraremos em contato com você o mais rápido possível.</p>",
   contactSuccessButtonText: "Voltar para o Home",
+  contactRedirectToSeText:
+    "Por favor, veja nosso formulário dedicado para Engajamento Bíblico",
   formFailed:
     "Algo deu errado. Por favor, entre em contato conosco através do telefone ou email.",
   backToHome: "Voltar para o Home",
@@ -226,6 +230,8 @@ const es: Record<i18nKeysType, string> = {
   contactSuccessTitle: "¡Gracias!",
   contactSuccessBody:
     "<p>Gracias por tu mensaje. Nos pondremos en contacto contigo lo antes posible.</p>",
+  contactRedirectToSeText:
+    "Consulte nuestro formulario dedicado al Compromiso con las Escrituras",
   contactSuccessButtonText: "Go Home",
   formFailed:
     "Algo ha ido mal.  Por favor, ponte en contacto con nosotros a través del teléfono o correo electrónico.",
@@ -327,6 +333,8 @@ const fr: Record<i18nKeysType, string> = {
   contactSuccessTitle: "Merci!",
   contactSuccessBody:
     "<p>Merci pour votre message. Nous vous répondrons dans les plus brefs délais.</p>",
+  contactRedirectToSeText:
+    "Veuillez consulter notre formulaire dédié à l'engagement scriptural.",
   contactSuccessButtonText: "Rentrer à la maison",
   formFailed:
     "Quelque chose n'a pas fonctionné.  Veuillez nous contacter par téléphone ou par e-mail.",
@@ -429,6 +437,8 @@ const id: Record<i18nKeysType, string> = {
   contactSuccessBody:
     "<p>Terima kasih atas pesan Anda. Kami akan menghubungi Anda sesegera mungkin.</p>",
   contactSuccessButtonText: "Kembali ke Beranda",
+  contactRedirectToSeText:
+    "Silakan lihat formulir khusus kami untuk Keterlibatan Kitab Suci",
   formFailed:
     "Ada yang salah. Silakan hubungi kami melalui telepon atau email.",
   backToHome: "Kembali ke Beranda",
