@@ -74,6 +74,12 @@ const en = {
 	rl_IeftCode: "Code",
 	rl_LangName: "Language Name",
 	rl_Anglicized: "Anglicized Name",
+	filePreviwerLoadingPdf: "Loading PDF...",
+	filePreviwerLoadingPdfError: "There was an error loading the PDF.",
+	filePreviewerInvidualPageLoadError:
+		"There was an error loading this page of the PDF.",
+	filePreviewerPdfMeta:
+		"Size: {{size}}, Pages: {{numPages}}, Last Updated: {{modDate}}",
 	home: "Home",
 	updated: "Updated:",
 	mostRecentlyUpdated: "Most Recently Updated",
@@ -177,6 +183,12 @@ const ptbr: Record<i18nKeysType, string> = {
 	rl_IeftCode: "Código",
 	rl_LangName: "Nome da Língua",
 	rl_Anglicized: "Nome Anglicizado",
+	filePreviwerLoadingPdf: "Carregando PDF...",
+	filePreviwerLoadingPdfError: "Ocorreu um erro ao carregar o PDF.",
+	filePreviewerInvidualPageLoadError:
+		"Ocorreu um erro ao carregar esta página do PDF.",
+	filePreviewerPdfMeta:
+		"Tamanho: {{size}}, Páginas: {{numPages}}, Última atualização: {{modDate}}",
 	home: "Home",
 	updated: "Atualizado:",
 	mostRecentlyUpdated: "Atualizado Recente",
@@ -280,6 +292,12 @@ const es: Record<i18nKeysType, string> = {
 	rl_IeftCode: "Código",
 	rl_LangName: "Nombre del idioma",
 	rl_Anglicized: "Nombre anglicismo",
+	filePreviwerLoadingPdf: "Cargando PDF...",
+	filePreviwerLoadingPdfError: "Se ha producido un error al cargar el PDF",
+	filePreviewerInvidualPageLoadError:
+		"Se ha producido un error al cargar esta página del PDF",
+	filePreviewerPdfMeta:
+		"Tamaño: {{size}}, Páginas: {{numPages}}, Última actualización: {{modDate}}",
 	home: "Hogar",
 	updated: "Actualizado:",
 	mostRecentlyUpdated: "Actualizado más recientemente",
@@ -383,6 +401,13 @@ const fr: Record<i18nKeysType, string> = {
 	rl_IeftCode: "Code",
 	rl_LangName: "Nom de la langue",
 	rl_Anglicized: "Nom anglicisé",
+	filePreviwerLoadingPdf: "Chargement du PDF...",
+	filePreviwerLoadingPdfError:
+		"Une erreur s'est produite lors du chargement du PDF",
+	filePreviewerInvidualPageLoadError:
+		"Une erreur s'est produite lors du chargement de cette page du PDF",
+	filePreviewerPdfMeta:
+		"Taille : {{size}}, Pages : {{numPages}}, Dernière mise à jour : {{modDate}}",
 	home: "Accueil",
 	updated: "Updated :",
 	mostRecentlyUpdated: "Dernière mise à jour",
@@ -486,6 +511,12 @@ const id: Record<i18nKeysType, string> = {
 	rl_IeftCode: "Kode",
 	rl_LangName: "Nama Bahasa",
 	rl_Anglicized: "Nama Anglikanisasi",
+	filePreviwerLoadingPdf: "Memuat PDF...",
+	filePreviwerLoadingPdfError: "Ada kesalahan saat memuat PDF.",
+	filePreviewerInvidualPageLoadError:
+		"Ada kesalahan saat memuat halaman PDF ini.",
+	filePreviewerPdfMeta:
+		"Ukuran: {{size}}, Halaman: {{numHalaman}}, Terakhir Diperbarui: {{modDate}}",
 	home: "Beranda",
 	updated: "Diperbarui:",
 	mostRecentlyUpdated: "Paling Baru Diperbarui",

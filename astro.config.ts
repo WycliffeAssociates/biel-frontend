@@ -60,7 +60,12 @@ export default defineConfig({
 			registerType: "autoUpdate",
 			manifest: manifest,
 			injectManifest: {
-				globIgnores: ["**/*.html", "sw.js", "**/_worker.js/**"],
+				globIgnores: [
+					"**/*.html",
+					"sw.js",
+					"**/_worker.js/**",
+					"_astro/pdf.worker-*.js",
+				],
 				globPatterns: ["**/*.{js,css}", "fonts/**/*", "images/**/*"],
 			},
 			/* your pwa options */

@@ -20,9 +20,7 @@ type fetchExternalArgs = Array<{
 export async function* fetchExternalUsfmAndCache(files: fetchExternalArgs) {
 	for (const f of files) {
 		try {
-			const url = `/api/fetchExternal?url=${encodeURIComponent(f.url)}&hash=${
-				f.hash
-			}`;
+			const url = `/api/fetchExternal?url=${encodeURI(f.url)}&hash=${f.hash}`;
 			const splitOnSlashes = f.url.split("/");
 			const nextToLast = splitOnSlashes[splitOnSlashes.length - 2];
 			const cacheMatch = await caches.match(url, {

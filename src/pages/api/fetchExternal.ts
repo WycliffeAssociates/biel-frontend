@@ -15,17 +15,14 @@ export const GET: APIRoute = async ({ url, locals }) => {
 	const rewrite = queryParams.get("rewrite") || false;
 	const resourceType = queryParams.get("resource-type");
 	const runtime = locals.runtime;
-	// console.log({urlToFetch, hashParam});
 
 	if (!urlToFetch) {
 		return new Response(null, {
 			status: 400,
 		});
 	}
-	const decodedUrlToFetch = decodeURIComponent(urlToFetch);
-
 	// In cloudflare, fetches on Get requests go through the caches.default, so we don't have to manually call caches.match for these
-	const res = await fetch(decodedUrlToFetch);
+	const res = await fetch(encodeURI(urlToFetch));
 	if (hashParam && res.ok) {
 		runtime.ctx.waitUntil(
 			(async () => {
@@ -40,7 +37,7 @@ export const GET: APIRoute = async ({ url, locals }) => {
 				const newResToCache = new Response(resClone.body, {
 					headers,
 				}) as unknown as WorkerResponse;
-				await runtime.caches.default.put(decodedUrlToFetch, newResToCache);
+				await runtime.caches.default.put(urlToFetch, newResToCache);
 			})(),
 		);
 	}

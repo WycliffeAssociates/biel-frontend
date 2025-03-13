@@ -55,6 +55,8 @@ const ResourceSingleContext = createContext<{
 				supplementalFiles: TsDirectoryLang | undefined;
 		  }
 		| undefined;
+	tsFilePreviewing: Accessor<null | TsDirectoryFile>;
+	setTsFilePreviewing: Setter<null | TsDirectoryFile>;
 }>();
 export type tsFolderState = {
 	folderName: string;
@@ -97,6 +99,8 @@ export const ResourceSingleProvider = (props: ResourceSingleProviderProps) => {
 	const [viewType, setViewType] = createSignal<"readable" | "downloadable">(
 		props.queryParams.download ? "downloadable" : "readable",
 	);
+	const [tsFilePreviewing, setTsFilePreviewing] =
+		createSignal<null | TsDirectoryFile>(null);
 	function getDefaultTsFolderShown() {
 		if (!props.tsFiles?.trainingFiles || !props.queryParams.download) return;
 		// find the folder
@@ -272,6 +276,8 @@ export const ResourceSingleProvider = (props: ResourceSingleProviderProps) => {
 				downloadableSearchTerm,
 				setDownloadableSearchTerm,
 				allTsFiles: props.tsFiles,
+				tsFilePreviewing,
+				setTsFilePreviewing,
 			}}
 		>
 			{props.children}

@@ -52,7 +52,9 @@ export async function fetchHtmlChapters(arg: {
 	if (!arg.selected) return null;
 	try {
 		const res = await fetch(
-			`${globalThis.origin}/api/fetchExternal?url=${arg.selected.url}&hash=${arg.selected.hash}&rewrite=true`,
+			`${globalThis.origin}/api/fetchExternal?url=${encodeURI(
+				arg.selected.url,
+			)}&hash=${arg.selected.hash}&rewrite=true`,
 		);
 		if (res.ok) {
 			const text = await res.text();

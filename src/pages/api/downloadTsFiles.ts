@@ -38,8 +38,7 @@ export const POST: APIRoute = async ({ request }) => {
 			};
 		}),
 	);
-	console.log({ predictedLength });
-	// const tStream = getResFflate(payload, locals.runtime.ctx);
+
 	const clientZipStream = downloadZip(
 		getResClientZip(payloadWithShortenedNames),
 	);
@@ -82,6 +81,7 @@ async function* getResClientZip(payload: TsDirectoryFile[]) {
 	for (const f of payload) {
 		try {
 			const res = await fetch(encodeURI(f.url));
+			console.log(`fetching ${encodeURI(f.url)}`);
 			yield {
 				name: f.fileName,
 				input: res.body!,

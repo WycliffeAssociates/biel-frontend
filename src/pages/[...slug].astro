@@ -205,7 +205,7 @@ const {
   ctaSection,
   scriptureEngagementPages,
 } = Astro.props;
-const blockHtmlWithClientInjections = page.editorBlocks
+const blockHtmlWithClientInjections = page?.editorBlocks
   .filter((b) => b.parentClientId == null)
   .map((block) => {
     // do some client side injections of components here if needed

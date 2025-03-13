@@ -177,7 +177,9 @@ export function ScripturalView() {
 				hash: string;
 			};
 			fetchModalContent(
-				`${globalThis.origin}/api/fetchExternal?url=${parsed.url}&hash=${parsed.hash}&rewrite=true`,
+				`${globalThis.origin}/api/fetchExternal?url=${encodeURI(
+					parsed.url,
+				)}&hash=${parsed.hash}&rewrite=true`,
 			);
 		}
 	}
@@ -251,7 +253,7 @@ export function ScripturalView() {
 				>
 					<Dialog.Portal>
 						<Dialog.Overlay class="bg-black/70 z-20 absolute inset-0" />
-						<div class="absolute inset-6  bg-pink z-20 rounded-xl shadow-lg  bg-surface-primary max-w-prose mx-auto p-2">
+						<div class="absolute inset-6  z-20 rounded-xl shadow-lg  bg-surface-primary max-w-prose mx-auto p-2">
 							<Dialog.Content
 								ref={modalContentRef}
 								data-js="modalContentRef"
