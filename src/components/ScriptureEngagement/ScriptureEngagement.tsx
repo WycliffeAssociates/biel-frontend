@@ -561,7 +561,7 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
 				},
 			});
 			if (res.status === 200) {
-				// hacky way to just hide the form again for now. === 200 is success of course, but I didn't set this thing up orignally with multiple form states for re. the hiddenness. 
+				// hacky way to just hide the form again for now. === 200 is success of course, but I didn't set this thing up orignally with multiple form states for re. the hiddenness.
 				setFormNotSubmittedSuccessfully(true);
 			}
 		} catch (e) {

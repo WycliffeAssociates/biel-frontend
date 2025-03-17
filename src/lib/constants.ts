@@ -25,3 +25,5 @@ export const contactFormContactMethodsValues = {
 	accessibility: "Scripture Accessibility",
 	other: "Other",
 };
+
+export const previewableFileTypes = ["ppt", "pptx", "doc", "docx", "pdf"];

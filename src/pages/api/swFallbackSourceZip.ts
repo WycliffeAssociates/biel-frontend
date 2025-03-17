@@ -60,7 +60,7 @@ async function* zipUsfmFiles(
 ) {
 	for (const f of payload) {
 		try {
-			const prefixedUrl = `${originPrefixedUrl}/api/fetchExternal?url=${encodeURIComponent(
+			const prefixedUrl = `${originPrefixedUrl}/api/fetchExternal?url=${encodeURI(
 				f.url,
 			)}&hash=${f.hash}`;
 			// proxy through fetchExternal due to sha for strong cachign

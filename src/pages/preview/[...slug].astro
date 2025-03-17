@@ -118,6 +118,12 @@ const metaDescription =
   blockHtmlWithClientInjections.join(" ").slice(0, 100);
 const ogImage = `${Astro.site?.origin}/icon-512.png`;
 const pageDict = getDict(langInfo.code, true)!;
+// don't worry about getting the full map:
+const scriptureEngagementPages = englishUriMap?.[
+  "church-owned-bible-translations/scripture-engagement"
+] || {
+  en: "/church-owned-bible-translations/scripture-engagement",
+};
 ---
 
 <LayoutServer
@@ -193,6 +199,7 @@ const pageDict = getDict(langInfo.code, true)!;
           editorBlocks={page.editorBlocks}
           notTranslatedYet={blocksAreEmpty(page.editorBlocks)}
           dict={pageDict}
+          scriptureEngagementPages={scriptureEngagementPages}
         />
       )
     }
