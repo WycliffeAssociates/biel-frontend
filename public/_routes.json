@@ -1,34 +1,34 @@
 {
-  "version": 1,
-  "exclude": [
-    "/resources/languages",
-    "/fr/ressources/langues",
-    "/fr/les-ressources/langues",
-    "/es/recursos/idiomas",
-    "/id/sumber-daya/bahasa",
-    "/pt-br/recursos/idiomas",
-    "/fa/منابع",
-    "/hi/संसाधनों",
-    "/ru/ресурсы",
-    "/th/ทรัพยากร",
-    "/ur/وسائل",
-    "/zh-hans/资源"
-  ],
-  "include": [
-    "/_server-islands/*",
-    "/api/*",
-    "/preview/*",
-    "/resources/languages/*",
-    "/fr/ressources/langues/*",
-    "/fr/les-ressources/langues/*",
-    "/es/recursos/idiomas/*",
-    "/id/sumber-daya/bahasa/*",
-    "/pt-br/recursos/idiomas/*",
-    "/fa/منابع/*",
-    "/hi/संसाधनों/*",
-    "/ru/ресурсы/*",
-    "/th/ทรัพยากร/*",
-    "/ur/وسائل/*",
-    "/zh-hans/资源/*"
-  ]
+	"version": 1,
+	"exclude": [
+		"/resources/languages",
+		"/fr/ressources/langues",
+		"/fr/les-ressources/langues",
+		"/es/recursos/idiomas",
+		"/id/sumber-daya/bahasa",
+		"/pt-br/recursos/idiomas",
+		"/fa/منابع",
+		"/hi/संसाधनों",
+		"/ru/ресурсы",
+		"/th/ทรัพยากร",
+		"/ur/وسائل",
+		"/zh-hans/资源"
+	],
+	"include": [
+		"/_server-islands/*",
+		"/api/*",
+		"/preview/*",
+		"/resources/languages/*",
+		"/fr/ressources/langues/*",
+		"/fr/les-ressources/langues/*",
+		"/es/recursos/idiomas/*",
+		"/id/sumber-daya/bahasa/*",
+		"/pt-br/recursos/idiomas/*",
+		"/fa/منابع/*",
+		"/hi/संसाधनों/*",
+		"/ru/ресурсы/*",
+		"/th/ทรัพยากร/*",
+		"/ur/وسائل/*",
+		"/zh-hans/资源/*"
+	]
 }

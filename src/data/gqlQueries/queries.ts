@@ -2,7 +2,7 @@ const bielFilter = `show_on_biel: {_eq: true},status: {_eq: "Primary"}`;
 const hasRenderings = "count: {predicate: {_gt: 0}}";
 
 export const getLanguagesWithContentForBielQuery = (
-  siteLanguageException: string
+	siteLanguageException: string,
 ) => `
 query MyQuery {
   localization(
@@ -47,20 +47,20 @@ query MyQuery {
 `;
 
 export type GetLanguagesWithContentForBielQueryReturn = {
-  data: {
-    localization: Localization[];
-    language: Array<PubDataLanguageWithContents>;
-  };
+	data: {
+		localization: Localization[];
+		language: Array<PubDataLanguageWithContents>;
+	};
 };
 
 export const getLanguageContentsQuery = ({
-  lang,
-  siteLang,
+	lang,
+	siteLang,
 }: {
-  lang: string;
-  siteLang: string;
+	lang: string;
+	siteLang: string;
 }) => {
-  return `
+	return `
   query LangContents {
   localization(
     where: {category: {_eq: "resource_type"}, ietf_code: {_eq: "${siteLang}"}}
@@ -105,33 +105,33 @@ export const getLanguageContentsQuery = ({
 };
 
 export type GetLanguageContentsQueryReturn = {
-  data: {
-    localization: Omit<Localization, "ietf_code">[];
-    language: PubDataLanguageWithContents[];
-  };
+	data: {
+		localization: Omit<Localization, "ietf_code">[];
+		language: PubDataLanguageWithContents[];
+	};
 };
 export type PubDataLanguage = {
-  national_name: string;
-  english_name: string;
-  direction: string;
-  ietf_code: string;
-  wa_language_metadata: {
-    is_gateway: boolean;
-  };
-  resourceTypesAvailable: string[];
+	national_name: string;
+	english_name: string;
+	direction: string;
+	ietf_code: string;
+	wa_language_metadata: {
+		is_gateway: boolean;
+	};
+	resourceTypesAvailable: string[];
 };
 export type PubDataLanguageWithContents = PubDataLanguage & {
-  contents: ContentRow[];
+	contents: ContentRow[];
 };
 export type PubDataLanguageWithContentNames = PubDataLanguage & {
-  contents: {
-    name: string;
-    resource_type: string;
-  }[];
+	contents: {
+		name: string;
+		resource_type: string;
+	}[];
 };
 //=============== GetLangWithContentNames  =============
 export const getLangWithContentNamesQuery = () => {
-  return `
+	return `
   
 		query MyQuery {
     localization(
@@ -177,90 +177,90 @@ export const getLangWithContentNamesQuery = () => {
   `;
 };
 export type getLangWithContentNamesQueryReturn = {
-  data: {
-    localization: Localization[];
-    language: {
-      english_name: string;
-      ietf_code: string;
-      national_name: string;
-      wa_language_metadata: {
-        is_gateway: boolean;
-      };
-      contents: Array<ContentRow & {displayName: string}>;
-    }[];
-  };
+	data: {
+		localization: Localization[];
+		language: {
+			english_name: string;
+			ietf_code: string;
+			national_name: string;
+			wa_language_metadata: {
+				is_gateway: boolean;
+			};
+			contents: Array<ContentRow & { displayName: string }>;
+		}[];
+	};
 };
 
 //=============== Shared query Rerturn types  =============
 type Localization = {
-  resourceTypeKey: string;
-  value: string;
-  ietf_code: string;
+	resourceTypeKey: string;
+	value: string;
+	ietf_code: string;
 };
 type ScripturalRenderingMeta = {
-  chapter: string;
-  book_slug: string;
-  book_name: string;
+	chapter: string;
+	book_slug: string;
+	book_name: string;
 };
 
 export type ContentRow = {
-  name: string;
-  type: string;
-  domain: string;
-  title: string | undefined;
-  resource_type: string;
-  gitRepo?: {
-    url: string;
-  };
-  rendered_contents: RenderedContentRow[];
+	name: string;
+	type: string;
+	domain: string;
+	title: string | undefined;
+	resource_type: string;
+	gitRepo?: {
+		url: string;
+	};
+	rendered_contents: RenderedContentRow[];
 };
 
 export type RenderedContentRow = {
-  hash: string;
-  url: string;
-  scriptural_rendering_metadata: ScripturalRenderingMeta | null;
-  file_type: string;
-  file_size_bytes: number;
+	hash: string;
+	url: string;
+	scriptural_rendering_metadata: ScripturalRenderingMeta | null;
+	file_type: string;
+	file_size_bytes: number;
 };
 
 export type RenderedContentRowsByType = {
-  wholeChapterUrls: {[key: string]: RenderedContentRow};
-  htmlChapters: RenderedContentRow[];
-  wholeResourceRow: RenderedContentRow | null;
-  usfmSources: RenderedContentRow[];
-  otherFiles: RenderedContentRow[];
+	wholeChapterUrls: { [key: string]: RenderedContentRow };
+	htmlChapters: RenderedContentRow[];
+	wholeResourceRow: RenderedContentRow | null;
+	usfmSources: RenderedContentRow[];
+	otherFiles: RenderedContentRow[];
 };
 
 export type ContentCommon = {
-  name: string;
-  type: string;
-  resource_type: string;
-  // title comes from db directly and is manifest.yaml|json derived. DisplayName is form manually curated localization of resource types
-  title: string | undefined;
-  displayName: string;
-  gitRepo?: {
-    url: string;
-  };
-  rendered_contents: RenderedContentRowsByType;
+	name: string;
+	type: string;
+	resource_type: string;
+	// title comes from db directly and is manifest.yaml|json derived. DisplayName is form manually curated localization of resource types
+	title: string | undefined;
+	displayName: string;
+	gitRepo?: {
+		url: string;
+	};
+	rendered_contents: RenderedContentRowsByType;
 };
 export type domainScripture = ContentCommon & {
-  domain: "scripture" | "gloss" | "parascriptural";
+	domain: "scripture" | "gloss" | "parascriptural";
 };
 export type domainPeripheral = ContentCommon & {
-  domain: "peripheral";
-  // rendered_contents: RenderedContentRow[];
+	domain: "peripheral";
+	// rendered_contents: RenderedContentRow[];
 };
 
 export type ContentsForLang = domainScripture | domainPeripheral;
 
 export type LanguageForClient = {
-  direction: "ltr" | "rtl";
-  isGateway: boolean;
-  code: string;
-  englishName: string;
-  national_name: string;
+	direction: "ltr" | "rtl";
+	isGateway: boolean;
+	code: string;
+	englishName: string;
+	national_name: string;
 };
 export type LangWithContent = {
-  language: LanguageForClient;
-  contents: ContentsForLang[];
+	language: LanguageForClient;
+	contents: ContentsForLang[];
 };

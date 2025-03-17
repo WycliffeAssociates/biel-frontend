@@ -4,18 +4,27 @@ import type {
   TsDirectoryLang,
 } from "@customTypes/types";
 import {Checkbox} from "@kobalte/core/checkbox";
+import {previewableFileTypes} from "@lib/constants";
 import slugify from "@sindresorhus/slugify";
-import {For, Show, Suspense, createSignal, onMount} from "solid-js";
+import {For, Show, Suspense, createSignal, lazy, onMount} from "solid-js";
 import {ScripturalView} from "./ContentScriptural";
 import {PeripheralMenu} from "./Menu";
 import {useResourceSingleContext} from "./ResourceSingleContext";
+const LazyFilePreviewer = lazy(() => import("./TsFilePreviewer"));
 
 type ContentViewProps = {
   classes?: string;
 };
 export function ContentView(props: ContentViewProps) {
-  const {fitsScripturalSchema, activeContent, viewType, selectedTsFolder} =
-    useResourceSingleContext();
+  const {
+    fitsScripturalSchema,
+    activeContent,
+    viewType,
+    selectedTsFolder,
+    tsFilePreviewing,
+    setTsFilePreviewing,
+    i18nDict,
+  } = useResourceSingleContext();
   return (
     <Suspense>
       <Show when={viewType() === "readable"}>
@@ -44,6 +53,13 @@ export function ContentView(props: ContentViewProps) {
           <DownloadableView tsTree={selectedTsFolder()} loopIter={0} />
         </div>
       </Show>
+      <Show when={tsFilePreviewing()}>
+        <LazyFilePreviewer
+          currentPreviewing={tsFilePreviewing}
+          setTsFilePreviewing={setTsFilePreviewing}
+          i18nDict={i18nDict}
+        />
+      </Show>
     </Suspense>
   );
 }
@@ -62,6 +78,7 @@ function DownloadableView(props: {
     setTsFilesForDownload,
     downloadableSearchTerm,
     i18nDict,
+    setTsFilePreviewing,
   } = useResourceSingleContext();
   if (!props.tsTree) {
     return null;
@@ -206,9 +223,22 @@ function DownloadableView(props: {
                     </Checkbox.Indicator>
                   </Checkbox.Control>
                   <Checkbox.Label class="data-[checked]:(text-brand-base) inline-flex gap-2 items-center justify-between w-full pe-2 group">
-                    {file.fileName}
+                    <span class="justify-between md:justify-start flex gap-3 items-center">
+                      <span class="font-step--1 md:font-step-0">
+                        {file.fileName}
+                      </span>
+                      <Show when={previewableFileTypes.includes(file.fileType)}>
+                        <button
+                          onClick={() => {
+                            setTsFilePreviewing(file);
+                          }}
+                          type="button"
+                          class="i-mdi:eye hover:bg-brand-base! focus:bg-brand-base! w-1.35em h-1.35em"
+                        />
+                      </Show>
+                    </span>
                     <Show when={file.lastUpdated}>
-                      <small class="font-step--2 text-onSurface-tertiary inlinex-flex gap-2px group-data-[checked]:(text-brand-base)">
+                      <small class="hidden md:block font-step--2 text-onSurface-tertiary inlinex-flex gap-2px group-data-[checked]:(text-brand-base)">
                         <span>{i18nDict.updated}</span>
                         <span>
                           {" "}
@@ -260,7 +290,9 @@ function PeripheralView(props: {content: ScriptureStoreState}) {
     if (!twState()?.html && printAllFile) {
       setTimeout(() => setDoShowProgress(true), 100);
       const res = await fetch(
-        `${globalThis.origin}/api/fetchExternal?url=${printAllFile.url}&hash=${printAllFile.hash}&resource-type=TW&rewrite=true`
+        `${globalThis.origin}/api/fetchExternal?url=${encodeURI(
+          printAllFile.url
+        )}&hash=${printAllFile.hash}&resource-type=TW&rewrite=true`
       );
       const reader = res.body?.getReader();
       if (!reader) {

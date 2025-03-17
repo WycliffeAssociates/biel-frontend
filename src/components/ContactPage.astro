@@ -4,13 +4,23 @@ interface Props {
   notTranslatedYet: boolean;
   dict: i18nDictType;
   languageCode: string;
+  scriptureEngagementPages: Record<string, string>;
 }
-const {editorBlocks, notTranslatedYet, dict, languageCode} = Astro.props;
+const {
+  editorBlocks,
+  notTranslatedYet,
+  dict,
+  languageCode,
+  scriptureEngagementPages,
+} = Astro.props;
 import type {EditorBlock} from "@customTypes/types";
 import type {i18nDictType} from "@src/i18n/strings";
 import Blocks from "./Blocks.astro";
 import {adjustCmsDomLinks} from "@src/utils";
 import {ContactForm} from "./ContactForm";
+const localizedSeLink =
+  scriptureEngagementPages[languageCode] ||
+  "/church-owned-bible-translations/scripture-engagement";
 // const redirectUrl = Astro.request.url;
 ---
 
@@ -35,7 +45,12 @@ import {ContactForm} from "./ContactForm";
     </div>
 
     <div class="w-full md:max-w-50ch">
-      <ContactForm dict={dict} languageCode={languageCode} client:load />
+      <ContactForm
+        dict={dict}
+        languageCode={languageCode}
+        localizedSeLink={localizedSeLink}
+        client:load
+      />
     </div>
   </div>
 </div>
