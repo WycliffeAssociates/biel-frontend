@@ -36,22 +36,6 @@ type ResourceIndexArgs = {
 };
 
 export function ResourceIndex(props: ResourceIndexArgs) {
-  // todo: clean up this stuff if all builds.
-  let resourceTypeToDisplayNameMerged = props.resourceTypeToDisplayName;
-  if (props.tsFileLocalization) {
-    const withTsFileLocalizations = Object.entries(
-      props.tsFileLocalization
-    ).reduce((acc: Record<string, string>, [k, v]) => {
-      acc[k.toLowerCase()] = v;
-      return acc;
-    }, {});
-    // Record<string,string>
-    resourceTypeToDisplayNameMerged = {
-      ...props.resourceTypeToDisplayName,
-      ...withTsFileLocalizations,
-    };
-  }
-
   const [searchTerm, setSearchTerm] = createSignal("");
   const filterableKeys = [
     "english_name",
@@ -90,14 +74,20 @@ export function ResourceIndex(props: ResourceIndexArgs) {
     }
   );
 
-  // const allResourceTypes = Array.from(
-  //   new Set([
-  //     ...props.languages.flatMap((x) =>
-  //       x.resourceTypesAvailable.map((rType) => rType.toLowerCase())
-  //     ),
-  //     ...Object.keys(props.tsFilesByResourceType).map((k) => k.toLowerCase()),
-  //   ])
-  // );
+  let resourceTypeToDisplayNameMerged = props.resourceTypeToDisplayName;
+  if (props.tsFileLocalization) {
+    const withTsFileLocalizations = Object.entries(
+      props.tsFileLocalization
+    ).reduce((acc: Record<string, string>, [k, v]) => {
+      acc[k.toLowerCase()] = v;
+      return acc;
+    }, {});
+    // Record<string,string>
+    resourceTypeToDisplayNameMerged = {
+      ...props.resourceTypeToDisplayName,
+      ...withTsFileLocalizations,
+    };
+  }
   const allResourceTypes = [resourceTypes, TSType];
   const selectedResourceTypes = allResourceTypes.reduce(
     (acc: OptGroup[], curr) => {
@@ -168,7 +158,7 @@ export function ResourceIndex(props: ResourceIndexArgs) {
     rType: string;
   }) {
     return (
-      !!props.tsFilesByResourceType[rType.toLowerCase()]?.[lang.ietf_code] ||
+      props.tsFilesByResourceType[rType.toLowerCase()]?.[lang.ietf_code] ||
       props.tsFilesByResourceType[rType.toUpperCase()]?.[lang.ietf_code]
     );
   }
@@ -321,7 +311,7 @@ function getLangUrl({
   if (contentMatchingDownloadParamType) {
     return `/${prefix}/${code}?${constants.queryParamsLangContentsDownload}=${contentMatchingDownloadParamType}`;
   }
-  return `/${prefix}/${code}`;
+  return `/${prefix}/${code}`.replaceAll("//", "/");
 }
 function Listing(props: ListingProps) {
   return (
@@ -434,6 +424,13 @@ function FilterDetails(props: FilterProps) {
       };
     });
   };
+
+  const displayLabel = (option: OptGroup) => {
+    return (
+      props.resourceTypeToDisplayName[option?.value] ||
+      option?.value?.toUpperCase()
+    );
+  };
   return (
     <div>
       <p class="text-onSurface-primary font-step-0 font-500">
@@ -522,10 +519,10 @@ function FilterDetails(props: FilterProps) {
               aria-label="Fruits"
               as="div"
               data-name="select_trigger"
-              class="inline-flex items-center justify-between w-full rounded-lg border bg-surface-secondary text-gray-800 transition-colors duration-200 px-1"
+              class="inline-flex items-center justify-between w-full rounded-lg border bg-surface-secondary text-gray-800 transition-colors duration-200 px-1 "
             >
               <Select.Value<string>
-                class="flex items-center gap-2 justify-between p-4 h-16 w-full data-[placeholder-shown]:text-onSurface-secondary"
+                class="flex items-center gap-2 justify-between p-4 h-20 w-full data-[placeholder-shown]:text-onSurface-secondary"
                 data-name="select_value"
               >
                 {(state) => (
@@ -539,8 +536,8 @@ function FilterDetails(props: FilterProps) {
                               class="bg-surface-primary text-onSurface-secondary rounded-md font-step--1 p-1 flex items-center gap-2 hover:(bg-brand-base text-onSurface-invert)"
                               onClick={() => state.remove(option)}
                             >
-                              {/*@ts-ignore*/}
-                              {option?.value?.toUpperCase()}
+                              {/* @ts-ignore types are wrong */}
+                              {displayLabel(option)}
                               <span class="i-majesticons:close-circle  w-1em h-1em" />
                             </button>
                           );

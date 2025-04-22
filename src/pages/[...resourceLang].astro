@@ -38,7 +38,8 @@ const [wpmlLangDict, menus, languagePageSlugs] = await Promise.all([
   getLanguagesPageSlugs({gqlUrl}),
 ]);
 
-const parts = resourceLang.split("/");
+const parts = resourceLang.split("/").filter(Boolean);
+console.log({parts});
 const isEnglishDetailPage = parts[0] === "resources" && parts.length === 3;
 const isDetailPageOther = parts.length === 4;
 const thisLang = isEnglishDetailPage ? "en" : parts[0];
