@@ -71,6 +71,17 @@
           etc).
         </li>
         <li>
+          Dependency notes:
+          <ul>
+            <li>
+              Client zip = MS Office documents must be stored using ZIP version
+              2.0 ; use client-zip^1 to generate those, you don't need
+              client-zip^2 features for Office documents anyway.
+              <a href="https://github.com/Touffy/client-zip">See here</a>
+            </li>
+          </ul>
+        </li>
+        <li>
           Service Worker -> This site does have a service worker for caching. If
           a service worker fails to register (or is non supported, i.e. private
           Firefox), there is some redundancy in functionality as an api route.

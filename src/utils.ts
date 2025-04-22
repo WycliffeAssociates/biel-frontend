@@ -89,9 +89,34 @@ function replaceAllAbsoluteLinksToCms({
 	currentLangCode,
 }: replaceAllAbsoluteLinksToCms) {
 	const baseUrl = import.meta.env.CMS_URL;
-	const allTags: Array<HTMLAnchorElement> = Array.from(
-		dom.querySelectorAll(`a[href^="${baseUrl}"]`),
+	const theTags = Array.from(
+		dom.querySelectorAll("a"),
+	) as Array<HTMLAnchorElement>;
+	// todo: remove if POC builds and M'el likes it
+	const { resourcePage, baseUrlIncluded } = theTags.reduce(
+		(
+			acc: {
+				resourcePage: Array<HTMLAnchorElement>;
+				baseUrlIncluded: Array<HTMLAnchorElement>;
+			},
+			tag: HTMLAnchorElement,
+		) => {
+			if (tag.href.includes(baseUrl)) {
+				acc.baseUrlIncluded.push(tag);
+			} else if (tag.href.includes("/resources/")) {
+				acc.resourcePage.push(tag);
+			}
+			return acc;
+		},
+		{ resourcePage: [], baseUrlIncluded: [] },
 	);
+	resourcePage.forEach((tag) => {
+		console.log(tag.href);
+	});
+	const allTags = baseUrlIncluded;
+	// const allTags: Array<HTMLAnchorElement> = Array.from(
+	//   dom.querySelectorAll(`a[href^="${baseUrl}"]`)
+	// );
 	const binaryTags = allTags.filter(
 		(tag: HTMLAnchorElement) =>
 			tag.href.endsWith(".pdf") ||

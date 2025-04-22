@@ -3,10 +3,13 @@ import {constants} from "@lib/constants";
 import {getLanguagesWithContentForBiel} from "@src/data/pubDataApi";
 import {ResourceIndex} from "./Main";
 import type {i18nDictType} from "@src/i18n/strings";
+import type {ResourceTypeToIetfList} from "@src/data/github";
 interface Props {
   detailPrefix: string;
   i18nDict: i18nDictType;
   siteIetf: string;
+  tsFilesByResourceType: ResourceTypeToIetfList;
+  tsFileLocalization: Record<string, string>;
 }
 const startTime = performance.now();
 const runtime = Astro.locals.runtime;
@@ -28,7 +31,13 @@ const resourceTypeArrQp = resourceType
 const cache = runtime.caches.default;
 const ctx = runtime.ctx;
 const pubDataApiUrl = runtime.env.PUBLIC_DATA_API;
-const {detailPrefix, i18nDict, siteIetf} = Astro.props as Props;
+const {
+  detailPrefix,
+  i18nDict,
+  siteIetf,
+  tsFilesByResourceType,
+  tsFileLocalization,
+} = Astro.props as Props;
 const {data, wasCached, resourceTypeToDisplayName} =
   await getLanguagesWithContentForBiel({
     cache,
@@ -54,6 +63,8 @@ console.log(
     languages={data.data.language}
     detailPrefix={detailPrefix}
     resourceTypeToDisplayName={resourceTypeToDisplayName}
+    tsFileLocalization={tsFileLocalization}
     resourceTypeArrSearchParams={resourceTypeArrQp}
+    tsFilesByResourceType={tsFilesByResourceType}
   />
 </div>

@@ -341,7 +341,7 @@ function Menu(props: MenuProps) {
 	const numHtmlChaps = props.content.rendered_contents.htmlChapters.length;
 	return (
 		<div
-			class="flex flex-grow rtl:flex-row-reverse bg-surface-secondary  px-1 py-2 gap-2 rounded-lg md:(rounded-lg)"
+			class="flex flex-grow items-center rtl:flex-row-reverse bg-surface-secondary  px-1 py-2 gap-2 rounded-lg md:(rounded-lg)"
 			data-js="menuBoundingRect"
 			data-css="menuBoundingRect"
 		>

@@ -16,7 +16,7 @@ export const constants = {
 	queryParamsLangContentsBook: "book",
 	queryParamsLangContentsChapter: "chapter",
 	queryParamsLangContentsDownload: "download",
-};
+} as const;
 
 export const contactFormContactMethodsValues = {
 	tech: "Tech Support",
@@ -24,6 +24,6 @@ export const contactFormContactMethodsValues = {
 	translationSupport: "Translation Support",
 	accessibility: "Scripture Accessibility",
 	other: "Other",
-};
+} as const;
 
 export const previewableFileTypes = ["ppt", "pptx", "doc", "docx", "pdf"];

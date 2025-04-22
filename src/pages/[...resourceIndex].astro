@@ -7,6 +7,11 @@ import {BreadCrumbs} from "@components/BreadCrumbs";
 import ResourceIndex from "@components/ResourcesPage/ResourcesPage.astro";
 import type {languageType, Menu} from "@customTypes/types";
 import {capitalizeFirstLetter, titleCase} from "@src/utils";
+import {
+  getLocalizationsForResourceTypes,
+  getMapTsFilesLangToResourceType,
+  type ResourceTypeToIetfList,
+} from "@src/data/github";
 
 type Props = {
   title: string;
@@ -14,6 +19,8 @@ type Props = {
   langInfo: languageType;
   headerMenu: Menu;
   pageDict: i18nDictType;
+  tsFilesByResourceType: ResourceTypeToIetfList;
+  tsFileLocalization: Record<string, string>;
   crumbs: {
     uri: string;
     slug: string;
@@ -59,6 +66,8 @@ export async function getStaticPaths() {
     title: languagePageSlugs.data.page.title,
     uri: languagePageSlugs.data.page.uri,
   });
+  const tsFilesByResourceType = await getMapTsFilesLangToResourceType();
+  const tsResourceLocalizations = await getLocalizationsForResourceTypes();
   const pageData = languagePageSlugs.data.page.translations
     .filter((t) => nonHiddenLanguages.has(t.languageCode))
     .map((t) => {
@@ -69,6 +78,9 @@ export async function getStaticPaths() {
       const headerMenu =
         menus[langInfo.language_code]?.["header-menu"] ||
         menus.en?.["header-menu"]!;
+      const tsFileLocalization =
+        tsResourceLocalizations[langInfo.language_code] ||
+        tsResourceLocalizations.en;
       const crumbs = slug
         .split("/")
         .filter((v) => !!v)
@@ -91,6 +103,8 @@ export async function getStaticPaths() {
         },
         props: {
           title: t.title,
+          tsFilesByResourceType,
+          tsFileLocalization,
           allLangs: langSwitcherList,
           langInfo,
           headerMenu,
@@ -103,7 +117,16 @@ export async function getStaticPaths() {
   return pageData;
 }
 
-const {title, allLangs, langInfo, headerMenu, pageDict, crumbs} = Astro.props;
+const {
+  title,
+  allLangs,
+  langInfo,
+  headerMenu,
+  pageDict,
+  crumbs,
+  tsFilesByResourceType,
+  tsFileLocalization,
+} = Astro.props;
 
 // resource/languages
 // es/recursos/idiomas
@@ -138,6 +161,8 @@ const {resourceIndex: prefix} = Astro.params;
     i18nDict={pageDict}
     detailPrefix={prefix}
     siteIetf={langInfo.code}
+    tsFilesByResourceType={tsFilesByResourceType}
+    tsFileLocalization={tsFileLocalization}
   >
     <div
       slot="fallback"

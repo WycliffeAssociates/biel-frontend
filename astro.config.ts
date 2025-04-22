@@ -9,13 +9,18 @@ import { loadEnv } from "vite";
 import { manifest } from "./manifest";
 
 const { SITE_URL } = loadEnv(process.env.NODE_ENV!, process.cwd(), "");
-
+const isDev = process.env.NODE_ENV === "development";
 // https://astro.build/config
 export default defineConfig({
 	vite: {
 		build: {
 			// toggle if neeing to debug locally.
 			minify: true,
+		},
+		server: {
+			fs: {
+				strict: false,
+			},
 		},
 		ssr: {
 			noExternal: [],
@@ -77,9 +82,11 @@ export default defineConfig({
 		solidJs(),
 	],
 	output: "static",
-
+	devToolbar: {
+		enabled: false,
+	},
 	prefetch: {
-		prefetchAll: true,
+		prefetchAll: !isDev,
 		defaultStrategy: "hover",
 	},
 	// Reminder uses custom routes.json in public

@@ -33,6 +33,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 	const helpMethod = requiredFields.method;
 	const message = requiredFields.message;
 	const approvedHelpMethods = Object.values(contactFormContactMethodsValues);
+	// @ts-ignore. No need for type to be write when the .includes call itself is a check
 	if (!email || !helpMethod || !approvedHelpMethods.includes(helpMethod)) {
 		return new Response(null, {
 			status: 400,

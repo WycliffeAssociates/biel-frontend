@@ -22,7 +22,7 @@ export function ResourceWrapper(props: ContentListingProps) {
 					<AvailableResources classes={""} tsFiles={props.tsFiles} />
 				</div>
 				<div
-					class="h-full overflow-y-auto md:(flex flex-col gap-2 overflow-y-auto)"
+					class="h-full overflow-y-auto md:(flex flex-col gap-2 overflow-y-auto) p-2"
 					data-name="rightCol"
 					data-js="rightCol"
 				>
