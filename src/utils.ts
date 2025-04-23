@@ -92,7 +92,7 @@ function replaceAllAbsoluteLinksToCms({
   const theTags = Array.from(
     dom.querySelectorAll("a")
   ) as Array<HTMLAnchorElement>;
-  // todo: remove if POC builds and M'el likes it
+
   const {resourcePageRelative, baseUrlIncluded} = theTags.reduce(
     (
       acc: {
@@ -139,17 +139,21 @@ function replaceAllAbsoluteLinksToCms({
         ? href.slice(0, -1)
         : href;
 
-      return `${withoutTrailingSlash}?${searchParams.toString().trim()}${
-        hash ? `#${hash}` : ""
-      }`;
+      return encodeURI(
+        `${withoutTrailingSlash}?${searchParams.toString().trim()}${
+          hash ? `${hash}` : ""
+        }`
+      );
     }
-    return `${href}${hash ? `#${hash}` : ""}`;
+    return encodeURI(`${href}${hash ? `${hash}` : ""}`);
   };
   resourcePageRelative.forEach((tag) => {
     if (englishUriMap && currentLangCode) {
       const regexMatchHash = tag.href.match(/#(.*)$/);
       const hash = regexMatchHash ? regexMatchHash[0] : null;
-      const searchParams = new URLSearchParams(tag.href.split("?")?.[1]);
+      const searchParams = new URLSearchParams(
+        tag.href.split("?")?.[1]?.split("#")?.[0]
+      );
       const parts = tag.href.split("/").filter((p) => p);
       console.log({parts});
       const langCode = parts.pop()?.split("?")[0];
@@ -176,7 +180,9 @@ function replaceAllAbsoluteLinksToCms({
       // home link, special:
       const regexMatchHash = newHref.match(/#(.*)$/);
       const hash = regexMatchHash ? regexMatchHash[0] : null;
-      const searchParams = new URLSearchParams(newHref.split("?")?.[1]);
+      const searchParams = new URLSearchParams(
+        newHref.split("?")?.[1]?.split("#")?.[0]
+      );
       let upUntilSearchParams = newHref.split("?")[0]!;
       upUntilSearchParams = upUntilSearchParams.endsWith("/")
         ? upUntilSearchParams

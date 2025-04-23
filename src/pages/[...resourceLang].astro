@@ -39,6 +39,7 @@ const [wpmlLangDict, menus, languagePageSlugs] = await Promise.all([
 ]);
 
 const parts = resourceLang.split("/").filter(Boolean);
+console.log(`parts lenght is ${parts.length}. ${parts}`);
 const isEnglishDetailPage = parts[0] === "resources" && parts.length === 3;
 const isDetailPageOther = parts.length === 4;
 const thisLang = isEnglishDetailPage ? "en" : parts[0];
@@ -121,7 +122,7 @@ switch (parts.length) {
           title: capitalizeFirstLetter(parts[1]!),
         },
         {
-          uri: `/resources/languages/${languageData.language.national_name}`,
+          uri: `/resources/languages/${parts[2]}`,
           slug: "",
           title: languageData.language.national_name,
         }
@@ -143,14 +144,15 @@ switch (parts.length) {
         },
         {
           slug: "",
-          title: capitalizeFirstLetter(parts[3]!),
-          uri: `/${parts[0]!}/${parts[1]!}/${parts[2]!}/${languageData.language.national_name}`,
+          title: languageData.language.national_name,
+          uri: `/${parts[0]!}/${parts[1]!}/${parts[2]!}/${parts[3]!}`,
         }
       );
     break;
   default:
     break;
 }
+console.log(nodes);
 const crumbs = {
   nodes: nodes,
 };
