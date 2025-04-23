@@ -1,6 +1,7 @@
 import {MangifyingGlass} from "@components/Icons";
 import {Select} from "@kobalte/core/select";
 import {constants} from "@lib/constants";
+import slugify from "@sindresorhus/slugify";
 import type {ResourceTypeToIetfList} from "@src/data/github";
 import type {
   GetLanguagesWithContentForBielQueryReturn,
@@ -92,8 +93,11 @@ export function ResourceIndex(props: ResourceIndexArgs) {
   const selectedResourceTypes = allResourceTypes.reduce(
     (acc: OptGroup[], curr) => {
       // for each category, get every option included in query param
-      const matchesQueryParam = curr.options.filter((o) =>
-        props.resourceTypeArrSearchParams.includes(o.value)
+      // todo: should also check if sluggified o.value is in query param for R&D
+      const matchesQueryParam = curr.options.filter(
+        (o) =>
+          props.resourceTypeArrSearchParams.includes(o.value) ||
+          props.resourceTypeArrSearchParams.includes(slugify(o.value))
       );
       if (matchesQueryParam.length > 0) {
         // for each of those query param options, add those
@@ -157,9 +161,13 @@ export function ResourceIndex(props: ResourceIndexArgs) {
     lang: PubDataLanguage;
     rType: string;
   }) {
+    // hardcode excpetion;
+    const rTypeToUse = rType.includes("-and-")
+      ? rType.replace("-and-", "&")
+      : rType;
     return (
-      props.tsFilesByResourceType[rType.toLowerCase()]?.[lang.ietf_code] ||
-      props.tsFilesByResourceType[rType.toUpperCase()]?.[lang.ietf_code]
+      props.tsFilesByResourceType[rTypeToUse.toLowerCase()]?.[lang.ietf_code] ||
+      props.tsFilesByResourceType[rTypeToUse.toUpperCase()]?.[lang.ietf_code]
     );
   }
 
@@ -303,9 +311,13 @@ function getLangUrl({
       constants.queryParamResourceType
     }=${encodeURIComponent(contentMatchingParamType.name)}`;
   }
-  const contentMatchingDownloadParamType = firstSearchParam
-    ? tsFilesByResourceType[firstSearchParam]?.[code] ||
-      tsFilesByResourceType[firstSearchParam.toUpperCase()]?.[code]
+
+  const paramAccountingEdgeCase = firstSearchParam?.includes("-and-")
+    ? firstSearchParam?.replace("-and-", "&")
+    : firstSearchParam;
+  const contentMatchingDownloadParamType = paramAccountingEdgeCase
+    ? tsFilesByResourceType[paramAccountingEdgeCase]?.[code] ||
+      tsFilesByResourceType[paramAccountingEdgeCase.toUpperCase()]?.[code]
     : null;
 
   if (contentMatchingDownloadParamType) {

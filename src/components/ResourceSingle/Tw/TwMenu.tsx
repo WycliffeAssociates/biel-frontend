@@ -1,179 +1,181 @@
-import { DropdownMenu } from "@kobalte/core/dropdown-menu";
-import { type Virtualizer, createVirtualizer } from "@tanstack/solid-virtual";
+import {DropdownMenu} from "@kobalte/core/dropdown-menu";
+import {type Virtualizer, createVirtualizer} from "@tanstack/solid-virtual";
 import {
-	type Accessor,
-	For,
-	type Setter,
-	Show,
-	createEffect,
-	createSignal,
+  type Accessor,
+  For,
+  type Setter,
+  Show,
+  createEffect,
+  createSignal,
 } from "solid-js";
-import { DownloadOptions } from "../DownloadOptions";
-import type { twStateType } from "../ResourceSingleContext";
+import {DownloadOptions} from "../DownloadOptions";
+import type {twStateType} from "../ResourceSingleContext";
 
 type TwMenuProps = {
-	twState: Accessor<twStateType>;
-	setTwState: Setter<twStateType>;
-	isBig: () => boolean;
+  twState: Accessor<twStateType>;
+  setTwState: Setter<twStateType>;
+  isBig: () => boolean;
+  classes?: string;
 };
 export default function TwMenu(props: TwMenuProps) {
-	const [menuIsOpen, setMenuIsOpen] = createSignal(false);
-	const [searchTerm, setSearchTerm] = createSignal("");
-	// const [currentWord, setCurrentWord] = createSignal(
-	//   twState().menuList ? twState().menuList![0] : null
-	// );
-	const [virtualizer, setVirtualizer] =
-		createSignal<Virtualizer<HTMLUListElement, Element>>();
-	let menuRef: HTMLElement | undefined;
-	let scrollRef: HTMLUListElement | undefined;
-	let searchRef: HTMLInputElement | undefined;
-	function setWordAndClose(id: string) {
-		const matchingWord = props.twState().menuList!.find((w) => w.id === id);
-		// setCurrentWord(matchingWord);
-		if (matchingWord) {
-			props.setTwState((prev) => ({ ...prev, currentWord: matchingWord }));
-		}
-		setMenuIsOpen(false);
-	}
-	const wordsToShow = () => {
-		const lowered = searchTerm()?.toLowerCase();
-		if (lowered && props.twState().menuList) {
-			const filtered = props
-				.twState()
-				.menuList!.filter((w) => {
-					const fields = [w.oneWordSlug, w.id];
-					return fields.some((f) => f.toLowerCase().includes(lowered));
-				})
-				.sort((a, b) => {
-					const aSlug = a.oneWordSlug.toLowerCase();
-					const bSlug = b.oneWordSlug.toLowerCase();
-					// a.oneWordSlug.startsWith(lowered) ? -1 : 1
-					if (aSlug.startsWith(lowered) && !bSlug.startsWith(lowered)) {
-						return -1;
-					}
-					if (!aSlug.startsWith(lowered) && bSlug.startsWith(lowered)) {
-						return 1;
-					}
-					return 0;
-				});
+  const [menuIsOpen, setMenuIsOpen] = createSignal(false);
+  const [searchTerm, setSearchTerm] = createSignal("");
+  // const [currentWord, setCurrentWord] = createSignal(
+  //   twState().menuList ? twState().menuList![0] : null
+  // );
+  const [virtualizer, setVirtualizer] =
+    createSignal<Virtualizer<HTMLUListElement, Element>>();
+  let menuRef: HTMLElement | undefined;
+  let scrollRef: HTMLUListElement | undefined;
+  let searchRef: HTMLInputElement | undefined;
+  function setWordAndClose(id: string) {
+    const matchingWord = props.twState().menuList!.find((w) => w.id === id);
+    // setCurrentWord(matchingWord);
+    if (matchingWord) {
+      props.setTwState((prev) => ({...prev, currentWord: matchingWord}));
+    }
+    setMenuIsOpen(false);
+  }
+  const wordsToShow = () => {
+    const lowered = searchTerm()?.toLowerCase();
+    if (lowered && props.twState().menuList) {
+      const filtered = props
+        .twState()
+        .menuList!.filter((w) => {
+          const fields = [w.oneWordSlug, w.id];
+          return fields.some((f) => f.toLowerCase().includes(lowered));
+        })
+        .sort((a, b) => {
+          const aSlug = a.oneWordSlug.toLowerCase();
+          const bSlug = b.oneWordSlug.toLowerCase();
+          // a.oneWordSlug.startsWith(lowered) ? -1 : 1
+          if (aSlug.startsWith(lowered) && !bSlug.startsWith(lowered)) {
+            return -1;
+          }
+          if (!aSlug.startsWith(lowered) && bSlug.startsWith(lowered)) {
+            return 1;
+          }
+          return 0;
+        });
 
-			return filtered;
-		}
-		return props.twState().menuList;
-	};
-	const getOverlappingBoundingRect = () => {
-		if (menuRef) {
-			const rect = menuRef.getBoundingClientRect();
-			// Offset so the trigger is now hidden
-			rect.height = 0;
-			return rect;
-		}
-	};
-	createEffect(() => {
-		if (menuIsOpen()) {
-			setTimeout(() => {
-				searchRef?.focus();
-			}, 50);
-			const virtualizer = createVirtualizer({
-				count: wordsToShow()!.length,
-				getScrollElement: () => scrollRef!,
-				getItemKey(index) {
-					return wordsToShow()![index]!.id;
-				},
-				estimateSize: () => 40,
-				overscan: 5,
-			});
-			setVirtualizer(virtualizer);
-		}
-	});
-	return (
-		<Show when={props.twState().menuList && props.twState().currentWord}>
-			<div class="flex gap-4">
-				<DropdownMenu
-					open={menuIsOpen()}
-					sameWidth={true}
-					getAnchorRect={getOverlappingBoundingRect}
-					preventScroll={false}
-				>
-					<DropdownMenu.Trigger
-						class="w-full rounded-md bg-surface-secondary hover:bg-surface-secondary focus:bg-surface-secondary"
-						onClick={() => setMenuIsOpen(true)}
-						onKeyUp={(e: KeyboardEvent) => {
-							if (e.key === "Enter" || e.key === " ") setMenuIsOpen(true);
-						}}
-					>
-						<span class="w-full p-2 inline-block" ref={menuRef}>
-							{props.twState().currentWord?.oneWordSlug}
-						</span>
-					</DropdownMenu.Trigger>
-					<DropdownMenu.Portal>
-						<DropdownMenu.Content
-							onEscapeKeyDown={() => setMenuIsOpen(false)}
-							onInteractOutside={() => setMenuIsOpen(false)}
-							class={
-								"bg-surface-primary w-full  shadow-lg p-2 rounded-md  relative animate-[fadeOut_0.2s_ease-in] data-[expanded]:animate-[fadeIn_.2s_ease-out]"
-							}
-						>
-							<label for="search" class="">
-								<DropdownMenu.Item class="py-2">
-									<input
-										id="search"
-										placeholder="Search"
-										class="px-2 py-1 bg-surface-secondary  border border-solid border-surface-border w-full rounded-md focus:(outline outline-brand-primary outline-solid)"
-										type="text"
-										onKeyDown={(e) => {
-											e.stopPropagation();
-										}}
-										onInput={(e) => {
-											setSearchTerm(e.currentTarget.value);
-										}}
-										ref={searchRef}
-										// value={searchTerm()}
-									/>
-								</DropdownMenu.Item>
-							</label>
-							<Show when={menuIsOpen()}>
-								<ul
-									class="list-none relative h-60vh overflow-auto scroll-smooth"
-									ref={scrollRef}
-								>
-									<For each={virtualizer()!.getVirtualItems()}>
-										{(item) => {
-											const word = wordsToShow()![item.index]!;
-											return (
-												<li
-													onClick={() => setWordAndClose(word.id)}
-													onKeyDown={() => setWordAndClose(word.id)}
-													style={{
-														position: "absolute",
-														top: 0,
-														left: 0,
-														width: "100%",
-														height: `${item.size}px`,
-														transform: `translateY(${item.start}px)`,
-													}}
-													class=""
-												>
-													<DropdownMenu.Item
-														as="a"
-														class="w-full h-full block focus:(bg-brand-light) hover:(bg-brand-light)"
-														href={`#${word.id}`}
-													>
-														{word.oneWordSlug}
-													</DropdownMenu.Item>
-												</li>
-											);
-										}}
-									</For>
-								</ul>
-							</Show>
-						</DropdownMenu.Content>
-					</DropdownMenu.Portal>
-				</DropdownMenu>
-				<Show when={props.isBig()}>
-					<DownloadOptions />
-				</Show>
-			</div>
-		</Show>
-	);
+      return filtered;
+    }
+    return props.twState().menuList;
+  };
+  const getOverlappingBoundingRect = () => {
+    if (menuRef) {
+      const rect = menuRef.getBoundingClientRect();
+      // Offset so the trigger is now hidden
+      rect.height = 0;
+      return rect;
+    }
+  };
+  createEffect(() => {
+    if (menuIsOpen()) {
+      setTimeout(() => {
+        searchRef?.focus();
+      }, 50);
+      const virtualizer = createVirtualizer({
+        count: wordsToShow()!.length,
+        getScrollElement: () => scrollRef!,
+        getItemKey(index) {
+          return wordsToShow()![index]!.id;
+        },
+        estimateSize: () => 40,
+        overscan: 5,
+      });
+      setVirtualizer(virtualizer);
+    }
+  });
+  return (
+    <Show when={props.twState().menuList && props.twState().currentWord}>
+      <div class={`flex gap-4 ${props.classes || ""}`}>
+        <DropdownMenu
+          open={menuIsOpen()}
+          sameWidth={true}
+          getAnchorRect={getOverlappingBoundingRect}
+          preventScroll={false}
+        >
+          <DropdownMenu.Trigger
+            class="flex-grow rounded-md bg-surface-secondary hover:bg-surface-secondary focus:bg-surface-secondary"
+            onClick={() => setMenuIsOpen(true)}
+            onKeyUp={(e: KeyboardEvent) => {
+              if (e.key === "Enter" || e.key === " ") setMenuIsOpen(true);
+            }}
+            ref={menuRef}
+          >
+            {/* <span class="w-full p-2 inline-block" ref={menuRef}> */}
+            {props.twState().currentWord?.oneWordSlug}
+            {/* </span> */}
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Portal>
+            <DropdownMenu.Content
+              onEscapeKeyDown={() => setMenuIsOpen(false)}
+              onInteractOutside={() => setMenuIsOpen(false)}
+              class={
+                "bg-surface-primary w-full  shadow-lg p-2 box-border rounded-md  relative animate-[fadeOut_0.2s_ease-in] data-[expanded]:animate-[fadeIn_.2s_ease-out]"
+              }
+            >
+              <label for="search" class="">
+                <DropdownMenu.Item class="py-2">
+                  <input
+                    id="search"
+                    placeholder="Search"
+                    class="px-2 py-1 bg-surface-secondary  border border-solid border-surface-border w-full rounded-md focus:(outline outline-brand-primary outline-solid)"
+                    type="text"
+                    onKeyDown={(e) => {
+                      e.stopPropagation();
+                    }}
+                    onInput={(e) => {
+                      setSearchTerm(e.currentTarget.value);
+                    }}
+                    ref={searchRef}
+                    // value={searchTerm()}
+                  />
+                </DropdownMenu.Item>
+              </label>
+              <Show when={menuIsOpen()}>
+                <ul
+                  class="list-none relative h-60vh overflow-auto scroll-smooth"
+                  ref={scrollRef}
+                >
+                  <For each={virtualizer()!.getVirtualItems()}>
+                    {(item) => {
+                      const word = wordsToShow()![item.index]!;
+                      return (
+                        <li
+                          onClick={() => setWordAndClose(word.id)}
+                          onKeyDown={() => setWordAndClose(word.id)}
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            width: "100%",
+                            height: `${item.size}px`,
+                            transform: `translateY(${item.start}px)`,
+                          }}
+                          class=""
+                        >
+                          <DropdownMenu.Item
+                            as="a"
+                            class="w-full h-full block focus:(bg-brand-light) hover:(bg-brand-light)"
+                            href={`#${word.id}`}
+                          >
+                            {word.oneWordSlug}
+                          </DropdownMenu.Item>
+                        </li>
+                      );
+                    }}
+                  </For>
+                </ul>
+              </Show>
+            </DropdownMenu.Content>
+          </DropdownMenu.Portal>
+        </DropdownMenu>
+        <Show when={props.isBig()}>
+          <DownloadOptions />
+        </Show>
+      </div>
+    </Show>
+  );
 }

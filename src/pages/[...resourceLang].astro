@@ -39,7 +39,6 @@ const [wpmlLangDict, menus, languagePageSlugs] = await Promise.all([
 ]);
 
 const parts = resourceLang.split("/").filter(Boolean);
-console.log({parts});
 const isEnglishDetailPage = parts[0] === "resources" && parts.length === 3;
 const isDetailPageOther = parts.length === 4;
 const thisLang = isEnglishDetailPage ? "en" : parts[0];
@@ -85,6 +84,19 @@ const langSwitcherList = Object.values(wpmlLangDict)
 
     return copy;
   });
+
+// language api data:
+const data = await getLanguageContents({
+  language: pubDataIetf,
+  cache,
+  ctx,
+  pubDataApiUrl,
+  doBustCache,
+  siteLanguage: langInfo.code,
+});
+const {data: languageData} = data;
+
+// Stuff for breadbrumbs
 const nodes = [
   {
     uri: isEnglishDetailPage ? "/" : `/${thisLang}`,
@@ -109,9 +121,9 @@ switch (parts.length) {
           title: capitalizeFirstLetter(parts[1]!),
         },
         {
-          uri: `/resources/languages/${pubDataIetf}`,
+          uri: `/resources/languages/${languageData.language.national_name}`,
           slug: "",
-          title: pubDataIetf,
+          title: languageData.language.national_name,
         }
       );
     break;
@@ -132,7 +144,7 @@ switch (parts.length) {
         {
           slug: "",
           title: capitalizeFirstLetter(parts[3]!),
-          uri: `/${parts[0]!}/${parts[1]!}/${parts[2]!}/${parts[3]!}`,
+          uri: `/${parts[0]!}/${parts[1]!}/${parts[2]!}/${languageData.language.national_name}`,
         }
       );
     break;
@@ -143,17 +155,6 @@ const crumbs = {
   nodes: nodes,
 };
 const ogImage = `${Astro.site?.origin}/icon-512.png`;
-
-// language api data:
-const data = await getLanguageContents({
-  language: pubDataIetf,
-  cache,
-  ctx,
-  pubDataApiUrl,
-  doBustCache,
-  siteLanguage: langInfo.code,
-});
-const {data: languageData} = data;
 ---
 
 <Layout
@@ -178,7 +179,7 @@ const {data: languageData} = data;
   />
   <BreadCrumbs crumbs={crumbs} />
 
-  <div class="md:pt-12 mx-auto h-full overflow-auto w-full contain contain-pad">
+  <div class="md:pt-8 mx-auto h-full overflow-auto w-full contain contain-pad">
     <ResourceSingle
       languageData={languageData}
       languageToFetch={pubDataIetf}
