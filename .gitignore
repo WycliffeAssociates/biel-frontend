@@ -39,3 +39,4 @@ scratch.txt
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+.aider*

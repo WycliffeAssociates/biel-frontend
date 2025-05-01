@@ -16,12 +16,6 @@ import {getLanguageContents} from "@src/data/pubDataApi";
 
 const {resourceLang} = Astro.params;
 if (!resourceLang) return Astro.redirect("/404");
-// Check for known redirects:
-const knownRedirect = returnKnownRedirectPathIfKnown(Astro.url);
-if (knownRedirect) {
-  console.log(`known redirect ${knownRedirect}. `);
-  return Astro.redirect(knownRedirect);
-}
 
 const gqlUrl =
   Astro.locals?.runtime?.env.WORDPRESS_GQL_URL ||
