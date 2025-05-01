@@ -481,3 +481,14 @@ export function titleCase({lang = "en", str}: TitleCaseArgs) {
   ).map((word) => word.segment.charAt(0).toUpperCase() + word.segment.slice(1));
   return words.join(" ");
 }
+
+export function returnKnownRedirectPathIfKnown(
+  reqUrl: URL
+): string | undefined {
+  const pathName = reqUrl.pathname;
+  // const hostName = reqUrl.origin;
+  if (pathName.endsWith("/statement-of-faith")) {
+    const homeWithHashed = "/#statement-of-faith";
+    return homeWithHashed;
+  }
+}
