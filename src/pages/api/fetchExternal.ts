@@ -1,5 +1,6 @@
 export const prerender = false;
 import type {Response as WorkerResponse} from "@cloudflare/workers-types";
+import {CustomXCacheTagHeader} from "@lib/constants";
 import {
   ATagHandler,
   ImgTagRemover,
@@ -15,6 +16,15 @@ export const GET: APIRoute = async ({request, url, locals}) => {
   const rewrite = queryParams.get("rewrite") || false;
   const resourceType = queryParams.get("resource-type");
   const cacheBypass = queryParams.get("no-cache");
+  const cacheTagHeader = request.headers.get(CustomXCacheTagHeader);
+
+  // copy the params, but get rid of the url and no-cache to create a cacheable url of type url?hash=HASH&rewrite=rewrite&resource-type=resource-type
+  const relevantParams = new URLSearchParams();
+  relevantParams.delete("url");
+  relevantParams.delete("no-cache");
+  relevantParams.delete("rewrite");
+  const urlWithRelevantQueryParameters = `${urlToFetch}?${relevantParams.toString()}`;
+
   const runtime = locals.runtime;
 
   if (!urlToFetch) {
@@ -26,13 +36,14 @@ export const GET: APIRoute = async ({request, url, locals}) => {
   const reqHeaders = request.headers;
   const reqHeadersCopy = new Headers(reqHeaders);
   reqHeadersCopy.set("user-agent", "biel-website");
-  const reqToMakeWithUaSet = new Request(urlToFetch, {
+  const reqToMakeWithUaSet = new Request(urlWithRelevantQueryParameters, {
     headers: reqHeadersCopy,
   });
   // only check cf cache if we don't want to bypass
   const cachedVal = cacheBypass
     ? undefined
-    : await runtime.caches.default.match(reqToMakeWithUaSet.url);
+    : // cache match includes the hasf of url?hash=HASH&other-params, but external fetch won't pass these along.
+      await runtime.caches.default.match(reqToMakeWithUaSet.url);
   if (cachedVal) {
     if (rewrite) {
       return rewriteResponseIfNeeded({
@@ -44,7 +55,7 @@ export const GET: APIRoute = async ({request, url, locals}) => {
     return cachedVal as unknown as Response;
   }
 
-  // not in cache must fetch:
+  // not in cache must fetch: Only fetch url to external, don't pass along biel specific query params
   const res = await fetch(encodeURI(urlToFetch), {
     headers: reqHeadersCopy,
   });
@@ -66,6 +77,7 @@ export const GET: APIRoute = async ({request, url, locals}) => {
           asText = new TextDecoder("utf-8").decode(resBytes);
         } catch (e) {
           console.error(e);
+          return;
         }
         if (
           !resBytes ||
@@ -76,9 +88,13 @@ export const GET: APIRoute = async ({request, url, locals}) => {
           return;
         }
         headers.append("Content-Length", resBytes.length.toString());
+        if (cacheTagHeader) {
+          headers.append("Cache-Tag", cacheTagHeader);
+        }
         const newResToCache = new Response(resBytes, {
           headers,
         }) as unknown as WorkerResponse;
+        // cache the url with the relevant query params
         await runtime.caches.default.put(reqToMakeWithUaSet.url, newResToCache);
       })()
     );
@@ -89,6 +105,9 @@ export const GET: APIRoute = async ({request, url, locals}) => {
   const resHeaders = new Headers({
     "Access-Control-Allow-Origin": "*",
   });
+  if (cacheTagHeader) {
+    resHeaders.append("Cache-Tag", cacheTagHeader);
+  }
   if (contentLength) {
     resHeaders.set("Content-Length", contentLength);
   }

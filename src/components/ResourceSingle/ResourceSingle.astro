@@ -5,13 +5,14 @@ interface Props {
   i18nDict: i18nDictType;
   siteLanguage: string;
   languageData: LangWithContent;
+  doBustCache: boolean;
 }
 import {ResourceWrapper} from "@components/ResourceSingle/ResourceWrapper";
 import {constants} from "@lib/constants";
 import {getTsFiles} from "@src/data/github";
 import type {LangWithContent} from "@src/data/gqlQueries/queries";
 
-const {languageToFetch, i18nDict, languageData} = Astro.props;
+const {languageToFetch, i18nDict, languageData, doBustCache} = Astro.props;
 const tsFiles = await getTsFiles(languageToFetch);
 const docUiUrl = Astro.locals?.runtime?.env.DOC_UI_URL as string;
 const paramsLower = new URLSearchParams(
@@ -42,6 +43,7 @@ const queryParams = {resource, book, chapter, download};
       tsFiles={tsFiles}
       i18nDict={i18nDict}
       docUiUrl={docUiUrl}
+      doBustCache={doBustCache}
     />
   </div>
 </section>
