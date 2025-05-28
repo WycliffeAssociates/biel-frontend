@@ -6,14 +6,13 @@ import {ExpirationPlugin} from "workbox-expiration";
 import {cleanupOutdatedCaches, precacheAndRoute} from "workbox-precaching";
 import {registerRoute} from "workbox-routing";
 import {CacheFirst, NetworkFirst} from "workbox-strategies";
-import {CacheTags, constants} from "./lib/constants";
+import {CacheTags, constants, CustomXCacheTagHeader} from "./lib/constants";
 import {
   bielExternalCacheName,
   bielPagefindCacheName,
   bielStaticCacheName,
   fetchExternalUsfmAndCache,
 } from "./lib/web";
-import {CustomXCacheTagHeader} from "@lib/constants";
 
 declare const self: ServiceWorkerGlobalScope;
 
