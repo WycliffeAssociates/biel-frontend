@@ -496,36 +496,43 @@ export function returnKnownRedirectPathIfKnown(
 
 export async function checkBielExternalCacheForKnownCfErrorTexts() {
   if (!import.meta.env.PROD) return;
+
   const now = Date.now();
-  const lastChecked =
-    Number(localStorage.getItem("bielExternalMonitorEpoch")) || now;
-  // only if more than 24 hours since last check;
   const oneDayMs = 1000 * 60 * 60 * 24;
-  if (lastChecked - oneDayMs < 86400000) return;
+  const lastChecked = Number(
+    localStorage.getItem("bielExternalMonitorEpoch") ?? 0
+  );
+
+  // Skip if we already checked within the last 24 hours
+  if (now - lastChecked < oneDayMs) return;
+
+  // Update check timestamp
   localStorage.setItem("bielExternalMonitorEpoch", now.toString());
+
   const bielExternalCache = await caches.open(bielExternalCacheName);
   const allReqs = await bielExternalCache.matchAll();
+
   for await (const req of allReqs) {
     try {
-      // tyr to check the body text for cf-error-text:
       const res = await bielExternalCache.match(req.url);
-      const xCheckedHeader = req.headers.get("x-biel-checked");
-      if (xCheckedHeader) continue; // no need to check again and will only set here:
       if (!res) continue;
+
+      const xCheckedHeader = req.headers.get("x-biel-checked");
+      if (xCheckedHeader) continue;
+
       const clone = res.clone();
       const body = await clone.text();
-      const errorText = body.includes("challenge-error-text");
-      if (errorText) {
+
+      if (body.includes("challenge-error-text")) {
         await caches.delete(req.url);
       } else {
         // mark it as checked
         const newHeaders = new Headers(res.headers);
         newHeaders.set("x-biel-checked", "true");
+
         await bielExternalCache.put(
           req.url,
-          new Response(req.body, {
-            headers: newHeaders,
-          })
+          new Response(res.body, {headers: newHeaders})
         );
       }
     } catch (error) {
