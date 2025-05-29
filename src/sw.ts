@@ -6,14 +6,13 @@ import {ExpirationPlugin} from "workbox-expiration";
 import {cleanupOutdatedCaches, precacheAndRoute} from "workbox-precaching";
 import {registerRoute} from "workbox-routing";
 import {CacheFirst, NetworkFirst} from "workbox-strategies";
-import {constants} from "./lib/constants";
+import {CacheTags, constants, CustomXCacheTagHeader} from "./lib/constants";
 import {
   bielExternalCacheName,
   bielPagefindCacheName,
   bielStaticCacheName,
   fetchExternalUsfmAndCache,
 } from "./lib/web";
-import {} from "workbox-strategies";
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -25,43 +24,6 @@ cleanupOutdatedCaches();
 const manifest = self.__WB_MANIFEST;
 console.log({manifest});
 import.meta.env.PROD && precacheAndRoute(manifest);
-
-// class CacheBustQueryParamRaceStrategy extends Strategy {
-//   _handle(request: Request, handler: StrategyHandler): Promise<Response> {
-//     const urlCopy = new URL(request.url);
-//     const searchParams = new URLSearchParams(urlCopy.searchParams);
-//     searchParams.append("cache-bust", "1");
-//     urlCopy.search = searchParams.toString();
-//     const requestToMake = new Request(urlCopy.toString(), request);
-//     // match w/o search params, but fetch freshest from network with cache bust always:
-//     const fetchAndCachePutDone = handler.fetchAndCachePut(requestToMake);
-//     const cacheMatchDone = handler.cacheMatch(request);
-
-//     return new Promise((resolve, reject) => {
-//       fetchAndCachePutDone.then(resolve);
-//       cacheMatchDone.then(
-//         (response: Response | undefined) => response && resolve(response)
-//       );
-
-//       // Reject if both network and cache error or find no response.
-//       Promise.allSettled([fetchAndCachePutDone, cacheMatchDone]).then(
-//         (results) => {
-//           const [
-//             fetchAndCachePutResult,
-//             cacheMatchResult,
-//           ]: PromiseSettledResult<Response | undefined>[] = results;
-//           if (
-//             fetchAndCachePutResult.status === "rejected" &&
-//             // @ts-ignore
-//             !cacheMatchResult?.value
-//           ) {
-//             reject(fetchAndCachePutResult.reason);
-//           }
-//         }
-//       );
-//     });
-//   }
-// }
 
 registerRoute(
   ({request}) => {
@@ -81,6 +43,7 @@ registerRoute(
       return fetch(`${asObj.payload.files[0]!.url}/archive/master.zip`, {
         headers: {
           "User-Agent": "biel_website",
+          [CustomXCacheTagHeader]: `${CacheTags.zipArchives}`,
         },
       });
     }
@@ -183,7 +146,7 @@ registerRoute(
       !url.searchParams.get("cache-bust")
     );
   },
-  // Having caching issues with this route
+  // this is a SWR like strategy, but we also while the revalidting to do a cache-bust query param fetch.
   new NetworkFirst({
     cacheName: bielStaticCacheName,
     plugins: [

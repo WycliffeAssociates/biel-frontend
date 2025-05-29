@@ -131,6 +131,8 @@ const {englishUriMap} = await getEnglishUriMap({gqlUrl});
 }
 
 <script>
+  import {checkBielExternalCacheForKnownCfErrorTexts} from "@src/utils";
+
   if (import.meta.env.PROD) {
     // @ts-ignore
     const gtag: Gtag.Gtag = function () {
@@ -139,5 +141,8 @@ const {englishUriMap} = await getEnglishUriMap({gqlUrl});
     window.dataLayer = window.dataLayer || [];
     gtag("js", new Date());
     gtag("config", "G-ZJECQPPTKR");
+
+    // Sw check for bad entries:
+    checkBielExternalCacheForKnownCfErrorTexts();
   }
 </script>

@@ -75,6 +75,8 @@ const dedupedInlineStyles = [...deduped].join("\n");
 </html>
 
 <script>
+  import {checkBielExternalCacheForKnownCfErrorTexts} from "@src/utils";
+
   if (import.meta.env.PROD) {
     // @ts-ignore
     const gtag: Gtag.Gtag = function () {
@@ -83,5 +85,8 @@ const dedupedInlineStyles = [...deduped].join("\n");
     window.dataLayer = window.dataLayer || [];
     gtag("js", new Date());
     gtag("config", "G-ZJECQPPTKR");
+
+    // Sw check for bad entries:
+    checkBielExternalCacheForKnownCfErrorTexts();
   }
 </script>
