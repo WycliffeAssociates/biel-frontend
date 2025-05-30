@@ -25,6 +25,10 @@ const manifest = self.__WB_MANIFEST;
 console.log({manifest});
 import.meta.env.PROD && precacheAndRoute(manifest);
 
+const cacheablePlugin = new CacheableResponsePlugin({
+  statuses: [0, 200, 304],
+});
+
 registerRoute(
   ({request}) => {
     if (request.url.includes(constants.swProxyZipsFormAction)) {
@@ -72,6 +76,40 @@ registerRoute(
     }
   },
   "POST"
+);
+
+// Handle cache bust reqeust for fetchExternal Calls:
+registerRoute(
+  ({url, request}) => {
+    return (
+      request.url.includes(constants.apiFetchExternal) &&
+      (url.searchParams.has("cache-bust") || url.searchParams.has("no-cache"))
+    );
+  },
+  async ({request, url, event}) => {
+    const cleanUrl = new URL(url.toString());
+    cleanUrl.searchParams.delete("cache-bust");
+    cleanUrl.searchParams.delete("no-cache");
+
+    const response = await fetch(request);
+
+    // Use the plugin to check if the response is cacheable
+    const isCacheable = await cacheablePlugin.cacheWillUpdate?.({
+      event,
+      request,
+      response,
+      state: {},
+    });
+
+    if (isCacheable) {
+      const cache = await caches.open(bielExternalCacheName);
+      // don't block returning response
+      event.waitUntil(cache.put(cleanUrl.toString(), response.clone()));
+      // await cache.put(cleanUrl.toString(), response.clone());
+    }
+    return response;
+  },
+  "GET"
 );
 
 registerRoute(
