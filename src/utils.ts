@@ -495,8 +495,6 @@ export function returnKnownRedirectPathIfKnown(
 }
 
 export async function checkBielExternalCacheForKnownCfErrorTexts() {
-  if (!import.meta.env.PROD) return;
-
   const now = Date.now();
   const oneDayMs = 1000 * 60 * 60 * 24;
   const lastChecked = Number(
@@ -510,29 +508,31 @@ export async function checkBielExternalCacheForKnownCfErrorTexts() {
   localStorage.setItem("bielExternalMonitorEpoch", now.toString());
 
   const bielExternalCache = await caches.open(bielExternalCacheName);
-  const allReqs = await bielExternalCache.matchAll();
+  const keys = await bielExternalCache.keys();
 
-  for await (const req of allReqs) {
+  for await (const key of keys) {
     try {
-      const res = await bielExternalCache.match(req.url);
-      if (!res) continue;
-
-      const xCheckedHeader = req.headers.get("x-biel-checked");
+      const resp = await bielExternalCache.match(key);
+      if (!resp) continue;
+      const xCheckedHeader = resp.headers.get("x-biel-checked");
       if (xCheckedHeader) continue;
 
-      const clone = res.clone();
+      const clone = resp.clone();
       const body = await clone.text();
 
-      if (body.includes("challenge-error-text")) {
-        await caches.delete(req.url);
+      if (
+        body.includes("challenge-error-text") ||
+        body.includes("/cdn-cgi/challenge-platform")
+      ) {
+        await bielExternalCache.delete(key);
       } else {
         // mark it as checked
-        const newHeaders = new Headers(res.headers);
+        const newHeaders = new Headers(resp.headers);
         newHeaders.set("x-biel-checked", "true");
 
         await bielExternalCache.put(
-          req.url,
-          new Response(res.body, {headers: newHeaders})
+          key,
+          new Response(resp.body, {headers: newHeaders})
         );
       }
     } catch (error) {

@@ -44,7 +44,19 @@ export const GET: APIRoute = async ({request, url, locals}) => {
     ? undefined
     : // cache match includes the hasf of url?hash=HASH&other-params, but external fetch won't pass these along.
       await runtime.caches.default.match(reqToMakeWithUaSet.url);
-  if (cachedVal) {
+  const cachedValIsCfChallenge = cachedVal
+    ? await isCfChallengeRes({
+        res: cachedVal as unknown as WorkerResponse,
+      })
+    : false;
+  if (cachedValIsCfChallenge) {
+    // delete cloudflare challenges as out of band work.
+    runtime.ctx.waitUntil(
+      runtime.caches.default.delete(reqToMakeWithUaSet.url)
+    );
+  }
+  if (cachedVal && !cachedValIsCfChallenge) {
+    // if we have a cached value, and it's not a cf challenge, return it
     console.log(
       `found in cache ${reqToMakeWithUaSet.url} for request url ${urlToFetch}`
     );
@@ -62,6 +74,13 @@ export const GET: APIRoute = async ({request, url, locals}) => {
   const res = await fetch(encodeURI(urlToFetch), {
     headers: reqHeadersCopy,
   });
+  if (res.headers.get("cf-mitigated") === "challenge") {
+    // This response was a cloudflare challenge, so we just need to bail:
+    return new Response(null, {
+      status: 503,
+      statusText: "Cloudflare Challenge Detected",
+    });
+  }
   // must have hash, must have fetched ok, and must be ok or unchanged header status
   if (hashParam && res.ok && ["200", "304"].includes(res.status.toString())) {
     runtime.ctx.waitUntil(
@@ -149,4 +168,33 @@ function rewriteResponseIfNeeded({
     .on("a[href^='rc://']", deadLinkHandler)
     .on("img[src*='content.bibletranslationtools.org'", imgHandler)
     .transform(new Response(response.body, {headers: responseHeaders}));
+}
+
+type IsCfChallengeResArgs = {
+  res: WorkerResponse;
+};
+async function isCfChallengeRes({res}: IsCfChallengeResArgs): Promise<boolean> {
+  // don't deal with res main fxn might still be using
+  const clone = res.clone();
+  const resBytes = await clone.bytes();
+  let asText: string | null = null;
+  try {
+    asText = new TextDecoder("utf-8").decode(resBytes);
+  } catch (e) {
+    console.error(e);
+    return false; // if we can't decode as text, assume ok
+  }
+  if (
+    !resBytes ||
+    resBytes.length === 0 ||
+    asText?.includes("challenge-error-text")
+  ) {
+    return true;
+  }
+
+  if (res.headers.get("cf-mitigated") === "challenge") {
+    return true;
+  }
+
+  return false;
 }
