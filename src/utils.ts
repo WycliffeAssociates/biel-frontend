@@ -495,18 +495,6 @@ export function returnKnownRedirectPathIfKnown(
 }
 
 export async function checkBielExternalCacheForKnownCfErrorTexts() {
-  const now = Date.now();
-  const oneDayMs = 1000 * 60 * 60 * 24;
-  const lastChecked = Number(
-    localStorage.getItem("bielExternalMonitorEpoch") ?? 0
-  );
-
-  // Skip if we already checked within the last 24 hours
-  if (now - lastChecked < oneDayMs) return;
-
-  // Update check timestamp
-  localStorage.setItem("bielExternalMonitorEpoch", now.toString());
-
   const bielExternalCache = await caches.open(bielExternalCacheName);
   const keys = await bielExternalCache.keys();
 

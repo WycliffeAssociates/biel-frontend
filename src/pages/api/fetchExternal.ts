@@ -87,10 +87,7 @@ export const GET: APIRoute = async ({request, url, locals}) => {
       (async () => {
         const headers = new Headers();
         // long cache control due to hash which are usually sha 256's of content
-        headers.append(
-          "cache-control",
-          "public, max-age=31536000, s-maxage=31536000"
-        );
+        headers.append("cache-control", "public, s-maxage=31536000");
         headers.append("Access-Control-Allow-Origin", "*");
         const resClone = res.clone();
         const resBytes = await resClone.bytes();
