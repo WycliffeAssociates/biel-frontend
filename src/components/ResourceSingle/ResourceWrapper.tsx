@@ -29,9 +29,9 @@ export function ResourceWrapper(props: ContentListingProps) {
         >
           <Menu classes="self-start md:(mie-auto p-0 max-w-prose w-full)" />
           <ContentView
-            classes={
-              "px-2  md:(mie-auto p-0 max-w-prose w-full pb-12 overflow-y-auto)"
-            }
+            classes={`px-2  md:(mie-auto p-0 max-w-prose w-full pb-12 overflow-y-auto) ${
+              props.language.direction === "rtl" ? "rtl" : ""
+            }`}
           />
         </div>
       </div>

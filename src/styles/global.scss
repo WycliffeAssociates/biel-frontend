@@ -592,7 +592,9 @@ input[type="search"]::-webkit-search-results-decoration {
     transform: translateX(100%) scaleX(0.5);
   }
 }
-
+.rtl {
+  direction: rtl;
+}
 .theText ul {
   list-style-type: disc;
   padding-inline-start: 1rem;
