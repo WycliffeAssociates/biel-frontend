@@ -44,12 +44,19 @@ registerRoute(
       name: string;
     };
     if (asObj.payload.type === "gateway") {
-      return fetch(`${asObj.payload.files[0]!.url}/archive/master.zip`, {
-        headers: {
-          "User-Agent": "biel_website",
-          [CustomXCacheTagHeader]: `${CacheTags.zipArchives}`,
-        },
-      });
+      const urlPrefix = asObj.payload.files[0]!.url;
+      try {
+        return fetch(`${urlPrefix}/archive/master.zip`, {
+          method: "GET",
+          headers: {
+            "x-requested-with": "WA-Tool-Biel-SW",
+            [CustomXCacheTagHeader]: `${CacheTags.zipArchives}`,
+          },
+        });
+      } catch (e) {
+        console.error(e);
+        return fetch(asObj.redirectTo);
+      }
     }
     try {
       const totalSize = String(
