@@ -45,8 +45,13 @@ registerRoute(
     };
     if (asObj.payload.type === "gateway") {
       const urlPrefix = asObj.payload.files[0]!.url;
+      const proxiedThroughServerUrl = `${window.location.origin}${
+        constants.apiFetchExternal
+      }?url=${encodeURIComponent(
+        `${urlPrefix}/archive/master.zip`
+      )}&no-cache=1`;
       try {
-        return fetch(`${urlPrefix}/archive/master.zip`, {
+        return fetch(`${proxiedThroughServerUrl}`, {
           method: "GET",
           headers: {
             "x-requested-with": "WA-Tool-Biel-SW",
