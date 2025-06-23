@@ -56,6 +56,10 @@ registerRoute(
           headers: {
             "x-requested-with": "WA-Tool-Biel-SW",
             [CustomXCacheTagHeader]: `${CacheTags.zipArchives}`,
+            "Content-Disposition": `attachment; filename="${encodeURI(
+              asObj.name
+            )}.zip"`,
+            "Content-Type": constants.headerOctectStream,
           },
         });
       } catch (e) {
