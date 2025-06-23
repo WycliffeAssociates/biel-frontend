@@ -132,6 +132,18 @@ export const GET: APIRoute = async ({request, url, locals}) => {
   if (contentLength) {
     resHeaders.set("Content-Length", contentLength);
   }
+  if (request.headers.get("Content-Disposition")) {
+    resHeaders.set(
+      "Content-Disposition",
+      request.headers.get("Content-Disposition") as string
+    );
+  }
+  if (request.headers.get("Content-Type")) {
+    resHeaders.set(
+      "Content-Type",
+      request.headers.get("Content-Type") as string
+    );
+  }
   if (rewrite) {
     return rewriteResponseIfNeeded({
       resourceType: resourceType || "DEFAULT",
