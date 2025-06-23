@@ -45,7 +45,7 @@ registerRoute(
     };
     if (asObj.payload.type === "gateway") {
       const urlPrefix = asObj.payload.files[0]!.url;
-      const proxiedThroughServerUrl = `${window.location.origin}${
+      const proxiedThroughServerUrl = `${location.origin}${
         constants.apiFetchExternal
       }?url=${encodeURIComponent(
         `${urlPrefix}/archive/master.zip`
