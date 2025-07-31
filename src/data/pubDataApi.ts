@@ -562,7 +562,9 @@ async function refreshCfCache({
     console.log(`Fetching ${requestToMake.url} with cacheKey ${cacheKey.url}`);
     const res = await fetch(requestToMake);
     const body = await res.arrayBuffer();
-    if (res.ok) {
+    const is200 = res.status === 200;
+    const hasBodyLength = body.byteLength > 0;
+    if (res.ok && is200 && hasBodyLength) {
       await cache.put(
         cacheKey as unknown as WorkerRequest,
         new Response(body, {
