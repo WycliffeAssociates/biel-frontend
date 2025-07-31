@@ -21,6 +21,7 @@ import type {
   Request as WorkerRequest,
   Response as WorkerResponse,
 } from "@cloudflare/workers-types";
+import {CacheTags} from "@lib/constants";
 type getLanguagesWithContentForBielArgs = {
   cache: Cache;
   ctx: ExecutionContext;
@@ -63,6 +64,7 @@ export async function getLanguagesWithContentForBiel({
       "Access-Control-Allow-Origin": "*",
       "Cache-Control": `public, max-age=${maxAgeValidSecond}, s-maxage=${oneYearInSeconds}`,
       "Content-Type": "application/json",
+      "Cache-Tag": CacheTags.languagesListing,
     });
 
     // skips cache matching if there is a query parameter to explicitly bust and update shared cache

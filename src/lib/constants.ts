@@ -20,6 +20,7 @@ export const constants = {
 export const CustomXCacheTagHeader = "x-biel-cache-tags";
 export const CacheTags = {
   zipArchives: "biel-zip-archives",
+  languagesListing: "biel-lang-list",
 };
 
 export const contactFormContactMethodsValues = {
