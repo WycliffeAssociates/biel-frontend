@@ -6,7 +6,7 @@ import {ExpirationPlugin} from "workbox-expiration";
 import {cleanupOutdatedCaches, precacheAndRoute} from "workbox-precaching";
 import {registerRoute} from "workbox-routing";
 import {CacheFirst, NetworkFirst} from "workbox-strategies";
-import {CacheTags, constants, CustomXCacheTagHeader} from "./lib/constants";
+import {constants, CacheTags, CustomXCacheTagHeader} from "./lib/constants";
 import {
   bielExternalCacheName,
   bielPagefindCacheName,
@@ -116,12 +116,11 @@ registerRoute(
       response,
       state: {},
     });
-
+    const clone = response.clone();
     if (isCacheable) {
       const cache = await caches.open(bielExternalCacheName);
       // don't block returning response
-      event.waitUntil(cache.put(cleanUrl.toString(), response.clone()));
-      // await cache.put(cleanUrl.toString(), response.clone());
+      event.waitUntil(cache.put(cleanUrl.toString(), clone));
     }
     return response;
   },

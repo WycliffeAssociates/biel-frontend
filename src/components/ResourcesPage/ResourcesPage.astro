@@ -15,16 +15,21 @@ const startTime = performance.now();
 const runtime = Astro.locals.runtime;
 const referrer = Astro.request.headers.get("Referer") as string;
 const referrerUrl = new URL(referrer);
-const paramsLower = new URLSearchParams(
-  Array.from(referrerUrl.searchParams, ([key, value]) => [
-    key.toLowerCase(),
-    value,
-  ])
-);
+const params = Array.from(referrerUrl.searchParams)
+  .filter(([key]) => {
+    return !!key && typeof key === "string";
+  })
+  .map(([key, value]) => {
+    return [key.toLowerCase(), value];
+  });
+const paramsLower = new URLSearchParams(params);
 const doBustCache = !!paramsLower.get(constants.queryParamCacheBust);
 const resourceType = paramsLower.get(constants.queryParamResourceType);
 const resourceTypeArrQp = resourceType
-  ? resourceType.split("|").map((t) => t.trim().toLowerCase())
+  ? resourceType
+      .split("|")
+      .filter((t) => !!t && typeof t === "string")
+      .map((t) => t.trim().toLowerCase())
   : [];
 
 // note, cache is a noop in dev right now for cloudfalre adapter
