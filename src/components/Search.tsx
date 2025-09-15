@@ -6,14 +6,14 @@ import { groupBy } from "ramda";
 // Import necessary modules from SolidJS
 import {
 	type Accessor,
+	createSignal,
 	For,
 	Match,
+	onCleanup,
+	onMount,
 	type Setter,
 	Show,
 	Switch,
-	createSignal,
-	onCleanup,
-	onMount,
 } from "solid-js";
 
 type SearchProps = {
@@ -41,7 +41,7 @@ export function Search(props: SearchProps) {
 
 	onMount(async () => {
 		// eagerly fetch this
-		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+		// biome-ignore lint/suspicious/noExplicitAny: <not sure on pagefind type>
 		const pageFind = (await import("../pagefind/pagefind.js")) as any;
 		// const pageFind = (await import(pathToImport)) as any;
 		pageFind.init();
@@ -72,11 +72,11 @@ export function Search(props: SearchProps) {
 			}
 		});
 
-		// @ts-ignore
+		// @ts-expect-error
 		if (!document.body.alreadyListeningKeydown) {
 			document.body.addEventListener("keydown", (e) => {
 				const focusedEl = document.activeElement;
-				// @ts-ignore
+				// @ts-expect-error
 				const datajsAttr = focusedEl?.dataset?.js;
 				let allOfThisType = null;
 				let currentIdx = null;
@@ -114,7 +114,7 @@ export function Search(props: SearchProps) {
 					}
 				}
 			});
-			// @ts-ignore
+			// @ts-expect-error
 			document.body.alreadyListeningKeydown = true;
 		}
 	});
@@ -138,16 +138,12 @@ export function Search(props: SearchProps) {
 			setSearchFocused(false);
 		}
 
-		const inputValue =
-			// @ts-ignore
-			stringToSearch || target?.value;
+		const inputValue = stringToSearch || target?.value;
 
 		if (!inputValue) setResults();
 		if (!import.meta.env.SSR) {
-			//@ts-ignore
 			// Load the pagefind script only once
 			if (!window.pagefind) {
-				//@ts-ignore
 				window.pagefind = await import("../pagefind/pagefind.js");
 				console.log("pagefind", window.pagefind);
 			}
@@ -261,7 +257,7 @@ export function Search(props: SearchProps) {
 							handleInput({ event: e });
 						}}
 						onKeyUp={(e) => handleInput({ event: e })}
-						// @ts-ignore chrome only
+						// @ts-expect-error chrome only
 						onSearch={handleInput}
 					/>
 					<MangifyingGlass class="absolute top-1/2 translate-y-[-50%] end-2" />
@@ -399,7 +395,7 @@ function SearchSuggestionBtn(props: {
 		</li>
 	);
 }
-// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+// biome-ignore lint/suspicious/noExplicitAny: <just need to tighten types here>
 function SearchItem(props: { item: any; escapeSearch: () => void }) {
 	return (
 		<Switch>
@@ -495,9 +491,9 @@ function SearchItemSoftware(props: SearchItemSoftwareProps) {
 }
 
 type SearchAsPageProps = {
-	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+	// biome-ignore lint/suspicious/noExplicitAny: <purposeful.>
 	results: Accessor<Partial<Record<any, any[]>> | null | undefined>;
-	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+	// biome-ignore lint/suspicious/noExplicitAny: <purposeful.>
 	setResults: Setter<Partial<Record<any, any[]>> | null | undefined>;
 	query: Accessor<string>;
 	setQuery: Setter<string>;
@@ -544,7 +540,7 @@ function SearchAsPage(props: SearchAsPageProps) {
 					onKeyUp={(e) => {
 						props.handleInput(e);
 					}}
-					// @ts-ignore chrome only
+					// @ts-expect-error chrome only
 					onSearch={(e) => {
 						props.handleInput(e);
 					}}

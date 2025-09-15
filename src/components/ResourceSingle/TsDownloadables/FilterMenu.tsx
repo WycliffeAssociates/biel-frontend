@@ -1,6 +1,6 @@
 import type { TsDirectoryFile, TsDirectoryLang } from "@customTypes/types";
 import { DropdownMenu } from "@kobalte/core/dropdown-menu";
-import { For, Show, createSignal } from "solid-js";
+import { createSignal, For, Show } from "solid-js";
 import { useResourceSingleContext } from "../ResourceSingleContext";
 
 type FilterMenuProps = {

@@ -1,10 +1,10 @@
 import { ChevronDown, SmallArrowDown } from "@components/Icons";
 import { Search } from "@components/Search";
-import type { Menu, MenuItem, languageType } from "@customTypes/types";
+import type { languageType, Menu, MenuItem } from "@customTypes/types";
 import { isAbsoluteUrl } from "@lib/web";
 import { createMediaQuery } from "@solid-primitives/media";
 import type { i18nDictType } from "@src/i18n/strings";
-import { For, Show, createSignal } from "solid-js";
+import { createSignal, For, Show } from "solid-js";
 import { HeaderMenuMobile } from "./HeaderMenuMobile";
 import { LanguagePicker } from "./LanguagePicker";
 import { WaLogo } from "./Logo";

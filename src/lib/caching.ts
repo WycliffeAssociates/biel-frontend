@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import * as path from "node:path";
 
 export function getDevCachedPages(refresh = false) {

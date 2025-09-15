@@ -1,8 +1,9 @@
 export const prerender = false;
+
 import type { APIRoute } from "astro";
 import {
-	type RemotePayloadType,
 	matchHelpMethodToEmailList,
+	type RemotePayloadType,
 } from "./contactForm";
 
 export const POST: APIRoute = async ({ request, locals }) => {

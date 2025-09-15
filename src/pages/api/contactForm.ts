@@ -1,4 +1,5 @@
 export const prerender = false;
+
 import { contactFormContactMethodsValues } from "@lib/constants";
 import type { APIRoute } from "astro";
 
@@ -24,7 +25,6 @@ export const POST: APIRoute = async ({ request, locals }) => {
 	//   }
 	// }
 	// Can type it when changing to next version I think
-	// @ts-ignore
 	const secretTurnstileKey = locals.runtime.env?.SECRET_TURNSTILE_KEY;
 
 	const data = await request.formData();
@@ -33,7 +33,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 	const helpMethod = requiredFields.method;
 	const message = requiredFields.message;
 	const approvedHelpMethods = Object.values(contactFormContactMethodsValues);
-	// @ts-ignore. No need for type to be write when the .includes call itself is a check
+	// @ts-expect-error. No need for type to be write when the .includes call itself is a check
 	if (!email || !helpMethod || !approvedHelpMethods.includes(helpMethod)) {
 		return new Response(null, {
 			status: 400,
@@ -180,7 +180,7 @@ function extractFieldsAndRest(formData: FormData) {
 	};
 	const otherFields: { field: string; value: unknown }[] = [];
 
-	// @ts-ignore. Trying to db a thing
+	// @ts-expect-error. Trying to db a thing
 	for (const [key, value] of formData.entries()) {
 		if (key in requiredFields) {
 			requiredFields[key as keyof typeof requiredFields] = value as string;

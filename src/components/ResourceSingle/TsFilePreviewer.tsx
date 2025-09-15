@@ -1,7 +1,7 @@
 import type { TsDirectoryFile } from "@customTypes/types";
 import { Dialog } from "@kobalte/core/dialog";
 import type { i18nDictType } from "@src/i18n/strings";
-import { type Accessor, type Setter, Show, lazy } from "solid-js";
+import { type Accessor, lazy, type Setter, Show } from "solid-js";
 
 const PdfPreviewer = lazy(() => import("./TsPdfFilePreviewer"));
 

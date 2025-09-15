@@ -6,7 +6,7 @@ import type {
 import { Checkbox } from "@kobalte/core/checkbox";
 import { getTsFilesPayload } from "@lib/web";
 import type { i18nDictType } from "@src/i18n/strings";
-import { type Accessor, type Setter, Show, Suspense, lazy } from "solid-js";
+import { type Accessor, lazy, type Setter, Show, Suspense } from "solid-js";
 import { MenuRow } from "./ContentScriptural";
 import {
 	type TsFilesForDownload,

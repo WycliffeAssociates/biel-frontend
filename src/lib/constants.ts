@@ -1,34 +1,34 @@
 export const constants = {
-  apiFetchExternal: "/api/fetchExternal",
-  apiDocStart: "/api/doc",
-  apiPollDoc: "/api/pollDoc",
-  apiTriggerDownload: "/api/triggerDownload",
-  apiFallbackSwZip: "/api/swFallbackSourceZip",
-  headerOctectStream: "application/octet-stream",
-  swKeepAlive: "/sw/keepAlive",
-  swProxyDataJsSelector: "proxy-source-zips",
-  swProxyZipsFormAction: "/sw-proxy-zip",
-  uiProxyDocQuerySelector: "proxy-sw-doc",
-  injectRegex: /<div[^>]*\bid="injectStaticSearch"[^>]*>.*?<\/div>/gim,
-  searchAsPageQuerySelector: "search-as-page",
-  queryParamCacheBust: "cache-bust",
-  queryParamResourceType: "resource-type",
-  queryParamsLangContentsBook: "book",
-  queryParamsLangContentsChapter: "chapter",
-  queryParamsLangContentsDownload: "download",
+	apiFetchExternal: "/api/fetchExternal",
+	apiDocStart: "/api/doc",
+	apiPollDoc: "/api/pollDoc",
+	apiTriggerDownload: "/api/triggerDownload",
+	apiFallbackSwZip: "/api/swFallbackSourceZip",
+	headerOctectStream: "application/octet-stream",
+	swKeepAlive: "/sw/keepAlive",
+	swProxyDataJsSelector: "proxy-source-zips",
+	swProxyZipsFormAction: "/sw-proxy-zip",
+	uiProxyDocQuerySelector: "proxy-sw-doc",
+	injectRegex: /<div[^>]*\bid="injectStaticSearch"[^>]*>.*?<\/div>/gim,
+	searchAsPageQuerySelector: "search-as-page",
+	queryParamCacheBust: "cache-bust",
+	queryParamResourceType: "resource-type",
+	queryParamsLangContentsBook: "book",
+	queryParamsLangContentsChapter: "chapter",
+	queryParamsLangContentsDownload: "download",
 } as const;
 export const CustomXCacheTagHeader = "x-biel-cache-tags";
 export const CacheTags = {
-  zipArchives: "biel-zip-archives",
-  languagesListing: "biel-lang-list",
+	zipArchives: "biel-zip-archives",
+	languagesListing: "biel-lang-list",
 };
 
 export const contactFormContactMethodsValues = {
-  tech: "Tech Support",
-  engagement: "Scripture Engagement",
-  translationSupport: "Translation Support",
-  accessibility: "Scripture Accessibility",
-  other: "Other",
+	tech: "Tech Support",
+	engagement: "Scripture Engagement",
+	translationSupport: "Translation Support",
+	accessibility: "Scripture Accessibility",
+	other: "Other",
 } as const;
 
 export const previewableFileTypes = ["ppt", "pptx", "doc", "docx", "pdf"];

@@ -1,7 +1,7 @@
 import presetIcons from "@unocss/preset-icons";
 import transformerDirectives from "@unocss/transformer-directives";
 import transformerVariantGroup from "@unocss/transformer-variant-group";
-import { type UserConfig, defineConfig, presetWind3 } from "unocss";
+import { defineConfig, presetWind3, type UserConfig } from "unocss";
 
 // const uno = presetUno();
 // console.log("containers");
@@ -93,7 +93,6 @@ const config: UserConfig = {
 	// },
 };
 
-// @ts-ignore
 const generateSafelistColors = (
 	prefixes: string[],
 	themeColors: Record<string, string | Record<string, string>>,
@@ -117,7 +116,7 @@ const generateSafelistColors = (
 };
 const safelistColors = generateSafelistColors(
 	["text", "bg"],
-	// @ts-ignore
+	// @ts-expect-error
 	config.theme?.colors ?? {},
 );
 config.safelist = [

@@ -6,11 +6,7 @@ import {BreadCrumbs} from "@components/BreadCrumbs";
 import Layout from "@layouts/LayoutNoFooter.astro";
 import {getMenus, getLanguagesPageSlugs, getWpmlLanguages} from "@src/data/wp";
 import {getDict} from "@src/i18n/strings";
-import {
-  capitalizeFirstLetter,
-  returnKnownRedirectPathIfKnown,
-  titleCase,
-} from "@src/utils";
+import {capitalizeFirstLetter, titleCase} from "@src/utils";
 import {constants} from "@lib/constants";
 import {getLanguageContents} from "@src/data/pubDataApi";
 
