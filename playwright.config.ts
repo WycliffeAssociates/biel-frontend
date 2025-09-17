@@ -77,7 +77,7 @@ export default defineConfig({
 
 	/* Run your local dev server before starting the tests */
 	webServer: {
-		command: process.env.CI ? "pnpm run cfPreview" : "pnpm run dev",
+		command: process.env.CI ? "bun run cfPreview" : "bun run dev",
 		url: process.env.CI ? "http://localhost:8788" : "http://localhost:4321",
 		reuseExistingServer: !process.env.CI,
 	},

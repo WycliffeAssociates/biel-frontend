@@ -1,4 +1,5 @@
 export const prerender = false;
+
 import type { ZipSrcBodyReq } from "@customTypes/types";
 import type { APIRoute } from "astro";
 import { downloadZip } from "client-zip";
@@ -37,7 +38,6 @@ export const POST: APIRoute = async ({ request }) => {
 		});
 	}
 	const totalSize = payload.files.reduce(
-		// biome-ignore lint/style/noParameterAssign: <easy to see how this reduce works>
 		// biome-ignore lint/suspicious/noAssignInExpressions: <easy to see how this reduce works>
 		(acc, curr) => (acc += curr.size || 0),
 		0,

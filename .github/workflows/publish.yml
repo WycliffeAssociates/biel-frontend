@@ -67,23 +67,17 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
-      - name: get pnpm
-        uses: pnpm/action-setup@v2
+      - name: get bun
+        uses: oven-sh/setup-bun@v2
         with:
-          version: 9.13.2
+          bun-version: "1.2.22"
       - name: setup node
         uses: actions/setup-node@v4
         with:
           node-version: "23"
-          cache: pnpm
-      - name: Upgrade JS dependencies
-        uses: actions/setup-node@v4
-        with:
-          node-version: "23"
-          cache: pnpm
       - name: Install JS dependencies and build
         run: |
-          pnpm install --frozen-lockfile && pnpm build
+          bun install --frozen-lockfile && bun run build
         env:
           NODE_OPTIONS: --max_old_space_size=4096
           TURNSTILE_PUBLIC_KEY: ${{ env.TURNSTILE_PUBLIC_KEY }}
@@ -91,10 +85,10 @@ jobs:
 
       - name: Purge extra css
         run: |
-          pnpm run purgecss
+          bun run purgecss
       - name: Generate Pagefind index
         run: |
-          pnpm run pagefind
+          bun run pagefind
         env:
             CMS_URL:  ${{ env.CMS_URL }}
             SITE_URL:  ${{ env.SITE_URL }}
@@ -106,10 +100,10 @@ jobs:
           printf "%s\n" "$CF_DEV_VARS" > .dev.vars
         if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/prod'
       - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
+        run: bun playwright install --with-deps
         if: ${{inputs.skipTests != true}}
       - name: Run Playwright tests
-        run: pnpm exec playwright test
+        run: bun playwright test
         if: ${{inputs.skipTests != true}}
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}

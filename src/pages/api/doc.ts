@@ -1,4 +1,5 @@
 export const prerender = false;
+
 import type { DocRequest } from "@customTypes/types";
 import type { APIRoute } from "astro";
 

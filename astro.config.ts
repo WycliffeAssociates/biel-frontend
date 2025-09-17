@@ -20,7 +20,7 @@ export default defineConfig({
 		ssr: {
 			noExternal: [],
 			// external used only in dev to avoid calling getStaticPaths and rebuilding site sometimes.
-			external: ["node:fs", "node:path"],
+			external: ["node:fs", "node:path", "node:buffer"],
 			// noExternal: ["path-to-regexp"],
 		},
 		plugins: [
@@ -36,7 +36,6 @@ export default defineConfig({
       Markup Based:   2.5Mib.  (2.4Mib, + 100kib JS)
       JS Based:  1.3Mib (650 Kib markup and 650 Kib js)
       */
-			// @ts-ignore
 			visualizer({
 				template: "treemap", // or sunburst
 				open: false,

@@ -1,13 +1,13 @@
-import type { Menu, MenuItem, languageType } from "@customTypes/types";
+import type { languageType, Menu, MenuItem } from "@customTypes/types";
 import { isAbsoluteUrl } from "@lib/web";
 import type { i18nDictType } from "@src/i18n/strings";
 import {
+	createEffect,
+	createSignal,
 	For,
 	type JSXElement,
 	type Setter,
 	Show,
-	createEffect,
-	createSignal,
 } from "solid-js";
 import { FeaturedMenuItem } from "./HeaderMenu";
 import {
@@ -130,13 +130,14 @@ export function HeaderMenuMobile(props: HeaderMenuProps) {
 													>
 														<span innerHTML={menuLink.title} />
 													</a>
-													<span
+													<button
+														type="button"
 														class="inline-block transform -rotate-90 cursor-pointer"
 														onClick={() => setActivePane(index())}
 														onKeyDown={() => setActivePane(index())}
 													>
 														<ChevronDown />
-													</span>
+													</button>
 													<Show when={paneIsActive(index())}>
 														<MobileNestedContainer>
 															<MobileNestedLayerTitleBar

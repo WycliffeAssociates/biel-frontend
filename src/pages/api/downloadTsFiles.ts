@@ -1,7 +1,9 @@
 export const prerender = false;
+
 import type { TsDirectoryFile } from "@customTypes/types";
 import type { APIRoute } from "astro";
 import { downloadZip, predictLength } from "client-zip";
+
 type downloadTsFilesBody = {
 	payload: TsDirectoryFile[];
 	name: string;
@@ -44,7 +46,7 @@ export const POST: APIRoute = async ({ request }) => {
 	);
 	let streamToReturn = clientZipStream.body;
 	if (import.meta.env.PROD) {
-		// @ts-ignore.  https://developers.cloudflare.com/workers/runtime-apis/streams/transformstream/#fixedlengthstream.  We know the length, but this is a platform api that is cloufdlare specific, so we can't just return the content length header. Cloudflare will override it.
+		// @ts-expect-error.  https://developers.cloudflare.com/workers/runtime-apis/streams/transformstream/#fixedlengthstream.  We know the length, but this is a platform api that is cloufdlare specific, so we can't just return the content length header. Cloudflare will override it.
 		const { readable, writable } = new FixedLengthStream(predictedLength);
 		clientZipStream.body?.pipeTo(writable);
 		streamToReturn = readable;
@@ -69,12 +71,7 @@ function cutFilePrefixIfOver3Parts(fileName: string) {
 }
 function normalizeFileName(fileName: string) {
 	// https://stackoverflow.com/questions/990904/remove-accents-diacritics-in-a-string-in-javascript
-	return (
-		fileName
-			.normalize("NFD")
-			// biome-ignore lint/suspicious/noMisleadingCharacterClass:
-			.replace(/[\u0300-\u036f]/gu, "")
-	);
+	return fileName.normalize("NFD").replace(/[\u0300-\u036f]/gu, "");
 }
 
 async function* getResClientZip(payload: TsDirectoryFile[]) {

@@ -1,7 +1,7 @@
 import { DatePicker, parseDate } from "@ark-ui/solid/date-picker";
 import {
-	type InputChoicesType,
 	getBinaryChoiceLabelsLocalized,
+	type InputChoicesType,
 	inputChoices,
 	maturityLevels,
 	questionLabels,
@@ -15,13 +15,13 @@ import intlTelInput, { type Iti } from "intl-tel-input";
 import type { HTMLInputElement } from "linkedom";
 import {
 	type Accessor,
+	createSignal,
 	For,
 	Match,
+	onMount,
 	type Setter,
 	Show,
 	Switch,
-	createSignal,
-	onMount,
 } from "solid-js";
 import { Index, Portal } from "solid-js/web";
 
@@ -494,39 +494,41 @@ export function ScriptureEngagementForm(props: ScriptureEngagementFormProps) {
 		let isValid = true;
 		let idToScrollTo = null;
 		const formCopy = { ...form() };
-		Object.values(formCopy.sections).flatMap((section) => {
-			Object.values(section).map((input) => {
-				const value = input.value;
-				const hasCustomValidationFunction = Object.hasOwn(input, "isValid");
+		Object.values(formCopy.sections)
+			.flat()
+			.forEach((section) => {
+				Object.values(section).forEach((input) => {
+					const value = input.value;
+					const hasCustomValidationFunction = Object.hasOwn(input, "isValid");
 
-				if (hasCustomValidationFunction) {
-					if (!input.isValid!()) {
-						isValid = false;
-						idToScrollTo ??= input.id;
-						input.validationError = "Field is required";
+					if (hasCustomValidationFunction) {
+						if (!input.isValid!()) {
+							isValid = false;
+							idToScrollTo ??= input.id;
+							input.validationError = "Field is required";
+						}
+					} else {
+						const isArrayField = Array.isArray(value);
+						const isStringField = typeof value === "string";
+						const isNotEmpty = input.value !== null;
+						if (isStringField && !value?.trim().length) {
+							isValid = false;
+							idToScrollTo ??= input.id;
+							input.validationError = "Field is required";
+						}
+						if (isArrayField && !value?.length) {
+							isValid = false;
+							idToScrollTo ??= input.id;
+							input.validationError = "Field is required";
+						}
+						if (!isNotEmpty) {
+							isValid = false;
+							idToScrollTo ??= input.id;
+							input.validationError = "Field is required";
+						}
 					}
-				} else {
-					const isArrayField = Array.isArray(value);
-					const isStringField = typeof value === "string";
-					const isNotEmpty = input.value !== null;
-					if (isStringField && !value?.trim().length) {
-						isValid = false;
-						idToScrollTo ??= input.id;
-						input.validationError = "Field is required";
-					}
-					if (isArrayField && !value?.length) {
-						isValid = false;
-						idToScrollTo ??= input.id;
-						input.validationError = "Field is required";
-					}
-					if (!isNotEmpty) {
-						isValid = false;
-						idToScrollTo ??= input.id;
-						input.validationError = "Field is required";
-					}
-				}
+				});
 			});
-		});
 		setForm(formCopy);
 		if (idToScrollTo) {
 			const node = document.getElementById(idToScrollTo);
@@ -685,11 +687,11 @@ function ThankYouSuccess(props: {
 			return props.dict.seSuccessHtml;
 		}
 		const withThankyouSuffix = `${props.dict[disclaimerQuestion]}Thanks`;
-		// @ts-ignore
+		// @ts-expect-error
 		if (!props.dict[withThankyouSuffix]) {
 			return props.dict.seSuccessHtml;
 		}
-		// @ts-ignore
+		// @ts-expect-error
 		return props.dict[withThankyouSuffix];
 	};
 	return (
@@ -1242,7 +1244,7 @@ function TelInput(props: TelInputProps) {
 	// const [errMsg, setErrMsg] = createSignal("");
 
 	onMount(() => {
-		// @ts-ignore
+		// @ts-expect-error
 		const instance = intlTelInput(inputRef, {
 			loadUtilsOnInit: `https://cdn.jsdelivr.net/npm/intl-tel-input@${intlTelInput.version}/build/js/utils.js`,
 			formatAsYouType: true,
@@ -1264,7 +1266,7 @@ function TelInput(props: TelInputProps) {
 			</Show>
 			<ValidationErr errMsg={props.field.validationError} />
 			<input
-				/* @ts-ignore */
+				/* @ts-expect-error */
 				ref={inputRef}
 				type="phone"
 				name="phone"
@@ -1865,7 +1867,7 @@ function SubmitSection(props: SubmitSectionProps) {
 	const [hasRenderedTurnstile, setHasRenderedTurnstile] = createSignal(false);
 	onMount(() => {
 		if (!hasRenderedTurnstile() && turnstileRef && "turnstile" in window) {
-			// @ts-ignore https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/
+			// @ts-expect-error https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/
 			window.turnstile.render(turnstileRef, {
 				sitekey: props.turnstilePublicKey,
 				callback: (token: string) => {

@@ -1,7 +1,6 @@
 import type { i18nDictType } from "@src/i18n/strings";
+import { createSignal, type JSX, type Setter, Show } from "solid-js";
 import { render } from "solid-js/web";
-
-import { type JSX, type Setter, Show, createSignal } from "solid-js";
 
 type ContactFormProps = {
 	dict: i18nDictType;
@@ -275,11 +274,9 @@ function FailedMessage(props: { dict: i18nDictType }) {
 
 function RequiredIndicator(props: { dict: i18nDictType }) {
 	return (
-		<>
-			<span class="text-error-onSurface">
-				<sup>*</sup> {props.dict.requiredIndicator}
-			</span>
-		</>
+		<span class="text-error-onSurface">
+			<sup>*</sup> {props.dict.requiredIndicator}
+		</span>
 	);
 }
 

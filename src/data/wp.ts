@@ -1,8 +1,8 @@
 import type {
 	GlobalWpType,
+	languageType,
 	WPMLMenu,
 	WpPage,
-	languageType,
 } from "@customTypes/types";
 import { flatMenuToHierachical } from "@src/utils";
 import { DOMParser } from "linkedom/worker";

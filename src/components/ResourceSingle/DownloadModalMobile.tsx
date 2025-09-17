@@ -7,6 +7,7 @@ import {
 	HiddenZipSrcForm,
 	IncludeAllBooksToggle,
 	OpenInDocButton,
+	QrCodeButton,
 	TranslationNotesToggle,
 } from "./DownloadOptions";
 
@@ -70,6 +71,7 @@ export default function DownloadModal(
 						docErred={props.docErred}
 					/>
 					<OpenInDocButton i18nDict={props.i18nDict} />
+					<QrCodeButton i18nDict={props.i18nDict} />
 					{/* biome-ignore lint/a11y/useValidAnchor: <href anchor is filled in via js before clicking based on > */}
 					<a data-js="proxy-sw-doc" class="hidden">
 						{props.i18nDict.ls_StartDownlaod}

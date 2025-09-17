@@ -170,7 +170,7 @@ const requests = Object.values(langs)
           </body>
           </html>
           `,
-					url: `${baseUrl}?resource-type=${c.name}`,
+					url: `${baseUrl}?resource-type=${encodeURIComponent(c.name)}`,
 				};
 			});
 		});

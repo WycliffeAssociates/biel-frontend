@@ -8,16 +8,18 @@ import { RadioGroup } from "@kobalte/core/radio-group";
 import { ToggleButton } from "@kobalte/core/toggle-button";
 import type { i18nDictType } from "@src/i18n/strings";
 import { constants } from "@src/lib/constants";
+import QRCode from "qrcode";
 import {
 	type Accessor,
-	For,
-	type Setter,
-	Show,
 	createEffect,
 	createSignal,
+	For,
 	lazy,
+	type Setter,
+	Show,
 } from "solid-js";
 import { useResourceSingleContext } from "./ResourceSingleContext";
+
 const DownloadModal = lazy(() => import("./DownloadModalMobile"));
 
 type DownloadArgs = {
@@ -384,7 +386,7 @@ function DropDownPortal(props: DropDownPortalProps) {
 					/>
 				</Show>
 
-				<div class="flex flex-col gap-3">
+				<div class="flex flex-col gap-2">
 					<DownloadButton
 						i18nDict={props.i18nDict}
 						startDownload={props.startDownload}
@@ -393,6 +395,7 @@ function DropDownPortal(props: DropDownPortalProps) {
 						docErred={props.docErred}
 					/>
 					<OpenInDocButton i18nDict={props.i18nDict} />
+					<QrCodeButton i18nDict={props.i18nDict} />
 				</div>
 				{/* biome-ignore lint/a11y/useValidAnchor: <href anchor is filled in via js before clicking based on > */}
 				<a data-js="proxy-sw-doc" class="hidden">
@@ -453,7 +456,7 @@ export function FileTypePicker(props: FileTypePickerProps) {
 			<RadioGroup.Label class="radio-group__label font-500 font-step-1">
 				{props.i18nDict.ls_SelectFormat}
 			</RadioGroup.Label>
-			<div class="grid grid-cols-2 gap-3">
+			<div class="grid grid-cols-2 gap-2">
 				<For each={options()}>
 					{(opt) => (
 						<RadioGroup.Item
@@ -587,6 +590,29 @@ export function OpenInDocButton(props: { i18nDict: i18nDictType }) {
 			<span class="i-octicon:link-external-24 w-1em h-1em" />
 			{props.i18nDict.ls_OpenInDoc}
 		</a>
+	);
+}
+export function QrCodeButton(props: { i18nDict: i18nDictType }) {
+	return (
+		<button
+			type="button"
+			onClick={() => {
+				const dialog = document.getElementById("qrDialog") as HTMLDialogElement;
+				const smallestDimension = Math.min(
+					window.innerWidth,
+					window.innerHeight,
+				);
+				const width = Math.max(200, smallestDimension * 0.6);
+				dialog?.showModal();
+				const canvas = document.getElementById("qrCanvas") as HTMLCanvasElement;
+				if (!canvas) return;
+				QRCode.toCanvas(canvas, window.location.href, { width: width });
+			}}
+			class="p-2 text-brand-base inline-flex gap-1 items-center justify-center underline w-max mx-auto"
+		>
+			<span class="i-bx:qr w-1em h-1em" />
+			{props.i18nDict.ls_QrCode}
+		</button>
 	);
 }
 

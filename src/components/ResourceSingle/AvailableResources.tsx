@@ -3,19 +3,19 @@ import { Dialog } from "@kobalte/core/dialog";
 import { getTsFilesPayload } from "@lib/web";
 import slugify from "@sindresorhus/slugify";
 import type { ContentsForLang } from "@src/data/gqlQueries/queries";
-import { type Accessor, For, type Setter, Show, createSignal } from "solid-js";
+import { type Accessor, createSignal, For, type Setter, Show } from "solid-js";
 import type { SetStoreFunction } from "solid-js/store";
 import { DownloadOptions } from "./DownloadOptions";
-import {
-	type tsFolderState,
-	useResourceSingleContext,
-} from "./ResourceSingleContext";
-import { DownloadablesFilterMenu } from "./TsDownloadables/FilterMenu";
 import {
 	contentContainsSearch,
 	isScriptural,
 	tsFilesContainsSearch,
 } from "./lib";
+import {
+	type tsFolderState,
+	useResourceSingleContext,
+} from "./ResourceSingleContext";
+import { DownloadablesFilterMenu } from "./TsDownloadables/FilterMenu";
 
 type AvailableResourcesProps = {
 	classes?: string;
