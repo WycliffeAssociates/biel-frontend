@@ -6,7 +6,7 @@ import slugify from "@sindresorhus/slugify";
 import {createMediaQuery} from "@solid-primitives/media";
 import type {RenderedContentRow} from "@src/data/gqlQueries/queries";
 import type {i18nDictType} from "@src/i18n/strings";
-import {nfdLowerNormalize} from "@src/utils";
+
 import {
   createEffect,
   createResource,
