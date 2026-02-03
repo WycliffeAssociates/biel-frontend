@@ -344,6 +344,35 @@ export function AvailableResource(props: AvailableResourceProps) {
 			}
 			return newState;
 		});
+
+		// Update URL to reflect the new resource type
+		const url = new URL(window.location.href);
+		url.searchParams.set("resource-type", props.content.resource_type);
+
+		// For scriptural resources, update book/chapter parameters if available
+		if (isScriptural(props.content)) {
+			const firstChapter = props.content.rendered_contents.htmlChapters[0];
+			if (firstChapter?.scriptural_rendering_metadata) {
+				url.searchParams.set(
+					"book",
+					firstChapter.scriptural_rendering_metadata.book_slug,
+				);
+				url.searchParams.set(
+					"chapter",
+					firstChapter.scriptural_rendering_metadata.chapter.toString(),
+				);
+			}
+		} else {
+			// For non-scriptural resources, remove book/chapter parameters
+			url.searchParams.delete("book");
+			url.searchParams.delete("chapter");
+		}
+
+		// Preserve the hash if it exists
+		const currentHash = window.location.hash;
+		url.hash = currentHash;
+
+		window.history.replaceState({}, "", url.toString());
 	}
 	return (
 		<li>

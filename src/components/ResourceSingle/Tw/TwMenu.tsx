@@ -33,6 +33,9 @@ export default function TwMenu(props: TwMenuProps) {
 		// setCurrentWord(matchingWord);
 		if (matchingWord) {
 			props.setTwState((prev) => ({ ...prev, currentWord: matchingWord }));
+			// Update URL to reflect the current TW word selection
+			const url = `${window.location.origin}${window.location.pathname}${window.location.search}#${matchingWord.id}`;
+			window.history.replaceState({}, "", url);
 		}
 		setMenuIsOpen(false);
 	}
