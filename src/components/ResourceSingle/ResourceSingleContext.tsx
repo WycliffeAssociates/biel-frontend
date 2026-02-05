@@ -122,8 +122,14 @@ export const ResourceSingleProvider = (props: ResourceSingleProviderProps) => {
 	const [tsFilesForDownload, setTsFilesForDownload] =
 		createSignal<TsFilesForDownload>(new Map());
 	const resourceFromQpOrDefault =
-		props.allLangContents.find((r) => r.name === props.queryParams.resource) ||
-		props.allLangContents[0]!;
+		props.allLangContents.find(
+			(r) =>
+				r.resource_type.toLowerCase() ===
+					props.queryParams.resource?.toLowerCase() ||
+				r.resource_type
+					.toLowerCase()
+					.includes(props.queryParams.resource?.toLowerCase() || ""),
+		) || props.allLangContents[0]!;
 
 	let activeRowIdxFromQpOrDefault =
 		resourceFromQpOrDefault.rendered_contents.htmlChapters.findIndex((chap) => {
