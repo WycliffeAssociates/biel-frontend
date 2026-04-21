@@ -38,11 +38,9 @@ jobs:
             echo "ENV=dev" >> $GITHUB_OUTPUT
           fi
       - name: Load env vars
-        uses: 1password/load-secrets-action@v1
-        with:
-          # Export loaded secrets as environment variables
-          export-env: true
-        env: 
+        id: load_secrets
+        uses: 1password/load-secrets-action@v4
+        env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: "op://DevOps/cloudflare-worker-deploy-token/CF_ACCOUNT_ID"
           CLOUDFLARE_API_TOKEN: "op://DevOps/cloudflare-worker-deploy-token/CF_API_TOKEN"
@@ -54,12 +52,10 @@ jobs:
           TURNSTILE_PUBLIC_KEY: "op://DevOps/biel-env-vars/common/turnstile-public-key"
           CF_DEV_VARS: "op://DevOps/biel-env-vars/common/cf-dev-vars"
       - name: set prod variables
-        uses: 1password/load-secrets-action@v1
-        with:
-          # Export loaded secrets as environment variables
-          export-env: true
+        id: load_prod_secrets
+        uses: 1password/load-secrets-action@v4
         if: github.ref == 'refs/heads/prod'
-        env: 
+        env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           CMS_URL: "op://DevOps/biel-env-vars/prod/prod-cms-url"
           SITE_URL: "op://DevOps/biel-env-vars/prod/prod-site-url"
@@ -80,7 +76,7 @@ jobs:
           bun install --frozen-lockfile && bun run build
         env:
           NODE_OPTIONS: --max_old_space_size=4096
-          TURNSTILE_PUBLIC_KEY: ${{ env.TURNSTILE_PUBLIC_KEY }}
+          TURNSTILE_PUBLIC_KEY: ${{ steps.load_secrets.outputs.TURNSTILE_PUBLIC_KEY }}
           IS_MAIN_BRANCH: ${{ github.ref == 'refs/heads/prod' }}
 
       - name: Purge extra css
@@ -90,14 +86,14 @@ jobs:
         run: |
           bun run pagefind
         env:
-            CMS_URL:  ${{ env.CMS_URL }}
-            SITE_URL:  ${{ env.SITE_URL }}
-            WORDPRESS_GQL_URL:  ${{ env.WORDPRESS_GQL_URL }}
-            PUBLIC_DATA_API_URL: ${{ env.PUBLIC_DATA_API_URL }}
+            CMS_URL:  ${{ steps.load_secrets.outputs.CMS_URL }}
+            SITE_URL:  ${{ steps.load_secrets.outputs.SITE_URL }}
+            WORDPRESS_GQL_URL:  ${{ steps.load_secrets.outputs.WORDPRESS_GQL_URL }}
+            PUBLIC_DATA_API_URL: ${{ steps.load_secrets.outputs.PUBLIC_DATA_API_URL }}
       
       - name: Copy in cf dev vars if testing
         run: |
-          printf "%s\n" "$CF_DEV_VARS" > .dev.vars
+          printf "%s\n" "${{ steps.load_secrets.outputs.CF_DEV_VARS }}" > .dev.vars
         if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/prod'
       - name: Install Playwright Browsers
         run: bun playwright install --with-deps
@@ -121,6 +117,6 @@ jobs:
       - name: Publish
         uses: cloudflare/wrangler-action@v3
         with:
-          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+          apiToken: ${{ steps.load_secrets.outputs.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ steps.load_secrets.outputs.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name=headless-biel --upload-source-maps=true
