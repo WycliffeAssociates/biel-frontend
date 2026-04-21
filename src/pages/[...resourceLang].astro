@@ -27,7 +27,7 @@ const paramsLower = new URLSearchParams(
   Array.from(Astro.url.searchParams, ([key, value]) => [
     key.toLowerCase(),
     value,
-  ])
+  ]),
 );
 const doBustCache = !!paramsLower.get(constants.queryParamCacheBust);
 const cache = Astro.locals.runtime.caches.default;
@@ -41,6 +41,10 @@ const [wpmlLangDict, menus, languagePageSlugs] = await Promise.all([
 
 const parts = resourceLang.split("/").filter(Boolean);
 console.log(`parts lenght is ${parts.length}. ${parts}`);
+
+// Reject requests that don't match expected path structure
+if (parts.length < 3) return Astro.redirect("/404");
+
 const isEnglishDetailPage = parts[0] === "resources" && parts.length === 3;
 const isDetailPageOther = parts.length === 4;
 const thisLang = isEnglishDetailPage ? "en" : parts[0];
@@ -49,7 +53,7 @@ const i18nDict = getDict(thisLang, true);
 const pubDataIetf = parts[parts.length - 1];
 if (!pubDataIetf) return Astro.redirect("/404");
 const thisTranslation = languagePageSlugs.data.page.translations.find(
-  (t) => t.languageCode === thisLang
+  (t) => t.languageCode === thisLang,
 );
 
 const isReqForResources =
@@ -74,7 +78,7 @@ const langSwitcherList = Object.values(wpmlLangDict)
     // Don't mutate the original dict item
     const copy = {...lang};
     const matchingSlug = languagePageSlugs.data.page.translations.find(
-      (t) => t.languageCode === lang.code
+      (t) => t.languageCode === lang.code,
     );
 
     if (lang.code === "en") {
@@ -110,7 +114,7 @@ const nodes = [
 switch (parts.length) {
   case 3:
     // resource/languages/en
-    isEnglishDetailPage &&
+    if (isEnglishDetailPage) {
       nodes.push(
         {
           uri: "/resources",
@@ -126,12 +130,13 @@ switch (parts.length) {
           uri: `/resources/languages/${parts[2]}`,
           slug: "",
           title: languageData.language.national_name,
-        }
+        },
       );
+    }
     break;
   case 4:
     // es/recursos/idiomas/fr
-    isDetailPageOther &&
+    if (isDetailPageOther) {
       nodes.push(
         {
           slug: thisTranslation?.slug!,
@@ -147,8 +152,9 @@ switch (parts.length) {
           slug: "",
           title: languageData.language.national_name,
           uri: `/${parts[0]!}/${parts[1]!}/${parts[2]!}/${parts[3]!}`,
-        }
+        },
       );
+    }
     break;
   default:
     break;

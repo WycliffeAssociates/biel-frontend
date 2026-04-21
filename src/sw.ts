@@ -36,7 +36,8 @@ registerRoute(
 		}
 	},
 	async ({ request }) => {
-		const formData = await request.formData();
+		const requestClone = request.clone();
+		const formData = await requestClone.formData();
 		const payload = formData.get("zipPayload");
 		const asObj = JSON.parse(payload as string) as {
 			payload: ZipSrcBodyReq;
@@ -47,18 +48,14 @@ registerRoute(
 			const urlPrefix = asObj.payload.files[0]!.url;
 			const proxiedThroughServerUrl = `${location.origin}${
 				constants.apiFetchExternal
-			}?url=${encodeURIComponent(
-				`${urlPrefix}/archive/master.zip`,
-			)}&no-cache=1`;
+			}?url=${encodeURIComponent(`${urlPrefix}/archive/master.zip`)}&no-cache=1`;
 			try {
 				return fetch(`${proxiedThroughServerUrl}`, {
 					method: "GET",
 					headers: {
 						"x-requested-with": "WA-Tool-Biel-SW",
 						[CustomXCacheTagHeader]: `${CacheTags.zipArchives}`,
-						"Content-Disposition": `attachment; filename="${encodeURI(
-							asObj.name,
-						)}.zip"`,
+						"Content-Disposition": `attachment; filename="${encodeURI(asObj.name)}.zip"`,
 						"Content-Type": constants.headerOctectStream,
 					},
 				});
@@ -78,9 +75,7 @@ registerRoute(
 			);
 			return new Response(stream.body, {
 				headers: {
-					"Content-Disposition": `attachment; filename="${encodeURI(
-						asObj.name,
-					)}.zip"`,
+					"Content-Disposition": `attachment; filename="${encodeURI(asObj.name)}.zip"`,
 					"Content-Length": totalSize,
 					"Content-Type": constants.headerOctectStream,
 				},

@@ -44,7 +44,7 @@ export function Search(props: SearchProps) {
 		// biome-ignore lint/suspicious/noExplicitAny: <not sure on pagefind type>
 		const pageFind = (await import("../pagefind/pagefind.js")) as any;
 		// const pageFind = (await import(pathToImport)) as any;
-		pageFind.init();
+		pageFind.init({ basePath: "/pagefind" });
 		await pageFind.options({
 			excerptLength: 5,
 			baseUrl: "/",
@@ -550,21 +550,15 @@ function SearchAsPage(props: SearchAsPageProps) {
 						each={[
 							[
 								"PAGES",
-								`${props.dict.pages} ${buttonLabel(
-									props.results()?.page?.length,
-								)}`,
+								`${props.dict.pages} ${buttonLabel(props.results()?.page?.length)}`,
 							],
 							[
 								"RESOURCES",
-								`${props.dict.resources} ${buttonLabel(
-									props.results()?.resource?.length,
-								)}`,
+								`${props.dict.resources} ${buttonLabel(props.results()?.resource?.length)}`,
 							],
 							[
 								"SOFTWARE",
-								`${props.dict.software} ${buttonLabel(
-									props.results()?.software?.length,
-								)}`,
+								`${props.dict.software} ${buttonLabel(props.results()?.software?.length)}`,
 							],
 						]}
 					>

@@ -19,7 +19,7 @@ const paramsLower = new URLSearchParams(
   Array.from(Astro.url.searchParams, ([key, value]) => [
     key.toLowerCase(),
     value,
-  ])
+  ]),
 );
 
 const {contents, language: lang} = languageData;
@@ -36,7 +36,7 @@ const queryParams = {resource, book, chapter, download};
 <section data-name="pubDataApi" class="contain h-full">
   <div class="h-full">
     <ResourceWrapper
-      client:load
+      client:only="solid-js"
       queryParams={queryParams}
       language={lang}
       contents={contents}
