@@ -76,6 +76,11 @@ jobs:
           bun install --frozen-lockfile && bun run build
         env:
           NODE_OPTIONS: --max_old_space_size=4096
+          WORDPRESS_REST_MENU_ENDPOINT: ${{ steps.load_secrets.outputs.WORDPRESS_REST_MENU_ENDPOINT }}
+          CMS_URL: ${{ github.ref == 'refs/heads/prod' && steps.load_prod_secrets.outputs.CMS_URL || steps.load_secrets.outputs.CMS_URL }}
+          SITE_URL: ${{ github.ref == 'refs/heads/prod' && steps.load_prod_secrets.outputs.SITE_URL || steps.load_secrets.outputs.SITE_URL }}
+          WORDPRESS_GQL_URL: ${{ github.ref == 'refs/heads/prod' && steps.load_prod_secrets.outputs.WORDPRESS_GQL_URL || steps.load_secrets.outputs.WORDPRESS_GQL_URL }}
+          PUBLIC_DATA_API_URL: ${{ steps.load_secrets.outputs.PUBLIC_DATA_API_URL }}
           TURNSTILE_PUBLIC_KEY: ${{ steps.load_secrets.outputs.TURNSTILE_PUBLIC_KEY }}
           IS_MAIN_BRANCH: ${{ github.ref == 'refs/heads/prod' }}
 
@@ -86,9 +91,9 @@ jobs:
         run: |
           bun run pagefind
         env:
-            CMS_URL:  ${{ steps.load_secrets.outputs.CMS_URL }}
-            SITE_URL:  ${{ steps.load_secrets.outputs.SITE_URL }}
-            WORDPRESS_GQL_URL:  ${{ steps.load_secrets.outputs.WORDPRESS_GQL_URL }}
+            CMS_URL:  ${{ github.ref == 'refs/heads/prod' && steps.load_prod_secrets.outputs.CMS_URL || steps.load_secrets.outputs.CMS_URL }}
+            SITE_URL:  ${{ github.ref == 'refs/heads/prod' && steps.load_prod_secrets.outputs.SITE_URL || steps.load_secrets.outputs.SITE_URL }}
+            WORDPRESS_GQL_URL:  ${{ github.ref == 'refs/heads/prod' && steps.load_prod_secrets.outputs.WORDPRESS_GQL_URL || steps.load_secrets.outputs.WORDPRESS_GQL_URL }}
             PUBLIC_DATA_API_URL: ${{ steps.load_secrets.outputs.PUBLIC_DATA_API_URL }}
       
       - name: Copy in cf dev vars if testing
