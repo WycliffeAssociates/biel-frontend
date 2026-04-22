@@ -18,25 +18,31 @@ export const GET: APIRoute = async ({ request, url, locals }) => {
 	const cacheBypass = queryParams.get("no-cache");
 	const cacheTagHeader = request.headers.get(CustomXCacheTagHeader);
 
-	// copy the params, but get rid of the url and no-cache to create a cacheable url of type url?hash=HASH&rewrite=rewrite&resource-type=resource-type
-	const relevantParams = new URLSearchParams();
+	// Copy Biel-only params into the cache key so a changed content hash cannot
+	// reuse a stale edge entry for the same external URL.
+	const relevantParams = new URLSearchParams(queryParams);
 	relevantParams.delete("url");
 	relevantParams.delete("no-cache");
-	relevantParams.delete("rewrite");
-	const urlWithRelevantQueryParameters = `${urlToFetch}?${relevantParams.toString()}`;
 
 	if (!urlToFetch) {
 		return new Response(null, {
 			status: 400,
 		});
 	}
+	const urlWithRelevantQueryParameters = new URL(urlToFetch);
+	for (const [key, value] of relevantParams) {
+		urlWithRelevantQueryParameters.searchParams.set(`__biel_${key}`, value);
+	}
 	// In cloudflare, fetches on Get requests go through the caches.default, so we don't have to manually call caches.match for these
 	const reqHeaders = request.headers;
 	const reqHeadersCopy = new Headers(reqHeaders);
 	reqHeadersCopy.set("user-agent", "biel-website");
-	const reqToMakeWithUaSet = new Request(urlWithRelevantQueryParameters, {
-		headers: reqHeadersCopy,
-	});
+	const reqToMakeWithUaSet = new Request(
+		urlWithRelevantQueryParameters.toString(),
+		{
+			headers: reqHeadersCopy,
+		},
+	);
 	const cacheDefault = caches.default as unknown as Cache;
 	// only check cf cache if we don't want to bypass
 	const cachedVal = cacheBypass

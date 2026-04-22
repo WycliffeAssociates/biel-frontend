@@ -39,21 +39,34 @@ export function Search(props: SearchProps) {
 	const bigClassNames =
 		"absolute top-full  z-10 bg-surface-primary p-4 pbs-4 pbe-10 max-h-80vh overflow-auto w-[clamp(min(99vw,270px),50vw,500px)] right-0  ";
 
-	onMount(async () => {
-		// eagerly fetch this
-		// biome-ignore lint/suspicious/noExplicitAny: <not sure on pagefind type>
-		const pageFind = (await import("../pagefind/pagefind.js")) as any;
-		// const pageFind = (await import(pathToImport)) as any;
-		pageFind.init({ basePath: "/pagefind" });
-		await pageFind.options({
-			excerptLength: 5,
-			baseUrl: "/",
-			basePath: "/pagefind",
-		});
-		["bible", "mast", "reg"].forEach((term) => {
-			pageFind.preload(term);
-		});
-		window.pagefind = pageFind;
+	const loadPagefind = async () => {
+		if (window.pagefind) return window.pagefind;
+		try {
+			const pagefindImportPath = "/pagefind/pagefind.js";
+			const pageFind = import.meta.env.DEV
+				? // biome-ignore lint/suspicious/noExplicitAny: <not sure on pagefind type>
+					((await import("../pagefind/pagefind.js")) as any)
+				: // biome-ignore lint/suspicious/noExplicitAny: <not sure on pagefind type>
+					((await import(/* @vite-ignore */ pagefindImportPath)) as any);
+			await pageFind.options({
+				excerptLength: 5,
+				baseUrl: "/",
+				basePath: "/pagefind",
+			});
+			await pageFind.init();
+			window.pagefind = pageFind;
+			await Promise.allSettled(
+				["bible", "mast", "reg"].map((term) => pageFind.preload(term)),
+			);
+			return pageFind;
+		} catch (error) {
+			console.warn("Pagefind is unavailable.", error);
+			return null;
+		}
+	};
+
+	onMount(() => {
+		void loadPagefind();
 
 		document.body.addEventListener("click", (e) => {
 			const el = e.target as HTMLElement;
@@ -143,19 +156,12 @@ export function Search(props: SearchProps) {
 
 		if (!inputValue) setResults();
 		if (!import.meta.env.SSR) {
-			// Load the pagefind script only once
-			if (!window.pagefind) {
-				window.pagefind = await import("../pagefind/pagefind.js");
-				console.log("pagefind", window.pagefind);
-			}
+			const pageFind = await loadPagefind();
+			if (!pageFind) return;
 			// Search the index using the input value
 			console.log("doing search");
 			const searchPromise = (async () => {
-				const search = await window.pagefind.debouncedSearch(
-					inputValue,
-					{},
-					100,
-				);
+				const search = await pageFind.debouncedSearch(inputValue, {}, 100);
 				// Add the new results
 				// biome-ignore lint/suspicious/noExplicitAny: <not sure on pagefind type>
 				const res: any[] = [];

@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import { DOMParser } from "linkedom/worker";
 import * as pagefind from "pagefind";
+import { loadEnv } from "vite";
 import { getLangsWithContentNames } from "./src/data/pubDataApi";
 import {
 	getLanguagesPageSlugs,
@@ -8,6 +9,11 @@ import {
 	getWpmlLanguages,
 } from "./src/data/wp";
 import { nonHiddenLanguageCodes } from "./src/i18n/strings";
+
+const env = loadEnv(process.env.NODE_ENV || "production", process.cwd(), "");
+for (const [key, value] of Object.entries(env)) {
+	process.env[key] ??= value;
+}
 
 // Create a Pagefind search index to work with
 console.log("creating page find index");
@@ -23,9 +29,15 @@ await index.addDirectory({
 	path: "dist",
 });
 
-const wpInstanceUrl = `${process.env.WORDPRESS_GQL_URL}`;
-const pubDataUrl = `${process.env.PUBLIC_DATA_API_URL}`;
-const siteUrl = `${process.env.SITE_URL}`;
+const wpInstanceUrl = process.env.WORDPRESS_GQL_URL;
+const pubDataUrl =
+	process.env.PUBLIC_DATA_API_URL || process.env.PUBLIC_DATA_API;
+const siteUrl = process.env.SITE_URL;
+if (!wpInstanceUrl || !pubDataUrl || !siteUrl) {
+	throw new Error(
+		"Pagefind generation requires WORDPRESS_GQL_URL, SITE_URL, and PUBLIC_DATA_API_URL or PUBLIC_DATA_API.",
+	);
+}
 console.log("getting languages");
 const langs = await getWpmlLanguages({ gqlUrl: wpInstanceUrl });
 
@@ -197,15 +209,18 @@ const devPageFindFilesWritten = await index.writeFiles({
 	outputPath: "./src/pagefind",
 });
 console.log({ devPageFindFilesWritten });
-// for prod
-const prodPageFindFilesWritten = await index.writeFiles({
+// for prod Pages and Workers deployments
+const distPageFindFilesWritten = await index.writeFiles({
 	outputPath: "./dist/pagefind",
 });
-console.log({ prodPageFindFilesWritten });
+console.log({ distPageFindFilesWritten });
+const workerPageFindFilesWritten = await index.writeFiles({
+	outputPath: "./dist/client/pagefind",
+});
+console.log({ workerPageFindFilesWritten });
 
-async function updateSitemap0Xml() {
+async function updateSitemap0Xml(xmlPath: string) {
 	try {
-		const xmlPath = "./dist/sitemap-0.xml";
 		const distXml = await fs.readFile(xmlPath, {
 			encoding: "utf-8",
 		});
@@ -221,11 +236,20 @@ async function updateSitemap0Xml() {
 		await fs.writeFile(xmlPath, newString);
 		// console.log({built});
 	} catch (error) {
+		if (
+			error &&
+			typeof error === "object" &&
+			"code" in error &&
+			error.code === "ENOENT"
+		) {
+			return;
+		}
 		console.error(error);
 	}
 }
 
-await updateSitemap0Xml();
+await updateSitemap0Xml("./dist/sitemap-0.xml");
+await updateSitemap0Xml("./dist/client/sitemap-0.xml");
 
 // clean up
 await pagefind.close();
