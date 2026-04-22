@@ -54,7 +54,7 @@ jobs:
       - name: set prod variables
         id: load_prod_secrets
         uses: 1password/load-secrets-action@v4
-        if: github.ref == 'refs/heads/prod'
+        if: github.ref == 'refs/heads/prod' || github.ref == 'refs/heads/to-cf-worker'
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           CMS_URL: "op://DevOps/biel-env-vars/prod/prod-cms-url"
