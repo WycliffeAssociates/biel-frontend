@@ -105,7 +105,7 @@ jobs:
         if: ${{inputs.skipTests != true || github.ref == 'refs/heads/to-cf-worker'}}
       - name: Run Playwright tests
         run: bun playwright test
-        if: ${{inputs.skipTests != true || github.ref == 'refs/heads/to-cf-worker'}}
+        if: ${{inputs.skipTests != true && github.ref != 'refs/heads/to-cf-worker'}}
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
