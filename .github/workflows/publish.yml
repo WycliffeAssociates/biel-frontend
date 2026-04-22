@@ -30,7 +30,7 @@ jobs:
       - name: Determine environment
         id: determine_env
         run: |
-          if [[ ${{ github.ref }} == 'refs/heads/prod' ]]; then
+          if [[ ${{ github.ref }} == 'refs/heads/prod' || ${{ github.ref }} == 'refs/heads/to-cf-worker' ]]; then
             echo "ENV=prod" >> $GITHUB_OUTPUT
           elif [[ ${{ github.ref }} == 'refs/heads/qa' ]]; then
             echo "ENV=qa" >> $GITHUB_OUTPUT
@@ -50,6 +50,11 @@ jobs:
           WORDPRESS_GQL_URL: "op://DevOps/biel-env-vars/${{ steps.determine_env.outputs.ENV }}/${{ steps.determine_env.outputs.ENV }}-graphql-url"
           PUBLIC_DATA_API_URL: "op://DevOps/biel-env-vars/${{ steps.determine_env.outputs.ENV }}/${{ steps.determine_env.outputs.ENV }}-public-data-api-url"
           TURNSTILE_PUBLIC_KEY: "op://DevOps/biel-env-vars/common/turnstile-public-key"
+         
+          CONTACT_FORM_ENDPOINT: "op://DevOps/biel-env-vars/${{ steps.determine_env.outputs.ENV }}/${{ steps.determine_env.outputs.ENV }}-contact-form-endpoint"
+          CONTACT_FORM_EMAILS_BASE64: "op://DevOps/biel-env-vars/${{ steps.determine_env.outputs.ENV }}/${{ steps.determine_env.outputs.ENV }}-contact-form-emails-base64"
+          SECRET_TURNSTILE_KEY: "op://DevOps/biel-env-vars/common/doc-ui-url"
+          DOC_UI_URL: "op://DevOps/biel-env-vars/common/doc-ui-url"
           CF_DEV_VARS: "op://DevOps/biel-env-vars/common/cf-dev-vars"
       - name: set prod variables
         id: load_prod_secrets
@@ -80,6 +85,7 @@ jobs:
           CMS_URL: ${{ github.ref == 'refs/heads/prod' && steps.load_prod_secrets.outputs.CMS_URL || steps.load_secrets.outputs.CMS_URL }}
           SITE_URL: ${{ github.ref == 'refs/heads/prod' && steps.load_prod_secrets.outputs.SITE_URL || steps.load_secrets.outputs.SITE_URL }}
           WORDPRESS_GQL_URL: ${{ github.ref == 'refs/heads/prod' && steps.load_prod_secrets.outputs.WORDPRESS_GQL_URL || steps.load_secrets.outputs.WORDPRESS_GQL_URL }}
+          PUBLIC_DATA_API: ${{ steps.load_secrets.outputs.PUBLIC_DATA_API_URL }}
           PUBLIC_DATA_API_URL: ${{ steps.load_secrets.outputs.PUBLIC_DATA_API_URL }}
           TURNSTILE_PUBLIC_KEY: ${{ steps.load_secrets.outputs.TURNSTILE_PUBLIC_KEY }}
           IS_MAIN_BRANCH: ${{ github.ref == 'refs/heads/prod' }}
@@ -119,9 +125,49 @@ jobs:
           name: dist
           path: dist/
           retention-days: 21
+      - name: Write Worker secrets file
+        if: github.ref == 'refs/heads/to-cf-worker'
+        run: |
+          node <<'NODE'
+          const fs = require("node:fs");
+
+          const keys = [
+            "WORDPRESS_GQL_URL",
+            "WORDPRESS_REST_MENU_ENDPOINT",
+            "CMS_URL",
+            "SITE_URL",
+            "PUBLIC_DATA_API",
+            "PUBLIC_DATA_API_URL",
+            "TURNSTILE_PUBLIC_KEY",
+            "SECRET_TURNSTILE_KEY",
+            "CONTACT_FORM_ENDPOINT",
+            "CONTACT_FORM_EMAILS_BASE64",
+            "CONTACT_ENV",
+            "DOC_UI_URL",
+          ];
+
+          const contents = keys
+            .map((key) => `${key}=${JSON.stringify(process.env[key] || "")}`)
+            .join("\n");
+
+          fs.writeFileSync(".env.production", `${contents}\n`);
+          NODE
+        env:
+          WORDPRESS_GQL_URL: ${{ steps.load_secrets.outputs.WORDPRESS_GQL_URL }}
+          WORDPRESS_REST_MENU_ENDPOINT: ${{ steps.load_secrets.outputs.WORDPRESS_REST_MENU_ENDPOINT }}
+          CMS_URL: ${{ steps.load_secrets.outputs.CMS_URL }}
+          SITE_URL: ${{ steps.load_secrets.outputs.SITE_URL }}
+          PUBLIC_DATA_API: ${{ steps.load_secrets.outputs.PUBLIC_DATA_API_URL }}
+          PUBLIC_DATA_API_URL: ${{ steps.load_secrets.outputs.PUBLIC_DATA_API_URL }}
+          TURNSTILE_PUBLIC_KEY: ${{ steps.load_secrets.outputs.TURNSTILE_PUBLIC_KEY }}
+          SECRET_TURNSTILE_KEY: ${{ steps.load_secrets.outputs.SECRET_TURNSTILE_KEY }}
+          CONTACT_FORM_ENDPOINT: ${{ steps.load_secrets.outputs.CONTACT_FORM_ENDPOINT }}
+          CONTACT_FORM_EMAILS_BASE64: ${{ steps.load_secrets.outputs.CONTACT_FORM_EMAILS_BASE64 }}
+          CONTACT_ENV: ${{ steps.determine_env.outputs.ENV }}
+          DOC_UI_URL: ${{ steps.load_secrets.outputs.DOC_UI_URL }}
       - name: Publish
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ steps.load_secrets.outputs.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ steps.load_secrets.outputs.CLOUDFLARE_ACCOUNT_ID }}
-          command: ${{ github.ref == 'refs/heads/to-cf-worker' && 'deploy' || 'pages deploy dist --project-name=headless-biel --upload-source-maps=true' }}
+          command: ${{ github.ref == 'refs/heads/to-cf-worker' && 'deploy --name biel-frontend --secrets-file .env.production' || 'pages deploy dist --project-name=headless-biel --upload-source-maps=true' }}
