@@ -1,9 +1,9 @@
 ---
+export const prerender = true;
 import Blocks from "@components/Blocks.astro";
 import {HeaderMenu} from "@components/HeaderMenu";
 import type {WpPage} from "@customTypes/types";
 import Layout from "@layouts/Layout.astro";
-import {cacheHomePageDev, getDevHomePage} from "@lib/caching";
 import {
   getEnglishUriMap,
   getGlobal,
@@ -18,23 +18,19 @@ import {
   collectInlineStyles,
   titleCase,
 } from "@src/utils";
+import { env } from "cloudflare:workers";
 import {DOMParser} from "linkedom/worker";
 // !NOTE: THIS IS ONLY THE ENGLISH PAGE, HECNE THE COERCCIONES AND HARDCODES TO .EN. THIS IS DUE TO WANTING TO ROUTE THE HOME PAGE TO /, BUT THE OTHER HOME PAGES ARE LOCALE PREFIXED /ES FOR EXAMPLE
-const forceRefresh = true;
 const gqlUrl =
-  Astro.locals?.runtime?.env.WORDPRESS_GQL_URL ||
+  env.WORDPRESS_GQL_URL ||
   import.meta.env.WORDPRESS_GQL_URL ||
   process.env.WORDPRESS_GQL_URL;
 const resMenuUrl =
-  Astro.locals?.runtime?.env.WORDPRESS_REST_MENU_ENDPOINT ||
+  env.WORDPRESS_REST_MENU_ENDPOINT ||
   import.meta.env.WORDPRESS_REST_MENU_ENDPOINT ||
   process.env.WORDPRESS_REST_MENU_ENDPOINT;
 
-const data =
-  import.meta.env.DEV && getDevHomePage(forceRefresh)
-    ? (getDevHomePage() as {page: WpPage})
-    : ((await getHomePage({gqlUrl})) as {page: WpPage});
-if (import.meta.env.DEV) cacheHomePageDev(data);
+const data = (await getHomePage({gqlUrl})) as {page: WpPage};
 const {title, editorBlocks, link} = data.page;
 let inlineStyles: string[] = [];
 const ctaGlobal = await getGlobal({

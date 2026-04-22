@@ -141,7 +141,7 @@ const requests = Object.values(langs)
 					? "/resources/languages"
 					: resourcePageSlugs.data.page.translations.find(
 							(t) => t.languageCode === wpmlLang.code,
-						)?.uri!;
+						)?.uri;
 			const baseUrl =
 				wpmlLang.code === "en"
 					? `${resourcePageSlug}/${pubDataResourceLanguage.ietf_code}`

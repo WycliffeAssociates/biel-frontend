@@ -1246,7 +1246,7 @@ function TelInput(props: TelInputProps) {
 	onMount(() => {
 		// @ts-expect-error
 		const instance = intlTelInput(inputRef, {
-			loadUtilsOnInit: `https://cdn.jsdelivr.net/npm/intl-tel-input@${intlTelInput.version}/build/js/utils.js`,
+			loadUtilsOnInit: `https://cdn.jsdelivr.net/npm/intl-tel-input@${intlTelInput.version}/dist/js/utils.js`,
 			formatAsYouType: true,
 			formatOnDisplay: true,
 			nationalMode: true,
@@ -1268,7 +1268,7 @@ function TelInput(props: TelInputProps) {
 			<input
 				/* @ts-expect-error */
 				ref={inputRef}
-				type="phone"
+				type="tel"
 				name="phone"
 				id="phone"
 				class={`w-full bg-surface-secondary rounded-lg p-2 cursor-pointer ${
@@ -1276,11 +1276,14 @@ function TelInput(props: TelInputProps) {
 				}`}
 				onInput={(e) => props.onUpdate(e.target.value)}
 				data-valid={isValid()}
-				onBlur={() => {
+				onBlur={async () => {
 					const instance = telInstance();
-					if (instance?.isValidNumber()) {
-						setIsValid(true);
-					} else {
+					if (!instance) return;
+
+					try {
+						await instance.promise;
+						setIsValid(!!instance.isValidNumber());
+					} catch {
 						setIsValid(false);
 					}
 				}}
@@ -1807,7 +1810,7 @@ function FallbackContactForm(props: FallbackContactFormProps) {
 				method: "POST",
 				body: validatedFormData,
 			});
-			const data = await res.json();
+			const data = (await res.json()) as { success: boolean };
 			if (data.success) {
 				props.setFormNotSubmittedSuccessfully(true);
 			}

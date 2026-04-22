@@ -1,6 +1,5 @@
 export const prerender = false;
 
-import type { Response as WorkerResponse } from "@cloudflare/workers-types";
 import { CustomXCacheTagHeader } from "@lib/constants";
 import {
 	ATagHandler,
@@ -26,8 +25,6 @@ export const GET: APIRoute = async ({ request, url, locals }) => {
 	relevantParams.delete("rewrite");
 	const urlWithRelevantQueryParameters = `${urlToFetch}?${relevantParams.toString()}`;
 
-	const runtime = locals.runtime;
-
 	if (!urlToFetch) {
 		return new Response(null, {
 			status: 400,
@@ -40,21 +37,20 @@ export const GET: APIRoute = async ({ request, url, locals }) => {
 	const reqToMakeWithUaSet = new Request(urlWithRelevantQueryParameters, {
 		headers: reqHeadersCopy,
 	});
+	const cacheDefault = caches.default as unknown as Cache;
 	// only check cf cache if we don't want to bypass
 	const cachedVal = cacheBypass
 		? undefined
 		: // cache match includes the hasf of url?hash=HASH&other-params, but external fetch won't pass these along.
-			await runtime.caches.default.match(reqToMakeWithUaSet.url);
+			await cacheDefault.match(reqToMakeWithUaSet.url);
 	const cachedValIsCfChallenge = cachedVal
 		? await isCfChallengeRes({
-				res: cachedVal as unknown as WorkerResponse,
+				res: cachedVal as unknown as Response,
 			})
 		: false;
 	if (cachedValIsCfChallenge) {
 		// delete cloudflare challenges as out of band work.
-		runtime.ctx.waitUntil(
-			runtime.caches.default.delete(reqToMakeWithUaSet.url),
-		);
+		locals.cfContext.waitUntil(cacheDefault.delete(reqToMakeWithUaSet.url));
 	}
 	if (cachedVal && !cachedValIsCfChallenge) {
 		// if we have a cached value, and it's not a cf challenge, return it
@@ -84,7 +80,7 @@ export const GET: APIRoute = async ({ request, url, locals }) => {
 	}
 	// must have hash, must have fetched ok, and must be ok or unchanged header status
 	if (hashParam && res.ok && ["200", "304"].includes(res.status.toString())) {
-		runtime.ctx.waitUntil(
+		locals.cfContext.waitUntil(
 			(async () => {
 				const headers = new Headers();
 				// long cache control due to hash which are usually sha 256's of content
@@ -112,12 +108,15 @@ export const GET: APIRoute = async ({ request, url, locals }) => {
 				if (cacheTagHeader) {
 					headers.append("Cache-Tag", cacheTagHeader);
 				}
-				const newResToCache = new Response(resBytes, {
-					headers,
-				}) as unknown as WorkerResponse;
+				const newResToCache = new Response(
+					resBytes as Uint8Array<ArrayBuffer>,
+					{
+						headers,
+					},
+				);
 				// cache the url with the relevant query params
 				console.log(`putting in cache ${reqToMakeWithUaSet.url}`);
-				await runtime.caches.default.put(reqToMakeWithUaSet.url, newResToCache);
+				await cacheDefault.put(reqToMakeWithUaSet.url, newResToCache);
 			})(),
 		);
 	}
@@ -180,7 +179,7 @@ function rewriteResponseIfNeeded({
 }
 
 type IsCfChallengeResArgs = {
-	res: WorkerResponse;
+	res: Response;
 };
 async function isCfChallengeRes({
 	res,

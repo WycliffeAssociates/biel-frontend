@@ -11,10 +11,11 @@ import {ResourceWrapper} from "@components/ResourceSingle/ResourceWrapper";
 import {constants} from "@lib/constants";
 import {getTsFiles} from "@src/data/github";
 import type {LangWithContent} from "@src/data/gqlQueries/queries";
+import {env} from "cloudflare:workers";
 
 const {languageToFetch, i18nDict, languageData, doBustCache} = Astro.props;
 const tsFiles = await getTsFiles(languageToFetch);
-const docUiUrl = Astro.locals?.runtime?.env.DOC_UI_URL as string;
+const docUiUrl = env.DOC_UI_URL as string;
 const paramsLower = new URLSearchParams(
   Array.from(Astro.url.searchParams, ([key, value]) => [
     key.toLowerCase(),
@@ -36,7 +37,7 @@ const queryParams = {resource, book, chapter, download};
 <section data-name="pubDataApi" class="contain h-full">
   <div class="h-full">
     <ResourceWrapper
-      client:only="solid-js"
+      client:load
       queryParams={queryParams}
       language={lang}
       contents={contents}

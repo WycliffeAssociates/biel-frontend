@@ -1,10 +1,10 @@
 export const prerender = false;
 
+import { env } from "cloudflare:workers";
 import type { APIRoute } from "astro";
 
-export const POST: APIRoute = async ({ request, locals }) => {
-	const runtime = locals.runtime;
-	const { DOC_BASE_URL, DOC_FILES_URL } = runtime.env;
+export const POST: APIRoute = async ({ request }) => {
+	const { DOC_BASE_URL, DOC_FILES_URL } = env;
 	try {
 		const body = (await request.json()) as {
 			taskId: string;
@@ -18,7 +18,11 @@ export const POST: APIRoute = async ({ request, locals }) => {
 		if (!res.ok) {
 			throw new Error("polling failed");
 		}
-		const json = await res.json();
+		const json = (await res.json()) as {
+			state: string;
+			result: string;
+			[key: string]: unknown;
+		};
 		const { state, result } = json;
 		const withDownloadUrl = {
 			...json,

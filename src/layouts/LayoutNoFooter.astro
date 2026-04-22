@@ -5,6 +5,7 @@ import "../styles/vars.scss";
 import "../styles/reader.css";
 import type {languageType} from "@customTypes/types";
 import {pwaInfo} from "virtual:pwa-info";
+import PwaRegister from "@components/PwaRegister.astro";
 import {hrefLangUrl} from "@src/utils";
 
 interface Props {
@@ -28,6 +29,8 @@ const {
   siteName,
   ogImage,
 } = Astro.props;
+const useSw =
+	import.meta.env.PROD || import.meta.env.PUBLIC_ENABLE_SW_DEV === "true";
 const allStyles = [...inlineCss];
 const deduped = new Set(allStyles);
 const dedupedInlineStyles = [...deduped].join("\n");
@@ -41,7 +44,7 @@ const dedupedInlineStyles = [...deduped].join("\n");
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" /><!-- 180×180 -->
-    <link rel="manifest" href="/manifest.webmanifest" />
+    {useSw && <link rel="manifest" href="/manifest.webmanifest" />}
     <link rel="sitemap" href="/sitemap-index.xml" />
     <meta name="generator" content={Astro.generator} />
     <meta content={title} property="og:title" />
@@ -50,8 +53,8 @@ const dedupedInlineStyles = [...deduped].join("\n");
     <meta content={ogImage} property="og:image" />
     <title>{title}</title>
     {inlineCss && <style id="headlessStyles" set:html={dedupedInlineStyles} />}
-    <script src="/src/pwa.ts"></script>
-    {pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}
+    {useSw && pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}
+    {useSw && <PwaRegister />}
     {
       langSwitcher.map((version) => {
         return (

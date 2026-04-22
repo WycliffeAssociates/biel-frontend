@@ -3,12 +3,13 @@ import sitemap from "@astrojs/sitemap";
 import solidJs from "@astrojs/solid-js";
 import AstroPWA from "@vite-pwa/astro";
 import { defineConfig } from "astro/config";
-import { visualizer } from "rollup-plugin-visualizer";
+// import { visualizer } from "rollup-plugin-visualizer";
 import UnoCSS from "unocss/astro";
 import { loadEnv } from "vite";
 import { manifest } from "./manifest";
 
-const { SITE_URL } = loadEnv(process.env.NODE_ENV!, process.cwd(), "");
+const env = loadEnv(process.env.NODE_ENV!, process.cwd(), "");
+const { SITE_URL, PUBLIC_ENABLE_SW_DEV } = env;
 const isDev = process.env.NODE_ENV === "development";
 // https://astro.build/config
 export default defineConfig({
@@ -27,7 +28,7 @@ export default defineConfig({
 			// See the below link for bundle size recs.  That said, if you look at the analyse.html, it's less useful becasue it generates a report before tree shaking.   It does however give you a good idea of relative sizes of deps and composition of your bundle if something looks awry.  For the best overview of what a page load and bundle looks like, just look through the network tab on load
 			// https://infrequently.org/2024/01/performance-inequality-gap-2024/
 			// The TLDR 2024 on Budget is this:
-			/* 
+			/*
       P75 device and network 3 seconds:
       Markup Based:   1.4Mib.  (1.3Mib, + 75kib JS)
       JS Based:  730Kib (365Kib markup and 365 Kib js)
@@ -36,13 +37,13 @@ export default defineConfig({
       Markup Based:   2.5Mib.  (2.4Mib, + 100kib JS)
       JS Based:  1.3Mib (650 Kib markup and 650 Kib js)
       */
-			visualizer({
-				template: "treemap", // or sunburst
-				open: false,
-				gzipSize: true,
-				brotliSize: true,
-				filename: "analyse.html", // will be saved in project's root
-			}),
+			// visualizer({
+			// 	template: "treemap", // or sunburst
+			// 	open: false,
+			// 	gzipSize: true,
+			// 	brotliSize: true,
+			// 	filename: "analyse.html", // will be saved in project's root
+			// }),
 		],
 	},
 
@@ -50,7 +51,7 @@ export default defineConfig({
 	integrations: [
 		AstroPWA({
 			devOptions: {
-				enabled: false,
+				enabled: PUBLIC_ENABLE_SW_DEV === "true",
 				type: "module",
 			},
 			strategies: "injectManifest",
@@ -75,7 +76,7 @@ export default defineConfig({
 		sitemap({}),
 		solidJs(),
 	],
-	output: "static",
+	output: "server",
 	devToolbar: {
 		enabled: false,
 	},
@@ -85,10 +86,9 @@ export default defineConfig({
 	},
 	// Reminder uses custom routes.json in public
 	adapter: cloudflare({
-		platformProxy: {
-			enabled: true,
-			configPath: ".dev.vars",
-		},
+		// Astro v6 + cloudflare adapter v13 defaults to cloudflare-binding.
+		// Keep prior build-time image behavior to avoid runtime behavior drift.
+		imageService: "compile",
 	}),
 	image: {
 		// todo env var: idk if we want to redirect or just give new biel the old domain?

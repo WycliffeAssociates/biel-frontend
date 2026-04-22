@@ -1,0 +1,289 @@
+---
+export const prerender = true;
+import {getDict, type i18nDictType} from "@src/i18n/strings";
+import Layout from "@layouts/LayoutNoFooter.astro";
+import {HeaderMenu} from "@components/HeaderMenu";
+import {getMenus, getLanguagesPageSlugs, getWpmlLanguages} from "@src/data/wp";
+import {BreadCrumbs} from "@components/BreadCrumbs";
+import ResourceIndex from "@components/ResourcesPage/ResourcesPage.astro";
+import type {languageType, Menu} from "@customTypes/types";
+import {capitalizeFirstLetter, titleCase} from "@src/utils";
+import {
+	getLocalizationsForResourceTypes,
+	getMapTsFilesLangToResourceType,
+	type ResourceTypeToIetfList,
+} from "@src/data/github";
+import {env} from "cloudflare:workers";
+
+type Props = {
+	title: string;
+	allLangs: languageType[];
+	langInfo: languageType;
+	headerMenu: Menu;
+	pageDict: i18nDictType;
+	tsFilesByResourceType: ResourceTypeToIetfList;
+	tsFileLocalization: Record<string, string>;
+	crumbs: {
+		uri: string;
+		slug: string;
+		title: string;
+	}[];
+	prefix: string;
+};
+
+export async function getStaticPaths() {
+	const gqlUrl: string =
+		env.WORDPRESS_GQL_URL ||
+		import.meta.env.WORDPRESS_GQL_URL ||
+		process.env.WORDPRESS_GQL_URL;
+	const restUrl: string =
+		env.WORDPRESS_REST_MENU_ENDPOINT ||
+		import.meta.env.WORDPRESS_REST_MENU_ENDPOINT ||
+		process.env.WORDPRESS_REST_MENU_ENDPOINT;
+	const [wpmlLangDict, menus, languagePageSlugs] = await Promise.all([
+		getWpmlLanguages({gqlUrl}),
+		getMenus({restUrl}),
+		getLanguagesPageSlugs({gqlUrl}),
+	]);
+	const nonHiddenLanguages = new Set(Object.keys(menus));
+
+	const allLangs = Object.values(wpmlLangDict)
+		.filter((lang) => nonHiddenLanguages.has(lang.code))
+		.map((lang) => {
+			const copy = {...lang};
+			if (lang.code === "en") {
+				copy.localizedUrl = "/resources/languages";
+				return copy;
+			}
+			const matchingSlug = languagePageSlugs.data.page.translations.find(
+				(t) => t.languageCode === lang.code,
+			);
+			copy.localizedUrl = `${matchingSlug?.uri}`;
+			return copy;
+		});
+
+	let tsFilesByResourceType: ResourceTypeToIetfList = {};
+	let tsResourceLocalizations: Record<string, Record<string, string>> = {};
+	if (!import.meta.env.DEV) {
+		try {
+			tsFilesByResourceType = await getMapTsFilesLangToResourceType();
+			tsResourceLocalizations = await getLocalizationsForResourceTypes();
+		} catch (error) {
+			console.error("resource index github map fetch failed", error);
+		}
+	}
+
+	return languagePageSlugs.data.page.translations
+		.filter(
+			(t) => t.languageCode !== "en" && nonHiddenLanguages.has(t.languageCode),
+		)
+		.map((t) => {
+			const segments = t.uri.split("/").filter(Boolean);
+			if (segments.length < 3) {
+				return null;
+			}
+			const [siteLang, resourcesSlug, languagesSlug] = segments;
+			if (!siteLang || !resourcesSlug || !languagesSlug) {
+				return null;
+			}
+
+			const langInfo = wpmlLangDict[t.languageCode] || wpmlLangDict.en!;
+			const headerMenu =
+				menus[langInfo.language_code]?.["header-menu"] ||
+				menus.en?.["header-menu"]!;
+			const tsFileLocalization =
+				tsResourceLocalizations[langInfo.language_code] ||
+				tsResourceLocalizations.en ||
+				{};
+			const prefix = `${siteLang}/${resourcesSlug}/${languagesSlug}`;
+			const crumbs = [
+				{
+					uri: `/${siteLang}/${resourcesSlug}`,
+					slug: "",
+					title: capitalizeFirstLetter(resourcesSlug),
+				},
+				{
+					uri: `/${prefix}`,
+					slug: "",
+					title: capitalizeFirstLetter(languagesSlug),
+				},
+			];
+
+			return {
+				params: {
+					siteLang,
+					resourcesSlug,
+					languagesSlug,
+				},
+				props: {
+					title: t.title,
+					tsFilesByResourceType,
+					tsFileLocalization,
+					allLangs,
+					langInfo,
+					headerMenu,
+					pageDict: getDict(t.languageCode, true)!,
+					crumbs,
+					prefix,
+				},
+			};
+		})
+		.filter(Boolean);
+}
+
+const {
+	title: staticTitle,
+	allLangs: staticAllLangs,
+	langInfo: staticLangInfo,
+	headerMenu: staticHeaderMenu,
+	pageDict: staticPageDict,
+	crumbs: staticCrumbs,
+	tsFilesByResourceType: staticTsFilesByResourceType,
+	tsFileLocalization: staticTsFileLocalization,
+	prefix: staticPrefix,
+} = (Astro.props || {}) as Partial<Props>;
+
+let title = staticTitle;
+let allLangs = staticAllLangs;
+let langInfo = staticLangInfo;
+let headerMenu = staticHeaderMenu;
+let pageDict = staticPageDict;
+let crumbs = staticCrumbs;
+let tsFilesByResourceType = staticTsFilesByResourceType;
+let tsFileLocalization = staticTsFileLocalization;
+let prefix = staticPrefix;
+
+if (
+	!title ||
+	!allLangs ||
+	!langInfo ||
+	!headerMenu ||
+	!pageDict ||
+	!crumbs ||
+	!tsFilesByResourceType ||
+	!tsFileLocalization ||
+	!prefix
+) {
+	const siteLang = Astro.params.siteLang;
+	const resourcesSlug = Astro.params.resourcesSlug;
+	const languagesSlug = Astro.params.languagesSlug;
+	if (!siteLang || !resourcesSlug || !languagesSlug) {
+		return Astro.redirect("/404");
+	}
+
+	const gqlUrl: string =
+		env.WORDPRESS_GQL_URL ||
+		import.meta.env.WORDPRESS_GQL_URL ||
+		process.env.WORDPRESS_GQL_URL;
+	const restUrl: string =
+		env.WORDPRESS_REST_MENU_ENDPOINT ||
+		import.meta.env.WORDPRESS_REST_MENU_ENDPOINT ||
+		process.env.WORDPRESS_REST_MENU_ENDPOINT;
+	const [wpmlLangDict, menus, languagePageSlugs] = await Promise.all([
+		getWpmlLanguages({gqlUrl}),
+		getMenus({restUrl}),
+		getLanguagesPageSlugs({gqlUrl}),
+	]);
+	const nonHiddenLanguages = new Set(Object.keys(menus));
+	const matchingTranslation = languagePageSlugs.data.page.translations.find(
+		(t) => t.languageCode === siteLang,
+	);
+	if (!matchingTranslation) return Astro.redirect("/404");
+	const segments = matchingTranslation.uri.split("/").filter(Boolean);
+	if (
+		segments.length < 3 ||
+		segments[1] !== resourcesSlug ||
+		segments[2] !== languagesSlug
+	) {
+		return Astro.redirect("/404");
+	}
+
+	allLangs = Object.values(wpmlLangDict)
+		.filter((lang) => nonHiddenLanguages.has(lang.code))
+		.map((lang) => {
+			const copy = {...lang};
+			if (lang.code === "en") {
+				copy.localizedUrl = "/resources/languages";
+				return copy;
+			}
+			const langTranslation = languagePageSlugs.data.page.translations.find(
+				(t) => t.languageCode === lang.code,
+			);
+			copy.localizedUrl = `${langTranslation?.uri}`;
+			return copy;
+		});
+	langInfo = wpmlLangDict[siteLang] || wpmlLangDict.en;
+	if (!langInfo) return Astro.redirect("/404");
+	headerMenu =
+		menus[langInfo.language_code]?.["header-menu"] || menus.en?.["header-menu"]!;
+	pageDict = getDict(siteLang, true);
+	if (!pageDict) return Astro.redirect("/404");
+	title = matchingTranslation.title;
+	prefix = `${siteLang}/${resourcesSlug}/${languagesSlug}`;
+	crumbs = [
+		{
+			uri: `/${siteLang}/${resourcesSlug}`,
+			slug: "",
+			title: capitalizeFirstLetter(resourcesSlug),
+		},
+		{
+			uri: `/${prefix}`,
+			slug: "",
+			title: capitalizeFirstLetter(languagesSlug),
+		},
+	];
+	try {
+		tsFilesByResourceType = await getMapTsFilesLangToResourceType();
+		const tsResourceLocalizations = await getLocalizationsForResourceTypes();
+		tsFileLocalization =
+			tsResourceLocalizations[langInfo.language_code] ||
+			tsResourceLocalizations.en ||
+			{};
+	} catch (error) {
+		console.error("resource index github map fetch failed", error);
+		tsFilesByResourceType = {};
+		tsFileLocalization = {};
+	}
+}
+
+const ogImage = `${Astro.site?.origin}/icon-512.png`;
+---
+
+<Layout
+	title={titleCase({
+		lang: langInfo.code,
+		str: `${title} ${pageDict.siteName}`,
+	})}
+	inlineCss={[]}
+	description="Resources Languages Page"
+	langInfo={langInfo}
+	langSwitcher={allLangs}
+	langDirection="ltr"
+	siteName={pageDict.siteName}
+	ogImage={ogImage}
+>
+	<HeaderMenu
+		allLangs={allLangs}
+		currentLang={langInfo}
+		menu={headerMenu}
+		i18nDict={pageDict}
+		client:load
+	/>
+	<BreadCrumbs crumbs={{nodes: crumbs}} />
+
+	<ResourceIndex
+		server:defer
+		i18nDict={pageDict}
+		detailPrefix={prefix}
+		siteIetf={langInfo.code}
+		tsFilesByResourceType={tsFilesByResourceType}
+		tsFileLocalization={tsFileLocalization}
+	>
+		<div
+			slot="fallback"
+			class="min-h-screen w-full place-content-center text-center"
+		>
+			{pageDict.ls_Loading}
+		</div>
+	</ResourceIndex>
+</Layout>

@@ -56,9 +56,7 @@ export function ContentView(props: ContentViewProps) {
 					data-name="contentViewDownloadable"
 					data-js="contentView"
 					data-testid="contentViewDownloadable"
-					class={`${
-						props.classes || ""
-					} pbe-16! pie-4px!  max-h-70vh! overflow-y-auto!`}
+					class={`${props.classes || ""} pbe-16! pie-4px!  max-h-70vh! overflow-y-auto!`}
 				>
 					<DownloadableView tsTree={selectedTsFolder()} loopIter={0} />
 				</div>
@@ -314,9 +312,7 @@ function PeripheralView(props: { content: ScriptureStoreState }) {
 			}
 			const res = await fetch(url, {
 				headers: {
-					[CustomXCacheTagHeader]: `${slugify(props.content.name)},${slugify(
-						langCode,
-					)}`,
+					[CustomXCacheTagHeader]: `${slugify(props.content.name)},${slugify(langCode)}`,
 				},
 			});
 			const reader = res.body?.getReader();
@@ -361,7 +357,7 @@ function PeripheralView(props: { content: ScriptureStoreState }) {
 						"text/html",
 					);
 					const idHeader = fragment.querySelector("h2[id]");
-					const id = idHeader?.id!;
+					const id = idHeader?.id || "";
 					const innerText = idHeader?.textContent?.replaceAll('"', "") || null;
 					const oneWordSlug =
 						idHeader?.textContent?.split(",")[0]?.replaceAll('"', "") ||
@@ -474,7 +470,9 @@ function PeripheralView(props: { content: ScriptureStoreState }) {
 		// <div class="row-start-1 col-start-2">
 		<Show when={twState()?.html} fallback={<TwFallback />}>
 			<div class="md:(col-start-2 row-start-2) max-w-prose">
-				<div class="theText theTextTw  px-2" innerHTML={twState()?.html!} />
+				<Show when={twState()?.html}>
+					<div class="theText theTextTw  px-2" innerHTML={twState()!.html!} />
+				</Show>
 			</div>
 			<Show when={!isBig()}>
 				<div class="sticky bottom-0">

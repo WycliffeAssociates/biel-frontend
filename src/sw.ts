@@ -66,7 +66,6 @@ registerRoute(
 		}
 		try {
 			const totalSize = String(
-				// biome-ignore lint/suspicious/noAssignInExpressions: <easy to see how this reduce works>
 				asObj.payload.files.reduce((acc, curr) => (acc += curr.size || 0), 0),
 			);
 

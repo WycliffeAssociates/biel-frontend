@@ -23,17 +23,18 @@ import {
   isNotCustomPage,
   titleCase,
 } from "@src/utils";
+import { env } from "cloudflare:workers";
 import {DOMParser} from "linkedom/worker";
 const gqlUrl =
-  Astro.locals?.runtime?.env.WORDPRESS_GQL_URL ||
+  env.WORDPRESS_GQL_URL ||
   import.meta.env.WORDPRESS_GQL_URL ||
   process.env.WORDPRESS_GQL_URL;
 const restUrl =
-  Astro.locals?.runtime?.env.WORDPRESS_REST_MENU_ENDPOINT ||
+  env.WORDPRESS_REST_MENU_ENDPOINT ||
   import.meta.env.WORDPRESS_REST_MENU_ENDPOINT ||
   process.env.WORDPRESS_REST_MENU_ENDPOINT;
 const cmsBaseUrl =
-  import.meta.env.CMS_URL || Astro.locals?.runtime?.env?.CMS_URL;
+  import.meta.env.CMS_URL || env.CMS_URL;
 const {slug} = Astro.params;
 if (!slug) return Astro.redirect("/404");
 const wpmlLangDict = await getWpmlLanguages({gqlUrl});

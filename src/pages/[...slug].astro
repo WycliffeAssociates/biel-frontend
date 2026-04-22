@@ -1,23 +1,22 @@
 ---
-// export const prerender = false;
+export const prerender = true;
 import Blocks from "@components/Blocks.astro";
 import {BreadCrumbs} from "@components/BreadCrumbs";
 import ContactPage from "@components/ContactPage.astro";
 import ScriptureEngagment from "@components/ScriptureEngagement/ScriptureE.astro";
+import {getCollection} from "astro:content";
 
 import {HeaderMenu} from "@components/HeaderMenu";
 import Hero from "@components/Hero.astro";
 import SearchPage from "@components/SearchPage.astro";
-import type {Menu, languageType} from "@customTypes/types";
-import type {WpPage} from "@customTypes/types";
 import Layout from "@layouts/Layout.astro";
-import {cachePageForDevSpeed, getDevCachedPages} from "@lib/caching";
 import {blocksAreEmpty} from "@lib/web";
 import {
-  getAllPages,
   getEnglishUriMap,
   getGlobal,
   getMenus,
+  getPage,
+  getSeFormPage,
   getWpmlLanguages,
 } from "@src/data/wp";
 import {getDict} from "@src/i18n/strings";
@@ -28,51 +27,44 @@ import {
   determineShowGlobal,
   doShowPageTitle,
   doShowTopBlurb,
-  getNonHiddenPages,
-  getOtherLanguagesPagesList,
   isNotCustomPage,
   titleCase,
 } from "@src/utils";
 import {DOMParser} from "linkedom/worker";
+import {env} from "cloudflare:workers";
 
-interface Props {
-  page: WpPage;
-  headerMenu: Menu;
-  langInfo: languageType;
-  ctaSection: {
-    content: string;
-  } | null;
-  langSwitcherList: languageType[];
-  inlineStyles: string[];
-  englishUriMap: Record<string, Record<string, string>>;
-  scriptureEngagementPages: Record<string, string>;
+type StaticPathProps = {
+  langCode: string;
+  wpUri: string;
+  localizedUrls: Record<string, string>;
+};
+
+type SharedRouteDataArgs = {
+  gqlUrl: string;
+  restUrl: string;
+};
+
+let sharedRouteDataCache:
+  | {
+      key: string;
+      promise: ReturnType<typeof loadSharedRouteData>;
+    }
+  | undefined;
+
+function getSharedRouteData({gqlUrl, restUrl}: SharedRouteDataArgs) {
+  const key = `${gqlUrl}:${restUrl}`;
+  if (!sharedRouteDataCache || sharedRouteDataCache.key !== key) {
+    sharedRouteDataCache = {
+      key,
+      promise: loadSharedRouteData({gqlUrl, restUrl}),
+    };
+  }
+  return sharedRouteDataCache.promise;
 }
 
-export async function getStaticPaths() {
-  if (import.meta.env.DEV) {
-    // set to true to regenerate a local fs based cache of these pages to dev against / preview faster instead of fetchign each. Alteratively, just use the server rendered route.
-    const forceRefresh = true;
-    const pages = getDevCachedPages(forceRefresh);
-    if (pages) return pages;
-  }
-  const gqlUrl =
-    Astro.locals?.runtime?.env.WORDPRESS_GQL_URL ||
-    import.meta.env.WORDPRESS_GQL_URL ||
-    process.env.WORDPRESS_GQL_URL;
-  const restUrl =
-    Astro.locals?.runtime?.env.WORDPRESS_REST_MENU_ENDPOINT ||
-    import.meta.env.WORDPRESS_REST_MENU_ENDPOINT ||
-    process.env.WORDPRESS_REST_MENU_ENDPOINT;
-
-  try {
-    const [
-      {pagesByLangCode, scriptureEngagementPages},
-      menus,
-      ctaGlobal,
-      wpmlLangDict,
-      {englishUriMap},
-    ] = await Promise.all([
-      getAllPages({gqlUrl}),
+async function loadSharedRouteData({gqlUrl, restUrl}: SharedRouteDataArgs) {
+  const [menus, ctaGlobal, wpmlLangDict, {englishUriMap}, scriptureEngagementPages] =
+    await Promise.all([
       getMenus({restUrl}),
       getGlobal({
         slug: "cta-interior-2",
@@ -81,130 +73,107 @@ export async function getStaticPaths() {
       }),
       getWpmlLanguages({gqlUrl}),
       getEnglishUriMap({gqlUrl}),
+      getSeFormPage({gqlUrl}),
     ]);
 
-    const ctaGlobalAll = ctaGlobal?.allLangsGlobal;
-    const nonHiddenLanguages = new Set(Object.keys(menus));
+  return {
+    menus,
+    ctaGlobal,
+    wpmlLangDict,
+    englishUriMap,
+    scriptureEngagementPages,
+  };
+}
 
-    // each key is a lang.  If it's not hidden, keep it, if not, toss the whole object;
-    const nonHiddenPages = getNonHiddenPages({
-      nonHiddenLanguages,
-      pagesByLangCode,
-    });
-    const {en, ...otherLanguages} = nonHiddenPages;
-    if (!en) return []; //early bail to satisfy typescirpt. Should always have english;
-    const promises = Object.keys(en).map(async (enPageId) => {
-      const enPage = en[enPageId]!;
-      const enSrcResponse = await fetch(enPage.link.replace("https", "http"));
-      const pageRendered = await enSrcResponse.text();
-      const dom = new DOMParser().parseFromString(pageRendered, "text/html");
-      enPage.inlineStyles = collectInlineStyles({
-        dom,
-        additionalStyles: [ctaGlobal?.inlineStyles],
-      });
-      return {pageId: enPageId, page: enPage};
-    });
-    const englishPagesArr = await Promise.all(promises);
-
-    const englishPagesDict = englishPagesArr.reduce(
-      (acc: Record<string, Omit<WpPage, "translations">>, current) => {
-        const {pageId, page} = current;
-        acc[pageId] = page;
-        return acc;
-      },
-      {}
-    );
-
-    const otherLanguagesPagesList = getOtherLanguagesPagesList({
-      otherLanguages,
-      englishPagesDict,
-    });
-
-    const allPagesToPublish = [
-      // Skeip the english home page
-      ...englishPagesArr.filter((p) => p.page.uri !== "/"),
-      ...otherLanguagesPagesList,
-    ];
-
-    const pagesData: unknown = allPagesToPublish.map((pageTuple) => {
-      const {page} = pageTuple;
-
-      const curLang = page.languageCode;
-      const headerMenu =
-        menus[curLang]?.["header-menu"] || menus.en?.["header-menu"]!;
-      const ctaSection = addOptionalSectionsToCmsPages({
-        targetLang: curLang,
-        sectionToAdd: ctaGlobalAll,
-      });
-      const langInfo = wpmlLangDict[curLang];
-
-      const langSwitcherList = Object.values(wpmlLangDict)
-        .filter((lang) => {
-          return nonHiddenLanguages.has(lang.code);
-        })
-        .map((lang) => {
-          // Don't mutate the original dict item
-          const copy = {...lang};
-          // Mutate the langMenu while in this loop. For each of these languages, find the equivalent given its lang code
-          const matchingVersionId = page.otherVersions?.[copy.code] || "";
-          if (matchingVersionId) {
-            const matchingVersionPage = allPagesToPublish.find(
-              ({page}) => String(page?.databaseId) === matchingVersionId
-            );
-            if (matchingVersionPage) {
-              if (
-                matchingVersionPage?.page?.uri === "/" &&
-                matchingVersionPage?.page?.languageCode === "en"
-              ) {
-                copy.localizedUrl = "/";
-              } else {
-                copy.localizedUrl = matchingVersionPage?.page?.uri;
-              }
-            }
-          }
-          return copy;
-        });
-      const payload = {
+export async function getStaticPaths() {
+  try {
+    const pages = await getCollection("wpPages");
+    return pages.map((entry) => {
+      const normalizedSlug = entry.data.routeUri.replace(/^\/+|\/+$/g, "");
+      return {
         params: {
-          slug: page.uri,
+          slug: normalizedSlug === "" ? undefined : normalizedSlug,
         },
         props: {
-          page,
-          headerMenu,
-          langInfo,
-          ctaSection,
-          langSwitcherList,
-          inlineStyles: page.inlineStyles,
-          englishUriMap: englishUriMap,
-          scriptureEngagementPages: scriptureEngagementPages,
-        },
+          langCode: entry.data.langCode,
+          wpUri: entry.data.wpUri,
+          localizedUrls: entry.data.localizedUrls,
+        } satisfies StaticPathProps,
       };
-
-      if (import.meta.env.DEV) {
-        cachePageForDevSpeed(
-          payload,
-          `./src/cachedDevData/pages/${page.databaseId}.json`
-        );
-      }
-      return payload;
     });
-
-    return pagesData;
   } catch (error) {
     console.error(error);
     return [];
   }
 }
+const gqlUrl =
+  env.WORDPRESS_GQL_URL ||
+  import.meta.env.WORDPRESS_GQL_URL ||
+  process.env.WORDPRESS_GQL_URL;
+const restUrl =
+  env.WORDPRESS_REST_MENU_ENDPOINT ||
+  import.meta.env.WORDPRESS_REST_MENU_ENDPOINT ||
+  process.env.WORDPRESS_REST_MENU_ENDPOINT;
+
+const {langCode, wpUri, localizedUrls} = Astro.props as StaticPathProps;
+const [pageData, sharedRouteData] = await Promise.all([
+  getPage({uri: wpUri, langCode, gqlUrl}),
+  getSharedRouteData({gqlUrl, restUrl}),
+]);
 const {
-  page,
-  headerMenu,
-  langInfo,
-  langSwitcherList,
-  inlineStyles,
+  menus,
+  ctaGlobal,
+  wpmlLangDict,
   englishUriMap,
-  ctaSection,
   scriptureEngagementPages,
-} = Astro.props;
+} = sharedRouteData;
+const page = pageData;
+if (!page) return new Response(null, {status: 404});
+
+if (page.isHomePage && langCode !== "en") {
+  page.uri = `/${langCode}`;
+  page.otherVersions[langCode] = page.uri;
+}
+
+const ctaSection = addOptionalSectionsToCmsPages({
+  targetLang: langCode,
+  sectionToAdd: ctaGlobal?.allLangsGlobal,
+});
+
+let inlineStyles: string[] = [];
+try {
+  const srcResponse = await fetch(page.link.replace("https", "http"));
+  const pageRendered = await srcResponse.text();
+  const dom = new DOMParser().parseFromString(pageRendered, "text/html");
+  inlineStyles = collectInlineStyles({
+    dom,
+    additionalStyles: [ctaGlobal?.inlineStyles],
+  });
+} catch (error) {
+  console.error("inline style fetch failed", error);
+}
+
+const nonHiddenLanguages = new Set(Object.keys(menus));
+const langInfo = wpmlLangDict[langCode] || wpmlLangDict.en;
+if (!langInfo) return new Response(null, {status: 404});
+const headerMenu =
+  menus[langInfo.language_code]?.["header-menu"] || menus.en?.["header-menu"]!;
+const langSwitcherList = Object.values(wpmlLangDict)
+  .filter((lang) => nonHiddenLanguages.has(lang.code))
+  .map((lang) => {
+    const copy = {...lang};
+    const mapped = localizedUrls[copy.code];
+    if (mapped) {
+      copy.localizedUrl =
+        mapped === "/" && copy.code !== "en" ? `/${copy.code}` : mapped;
+    } else if (copy.code === "en") {
+      copy.localizedUrl = "/";
+    } else if (copy.code === langCode && page.isHomePage) {
+      copy.localizedUrl = `/${copy.code}`;
+    }
+    return copy;
+  });
+
 const blockHtmlWithClientInjections = page?.editorBlocks
   .filter((b) => b.parentClientId == null)
   .map((block) => {

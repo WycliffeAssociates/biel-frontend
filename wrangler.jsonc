@@ -1,0 +1,12 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "biel-frontend",
+	"main": "@astrojs/cloudflare/entrypoints/server",
+	"compatibility_date": "2026-04-21",
+	"compatibility_flags": ["nodejs_compat"],
+	"preview_urls": true,
+	"assets": {
+		"directory": "./dist",
+		"binding": "ASSETS"
+	},
+}

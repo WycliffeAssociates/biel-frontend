@@ -56,17 +56,19 @@ function WordFilesPreviewer(props: PreviewerProps) {
 								</Dialog.CloseButton>
 							</div>
 						</div>
-						<iframe
-							class={`w-full max-h-80% md:(py-4 px-8) ${
-								isPowerPoint(props.currentPreviewing()?.fileType!)
-									? "aspect-16/9"
-									: "aspect-[1/1.254]"
-							}`}
-							src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
-								props.currentPreviewing()?.url!,
-							)}`}
-							title="file preview"
-						/>
+						{props.currentPreviewing()?.url && (
+							<iframe
+								class={`w-full max-h-80% md:(py-4 px-8) ${
+									isPowerPoint(props.currentPreviewing()!.fileType)
+										? "aspect-16/9"
+										: "aspect-[1/1.254]"
+								}`}
+								src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(
+									props.currentPreviewing()!.url,
+								)}`}
+								title="file preview"
+							/>
+						)}
 					</Dialog.Content>
 				</div>
 			</Dialog.Portal>

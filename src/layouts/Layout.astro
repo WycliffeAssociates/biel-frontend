@@ -4,9 +4,9 @@ import "../styles/global.scss";
 import "../styles/vars.scss";
 import {pwaInfo} from "virtual:pwa-info";
 import Blocks from "@components/Blocks.astro";
+import PwaRegister from "@components/PwaRegister.astro";
 import type {languageType} from "@customTypes/types";
 import {getEnglishUriMap, getFooter} from "@src/data/wp";
-
 interface Props {
   title: string;
   langInfo: languageType;
@@ -18,10 +18,10 @@ interface Props {
   siteName: string;
   ogImage: string;
 }
-import {cacheFooterForDev, getCachedFooter} from "@lib/caching";
 import {adjustCmsDomLinks, hrefLangUrl} from "@src/utils";
+import {env} from "cloudflare:workers";
 const gqlUrl =
-  Astro.locals?.runtime?.env.WORDPRESS_GQL_URL ||
+  env.WORDPRESS_GQL_URL ||
   import.meta.env.WORDPRESS_GQL_URL ||
   process.env.WORDPRESS_GQL_URL;
 
@@ -36,15 +36,9 @@ const {
   siteName,
   ogImage,
 } = Astro.props;
-const forceRefresh = true;
-const cachedFooter =
-  import.meta.env.DEV && getCachedFooter(forceRefresh)
-    ? getCachedFooter()
-    : null;
-const footerData = cachedFooter
-  ? cachedFooter
-  : await getFooter({langCode: langInfo.code, gqlUrl});
-import.meta.env.DEV && cacheFooterForDev(footerData);
+const useSw =
+  import.meta.env.PROD || import.meta.env.PUBLIC_ENABLE_SW_DEV === "true";
+const footerData = await getFooter({langCode: langInfo.code, gqlUrl});
 const {footerInlineStyles, footer} = footerData
   ? footerData
   : {footerInlineStyles: "", footer: {content: ""}};
@@ -52,6 +46,12 @@ const allStyles = [...inlineCss, ...footerInlineStyles];
 const deduped = new Set(allStyles);
 const dedupedInlineStyles = [...deduped].join("\n");
 const {englishUriMap} = await getEnglishUriMap({gqlUrl});
+const alternateLinks = langSwitcher
+  .map((version) => ({
+    code: version.code,
+    href: hrefLangUrl(version, Astro),
+  }))
+  .filter((version) => version.href);
 ---
 
 <html lang={langInfo.code} dir={langDirection}>
@@ -62,7 +62,7 @@ const {englishUriMap} = await getEnglishUriMap({gqlUrl});
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" /><!-- 180×180 -->
-    <link rel="manifest" href="/manifest.webmanifest" />
+    {useSw && <link rel="manifest" href="/manifest.webmanifest" />}
     <link rel="sitemap" href="/sitemap-index.xml" />
 
     <meta name="”robots”" content="index, follow" />
@@ -79,14 +79,14 @@ const {englishUriMap} = await getEnglishUriMap({gqlUrl});
       )
     }
     {inlineCss && <style id="headlessStyles" set:html={dedupedInlineStyles} />}
-    <script src="/src/pwa.ts"></script>
-    {pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}
+    {useSw && pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}
+    {useSw && <PwaRegister />}
     {
-      langSwitcher.map((version) => {
+      alternateLinks.map((version) => {
         return (
           <link
             rel="alternate"
-            href={hrefLangUrl(version, Astro)}
+            href={version.href}
             hreflang={version.code}
           />
         );

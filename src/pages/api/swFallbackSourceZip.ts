@@ -38,7 +38,6 @@ export const POST: APIRoute = async ({ request }) => {
 		});
 	}
 	const totalSize = payload.files.reduce(
-		// biome-ignore lint/suspicious/noAssignInExpressions: <easy to see how this reduce works>
 		(acc, curr) => (acc += curr.size || 0),
 		0,
 	);

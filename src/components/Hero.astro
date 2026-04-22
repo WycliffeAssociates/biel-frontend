@@ -1,6 +1,5 @@
 ---
 import type {WpPage} from "@customTypes/types";
-import {Image} from "astro:assets";
 
 interface Props {
   pageOptions: WpPage["pageOptions"];
@@ -22,11 +21,10 @@ const {pageOptions, title, featuredImage, readMoreAnchorWords} = Astro.props;
         <div class="flex gap-8px mx-auto md:(m-0) items-center">
           {
             pageOptions.iconPreTitle && (
-              <Image
+              <img
                 src={pageOptions.iconPreTitle.sourceUrl}
                 loading="eager"
                 alt=""
-                inferSize={true}
                 class="max-w-48px"
               />
             )
@@ -87,11 +85,10 @@ const {pageOptions, title, featuredImage, readMoreAnchorWords} = Astro.props;
       {
         featuredImage?.node.sourceUrl && (
           <div class="md:(grid-col-start-3 grid-col-end-5) max-md:relative max-h-80vh">
-            <Image
+            <img
               src={featuredImage?.node.sourceUrl}
               loading="eager"
               alt={""}
-              inferSize={true}
               class="w-full h-full object-cover"
             />
           </div>

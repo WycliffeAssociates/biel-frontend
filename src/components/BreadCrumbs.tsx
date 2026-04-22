@@ -5,7 +5,7 @@ type Props = {
 	crumbs: WpPage["ancestors"];
 };
 export function BreadCrumbs(props: Props) {
-	if (!props.crumbs || !props.crumbs.nodes?.length) return null;
+	if (!props.crumbs?.nodes?.length) return null;
 
 	return (
 		<nav class="hidden md:block bg-surface-primary py-2 border border-y-solid border-surface-border">

@@ -229,7 +229,11 @@ export function DownloadOptions() {
 			if (!res.ok) {
 				throw new Error(res.statusText);
 			}
-			const { state, result, downloadUrl } = await res.json();
+			const { state, result, downloadUrl } = (await res.json()) as {
+				state: string;
+				result: string;
+				downloadUrl: string;
+			};
 			if (state === "SUCCESS") {
 				const docProxySwATag = document.querySelector(
 					`[data-js='${constants.uiProxyDocQuerySelector}']`,

@@ -4,6 +4,7 @@ import {getLanguagesWithContentForBiel} from "@src/data/pubDataApi";
 import {ResourceIndex} from "./Main";
 import type {i18nDictType} from "@src/i18n/strings";
 import type {ResourceTypeToIetfList} from "@src/data/github";
+import { env } from "cloudflare:workers";
 interface Props {
   detailPrefix: string;
   i18nDict: i18nDictType;
@@ -12,7 +13,6 @@ interface Props {
   tsFileLocalization: Record<string, string>;
 }
 const startTime = performance.now();
-const runtime = Astro.locals.runtime;
 const referrer = Astro.request.headers.get("Referer") as string;
 const referrerUrl = new URL(referrer);
 const params = Array.from(referrerUrl.searchParams)
@@ -33,9 +33,14 @@ const resourceTypeArrQp = resourceType
   : [];
 
 // note, cache is a noop in dev right now for cloudfalre adapter
-const cache = runtime.caches.default;
-const ctx = runtime.ctx;
-const pubDataApiUrl = runtime.env.PUBLIC_DATA_API;
+const cache =
+  caches.default as unknown as import("@cloudflare/workers-types").Cache;
+const ctx = Astro.locals.cfContext;
+const pubDataApiUrl =
+  env.PUBLIC_DATA_API ||
+  import.meta.env.PUBLIC_DATA_API ||
+  process.env.PUBLIC_DATA_API ||
+  "";
 const {
   detailPrefix,
   i18nDict,

@@ -96,7 +96,7 @@ export function ContactForm(props: ContactFormProps) {
 				method: "POST",
 				body: formData,
 			});
-			const data = await res.json();
+			const data = (await res.json()) as { success: boolean };
 			if (data.success) {
 				await fadeOutCmsFormIntro();
 				setFormStatus({

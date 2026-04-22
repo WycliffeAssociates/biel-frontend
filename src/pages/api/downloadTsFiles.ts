@@ -46,10 +46,9 @@ export const POST: APIRoute = async ({ request }) => {
 	);
 	let streamToReturn = clientZipStream.body;
 	if (import.meta.env.PROD) {
-		// @ts-expect-error.  https://developers.cloudflare.com/workers/runtime-apis/streams/transformstream/#fixedlengthstream.  We know the length, but this is a platform api that is cloufdlare specific, so we can't just return the content length header. Cloudflare will override it.
 		const { readable, writable } = new FixedLengthStream(predictedLength);
 		clientZipStream.body?.pipeTo(writable);
-		streamToReturn = readable;
+		streamToReturn = readable as ReadableStream<Uint8Array<ArrayBuffer>>;
 	}
 
 	return new Response(streamToReturn, {

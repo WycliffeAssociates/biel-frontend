@@ -1,5 +1,6 @@
 export const prerender = false;
 
+import { env } from "cloudflare:workers";
 import { contactFormContactMethodsValues } from "@lib/constants";
 import type { APIRoute } from "astro";
 
@@ -12,9 +13,8 @@ export type RemotePayloadType = {
 	}>;
 };
 
-export const POST: APIRoute = async ({ request, locals }) => {
-	const CONTACT_FORM_PROCESSING_URL = locals.runtime.env
-		.CONTACT_FORM_ENDPOINT as string;
+export const POST: APIRoute = async ({ request }) => {
+	const CONTACT_FORM_PROCESSING_URL = env.CONTACT_FORM_ENDPOINT as string;
 	// site is from astro config. support only same site form submissions
 	// todo: decide on reenable this?
 	// if (import.meta.env.PROD) {
@@ -25,7 +25,13 @@ export const POST: APIRoute = async ({ request, locals }) => {
 	//   }
 	// }
 	// Can type it when changing to next version I think
-	const secretTurnstileKey = locals.runtime.env?.SECRET_TURNSTILE_KEY;
+	const secretTurnstileKey = env.SECRET_TURNSTILE_KEY;
+	if (!secretTurnstileKey) {
+		return new Response(null, {
+			status: 500,
+			statusText: "Missing turnstile secret",
+		});
+	}
 
 	const data = await request.formData();
 	const { otherFields, requiredFields } = extractFieldsAndRest(data);
@@ -57,7 +63,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 		method: "POST",
 	});
 
-	const outcome = await result.json();
+	const outcome = (await result.json()) as { success: boolean };
 
 	if (outcome.success) {
 		const formFields = [
@@ -67,7 +73,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 			},
 			{
 				field: "BIEL Environment",
-				value: locals.runtime.env.CONTACT_ENV || "local",
+				value: env.CONTACT_ENV || "local",
 			},
 			{
 				field: "Submitter Email",
@@ -85,12 +91,12 @@ export const POST: APIRoute = async ({ request, locals }) => {
 		];
 		const emailAddresses = matchHelpMethodToEmailList(
 			helpMethod,
-			locals.runtime.env.CONTACT_FORM_EMAILS_BASE64 || "{}",
-			locals.runtime.env.CONTACT_ENV || "local",
+			env.CONTACT_FORM_EMAILS_BASE64 || "{}",
+			env.CONTACT_ENV || "local",
 		);
 		console.log(emailAddresses);
 		const processingBody: RemotePayloadType = {
-			env: locals.runtime.env.CONTACT_ENV || "local",
+			env: env.CONTACT_ENV || "local",
 			addresses: emailAddresses,
 			formFields,
 		};
@@ -178,14 +184,13 @@ function extractFieldsAndRest(formData: FormData) {
 		"cf-turnstile-response": "",
 		"Form Name": "",
 	};
-	const otherFields: { field: string; value: unknown }[] = [];
+	const otherFields: { field: string; value: string }[] = [];
 
-	// @ts-expect-error. Trying to db a thing
 	for (const [key, value] of formData.entries()) {
 		if (key in requiredFields) {
 			requiredFields[key as keyof typeof requiredFields] = value as string;
 		} else {
-			otherFields.push({ field: key, value });
+			otherFields.push({ field: key, value: String(value) });
 		}
 	}
 	return { requiredFields, otherFields };

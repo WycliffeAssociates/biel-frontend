@@ -1,0 +1,157 @@
+---
+export const prerender = false;
+import {HeaderMenu} from "@components/HeaderMenu";
+import ResourceSingle from "@components/ResourceSingle/ResourceSingle.astro";
+import {BreadCrumbs} from "@components/BreadCrumbs";
+import Layout from "@layouts/LayoutNoFooter.astro";
+import {getMenus, getLanguagesPageSlugs, getWpmlLanguages} from "@src/data/wp";
+import {getDict} from "@src/i18n/strings";
+import {capitalizeFirstLetter, titleCase} from "@src/utils";
+import {constants} from "@lib/constants";
+import {getLanguageContents} from "@src/data/pubDataApi";
+import {env} from "cloudflare:workers";
+
+const {siteLang, resourcesSlug, languagesSlug, pubDataIetf} = Astro.params;
+if (!siteLang || !resourcesSlug || !languagesSlug || !pubDataIetf) {
+	return Astro.redirect("/404");
+}
+if (
+	siteLang.includes(".") ||
+	resourcesSlug.includes(".") ||
+	languagesSlug.includes(".") ||
+	pubDataIetf.includes(".")
+) {
+	return Astro.redirect("/404");
+}
+
+const gqlUrl =
+	env.WORDPRESS_GQL_URL ||
+	import.meta.env.WORDPRESS_GQL_URL ||
+	process.env.WORDPRESS_GQL_URL;
+const restUrl =
+	env.WORDPRESS_REST_MENU_ENDPOINT ||
+	import.meta.env.WORDPRESS_REST_MENU_ENDPOINT ||
+	process.env.WORDPRESS_REST_MENU_ENDPOINT;
+
+const pubDataApiUrl =
+	env.PUBLIC_DATA_API ||
+	import.meta.env.PUBLIC_DATA_API ||
+	process.env.PUBLIC_DATA_API ||
+	"";
+const paramsLower = new URLSearchParams(
+	Array.from(Astro.url.searchParams, ([key, value]) => [
+		key.toLowerCase(),
+		value,
+	]),
+);
+const doBustCache = !!paramsLower.get(constants.queryParamCacheBust);
+const cache =
+	caches.default as unknown as import("@cloudflare/workers-types").Cache;
+const ctx = Astro.locals.cfContext;
+
+const [wpmlLangDict, menus, languagePageSlugs] = await Promise.all([
+	getWpmlLanguages({gqlUrl}),
+	getMenus({restUrl}),
+	getLanguagesPageSlugs({gqlUrl}),
+]);
+
+const translation = languagePageSlugs.data.page.translations.find(
+	(t) => t.languageCode === siteLang,
+);
+if (!translation) return Astro.redirect("/404");
+const expectedRoute = translation.uri.split("/").filter(Boolean);
+if (expectedRoute.length < 3) return Astro.redirect("/404");
+if (
+	expectedRoute[0] !== siteLang ||
+	expectedRoute[1] !== resourcesSlug ||
+	expectedRoute[2] !== languagesSlug
+) {
+	return Astro.redirect("/404");
+}
+
+const langInfo = wpmlLangDict[siteLang] || wpmlLangDict.en;
+if (!langInfo) return Astro.redirect("/404");
+const i18nDict = getDict(siteLang, true);
+if (!i18nDict) return Astro.redirect("/404");
+const nonHiddenLanguages = new Set(Object.keys(menus));
+const headerMenu =
+	menus[langInfo.language_code]?.["header-menu"] || menus.en?.["header-menu"]!;
+const langSwitcherList = Object.values(wpmlLangDict)
+	.filter((lang) => nonHiddenLanguages.has(lang.code))
+	.map((lang) => {
+		const copy = {...lang};
+		if (lang.code === "en") {
+			copy.localizedUrl = `/resources/languages/${pubDataIetf}`;
+			return copy;
+		}
+		const matchingSlug = languagePageSlugs.data.page.translations.find(
+			(t) => t.languageCode === lang.code,
+		);
+		copy.localizedUrl = `${matchingSlug?.uri}/${pubDataIetf}`;
+		return copy;
+	});
+
+const data = await getLanguageContents({
+	language: pubDataIetf,
+	cache,
+	ctx,
+	pubDataApiUrl,
+	doBustCache,
+	siteLanguage: langInfo.code,
+});
+const {data: languageData} = data;
+
+const crumbs = {
+	nodes: [
+		{uri: `/${siteLang}`, slug: "", title: i18nDict.home},
+		{
+			uri: `/${siteLang}/${resourcesSlug}`,
+			slug: "",
+			title: capitalizeFirstLetter(resourcesSlug),
+		},
+		{
+			uri: `/${siteLang}/${resourcesSlug}/${languagesSlug}`,
+			slug: "",
+			title: capitalizeFirstLetter(languagesSlug),
+		},
+		{
+			uri: `/${siteLang}/${resourcesSlug}/${languagesSlug}/${pubDataIetf}`,
+			slug: "",
+			title: languageData.language.national_name,
+		},
+	],
+};
+const ogImage = `${Astro.site?.origin}/icon-512.png`;
+---
+
+<Layout
+	title={titleCase({
+		lang: langInfo.code,
+		str: `${languageData.language.englishName} ${i18nDict.siteName}`,
+	})}
+	inlineCss={[]}
+	description={`${i18nDict.siteName} - ${pubDataIetf}`}
+	langInfo={langInfo}
+	langSwitcher={langSwitcherList}
+	langDirection="ltr"
+	siteName={i18nDict.siteName}
+	ogImage={ogImage}
+>
+	<HeaderMenu
+		allLangs={langSwitcherList}
+		currentLang={langInfo}
+		menu={headerMenu}
+		i18nDict={i18nDict}
+		client:load
+	/>
+	<BreadCrumbs crumbs={crumbs} />
+	<div class="md:pt-8 mx-auto h-full overflow-auto w-full contain contain-pad">
+		<ResourceSingle
+			languageData={languageData}
+			languageToFetch={pubDataIetf}
+			i18nDict={i18nDict}
+			siteLanguage={langInfo.code}
+			doBustCache={doBustCache}
+		/>
+	</div>
+</Layout>

@@ -6,6 +6,7 @@ import type {languageType} from "@customTypes/types";
 import {getEnglishUriMap, getFooter} from "@src/data/wp";
 import Blocks from "@components/Blocks.astro";
 import {adjustCmsDomLinks, hrefLangUrl} from "@src/utils";
+import { env } from "cloudflare:workers";
 interface Props {
   title: string;
   langInfo: languageType;
@@ -18,11 +19,11 @@ interface Props {
   ogImage: string;
 }
 const gqlUrl =
-  Astro.locals?.runtime?.env.WORDPRESS_GQL_URL ||
+  env.WORDPRESS_GQL_URL ||
   import.meta.env.WORDPRESS_GQL_URL ||
   process.env.WORDPRESS_GQL_URL;
 const cmsBaseUrl =
-  Astro.locals?.runtime?.env.CMS_URL ||
+  env.CMS_URL ||
   import.meta.env.CMS_URL ||
   process.env.CMS_URL;
 

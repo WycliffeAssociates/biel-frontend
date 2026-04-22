@@ -48,6 +48,7 @@ export function Search(props: SearchProps) {
 		await pageFind.options({
 			excerptLength: 5,
 			baseUrl: "/",
+			basePath: "/pagefind",
 		});
 		["bible", "mast", "reg"].forEach((term) => {
 			pageFind.preload(term);

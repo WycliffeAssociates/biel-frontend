@@ -21,6 +21,94 @@ heroLinks {
   heroLinkIcon
 }
 `;
+
+type StaticCatalogEntry = {
+	groupId: number;
+	langCode: string;
+	routeUri: string;
+	wpUri: string;
+};
+
+export async function getStaticPageCatalog({ gqlUrl }: { gqlUrl: string }) {
+	const query = `
+    query staticPageCatalog {
+      pages(first: 100, where: {language: "en"}) {
+        nodes {
+          databaseId
+          title
+          uri
+          translations {
+            databaseId
+            languageCode
+            uri
+          }
+        }
+      }
+    }
+  `;
+	const response = await fetch(gqlUrl, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({ query }),
+	});
+	const result = (await response.json()) as {
+		data: {
+			pages: {
+				nodes: Array<{
+					databaseId: number;
+					title: string;
+					uri: string;
+					translations: Array<{
+						databaseId: number;
+						languageCode: string;
+						uri: string;
+					}>;
+				}>;
+			};
+		};
+	};
+
+	const routeEntries: StaticCatalogEntry[] = [];
+	const routesByGroupId: Record<number, Record<string, string>> = {};
+
+	result.data.pages.nodes
+		.filter((page) => page.title.toLowerCase() !== "languages")
+		.forEach((page) => {
+			const groupId = page.databaseId;
+			const localizedRoutes: Record<string, string> = {};
+
+			if (page.uri !== "/") {
+				localizedRoutes.en = page.uri;
+				routeEntries.push({
+					groupId,
+					langCode: "en",
+					routeUri: page.uri,
+					wpUri: page.uri,
+				});
+			} else {
+				localizedRoutes.en = "/";
+			}
+
+			page.translations.forEach((translation) => {
+				const isHomeTranslation = page.uri === "/";
+				const routeUri = isHomeTranslation
+					? `/${translation.languageCode}`
+					: translation.uri;
+				const wpUri = isHomeTranslation ? "/" : translation.uri;
+				localizedRoutes[translation.languageCode] = routeUri;
+				routeEntries.push({
+					groupId,
+					langCode: translation.languageCode,
+					routeUri,
+					wpUri,
+				});
+			});
+
+			routesByGroupId[groupId] = localizedRoutes;
+		});
+
+	return { routeEntries, routesByGroupId };
+}
 export async function getHomePage({ gqlUrl }: { gqlUrl: string }) {
 	const query = `
     query homePage {
@@ -148,6 +236,8 @@ export async function getPage({
 	if (uri.includes("home")) {
 		uri = "/";
 	}
+	const normalizedUri =
+		uri === "/" ? "/" : `/${uri.replace(/^\/+|\/+$/g, "")}/`;
 
 	const response = await fetch(gqlUrl, {
 		method: "POST",
@@ -168,7 +258,7 @@ export async function getPage({
 	};
 
 	const pageWithMatchingUri = allLangPages.data.pages.nodes.find(
-		(page) => page.uri === (uri === "/" ? "/" : `/${uri}/`),
+		(page) => page.uri === normalizedUri,
 	);
 
 	if (!pageWithMatchingUri) return;

@@ -141,9 +141,7 @@ function replaceAllAbsoluteLinksToCms({
 				: href;
 
 			return encodeURI(
-				`${withoutTrailingSlash}?${searchParams.toString().trim()}${
-					hash ? `${hash}` : ""
-				}`,
+				`${withoutTrailingSlash}?${searchParams.toString().trim()}${hash ? `${hash}` : ""}`,
 			);
 		}
 		return encodeURI(`${href}${hash ? `${hash}` : ""}`);
@@ -163,9 +161,10 @@ function replaceAllAbsoluteLinksToCms({
 			// /resources/languages/
 			if (englishUriMap[rest]?.[currentLangCode]) {
 				const newUrl = makeUrl({
-					href: `${englishUriMap[rest]?.[
-						currentLangCode
-					]!}/${langCode}`.replaceAll("//", "/"),
+					href: `${englishUriMap[rest]?.[currentLangCode]}/${langCode}`.replaceAll(
+						"//",
+						"/",
+					),
 					searchParams,
 					hash,
 				});
@@ -197,8 +196,10 @@ function replaceAllAbsoluteLinksToCms({
 				});
 				tag.setAttribute("hash", newUrl);
 			} else if (englishUriMap[upUntilSearchParams]?.[currentLangCode]) {
+				const href = englishUriMap[upUntilSearchParams]?.[currentLangCode];
+				if (!href) return;
 				const newUrl = makeUrl({
-					href: englishUriMap[upUntilSearchParams]?.[currentLangCode]!,
+					href,
 					searchParams,
 					hash,
 				});
@@ -441,6 +442,7 @@ const bibleBookSortOrder = Object.values(BibleBookCategories)
 		acc[value] = index + 1;
 		return acc;
 	}, {});
+
 export { bibleBookSortOrder };
 
 export function formatBytes(bytes: number) {
@@ -458,17 +460,17 @@ export function capitalizeFirstLetter(word: string): string {
 }
 
 export function hrefLangUrl(version: languageType, astro: AstroGlobal) {
-	const hostName = astro.site?.hostname || "";
+	const siteOrigin = astro.site?.origin || "";
 	if (version.localizedUrl) {
 		const withoutStartingSlash = version.localizedUrl.startsWith("/")
 			? version.localizedUrl.slice(1)
 			: version.localizedUrl;
-		return `${hostName}/${withoutStartingSlash}`;
+		return `${siteOrigin}/${withoutStartingSlash}`;
 	}
 	if (version.code === "en") {
-		return `${hostName}`;
+		return siteOrigin;
 	}
-	return `${hostName}/${version.code}`;
+	return `${siteOrigin}/${version.code}`;
 }
 
 type TitleCaseArgs = {

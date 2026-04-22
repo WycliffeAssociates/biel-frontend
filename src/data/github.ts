@@ -124,7 +124,6 @@ async function fetchRepo({ doFetchMeta }: FetchRepoArgs) {
 			"User-Agent": "biel_website",
 			...(cachedEtag && { "If-None-Match": cachedEtag }),
 		},
-		// @ts-expect-error
 		cf: {
 			headers: {
 				"Cache-Control": "max-age=20",
@@ -133,7 +132,6 @@ async function fetchRepo({ doFetchMeta }: FetchRepoArgs) {
 	});
 	const metaDataRes = doFetchMeta
 		? await fetch(metadataDatesEngpoint, {
-				// @ts-expect-error
 				cf: {
 					headers: {
 						"Cache-Control": "s-maxage=86400",
