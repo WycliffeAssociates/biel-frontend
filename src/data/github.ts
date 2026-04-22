@@ -97,6 +97,7 @@ export async function getMapTsFilesLangToResourceType() {
 type FetchRepoArgs = {
 	doFetchMeta?: boolean;
 };
+const githubTreeCacheMaxAgeSeconds = 60 * 60;
 async function fetchRepo({ doFetchMeta }: FetchRepoArgs) {
 	const USER = "WycliffeAssociates";
 	const REPO = "TS-biel-files";
@@ -117,11 +118,25 @@ async function fetchRepo({ doFetchMeta }: FetchRepoArgs) {
 			cachedEtag = cacheMatch.headers.get("etag");
 		}
 	}
+	if (cachedRes && isFreshCachedGithubTree(cachedRes)) {
+		const metaDataJson = await fetchMetadataJson({
+			doFetchMeta,
+			metadataDatesEngpoint,
+		});
+		return {
+			data: (await cachedRes.json()) as githubReponse,
+			metaDataJson,
+			USER,
+			REPO,
+		};
+	}
 
 	// Etag fetches still hit the origin (i.e github) but they avoid the request body, so there will always be the fetch here to check for newest, but there will be no response body if the etag is the same, which lightens up the fetch considerably
 	const res = await fetch(endpoint, {
 		headers: {
 			"User-Agent": "biel_website",
+			Accept: "application/vnd.github+json",
+			"X-GitHub-Api-Version": "2022-11-28",
 			...(cachedEtag && { "If-None-Match": cachedEtag }),
 		},
 		cf: {
@@ -130,34 +145,92 @@ async function fetchRepo({ doFetchMeta }: FetchRepoArgs) {
 			},
 		},
 	});
-	const metaDataRes = doFetchMeta
-		? await fetch(metadataDatesEngpoint, {
-				cf: {
-					headers: {
-						"Cache-Control": "s-maxage=86400",
-					},
-				},
-			})
-		: null;
+	const metaDataJson = await fetchMetadataJson({
+		doFetchMeta,
+		metadataDatesEngpoint,
+	});
 
+	const shouldUseCachedTree = res.status === 304 || (!res.ok && !!cachedRes);
 	// unmodified is ok. We handle below. This is an etag check
-	if (!res.ok && res.status !== 304) throw new Error(res.statusText);
-
-	if (globalThis.caches && res.status !== 304) {
-		// CF: Our implementation of the Cache API respects the following HTTP headers on the response passed to put(): ETAG, Expires, Last-Modified.  ETAG Allows cache.match() to evaluate conditional requests with If-None-Match.
-		globalThis.caches.default.put(endpoint, res.clone());
+	if (!res.ok && res.status !== 304 && !cachedRes) {
+		console.error("GitHub tree fetch failed with no cached fallback", {
+			status: res.status,
+			statusText: res.statusText,
+			rateLimit: getGithubRateLimitDebug(res),
+		});
+		throw new Error(res.statusText);
 	}
-	const json =
-		res.status === 304 && !!cachedRes
-			? ((await cachedRes!.json()) as githubReponse)
-			: ((await res.json()) as githubReponse);
+	if (!res.ok && res.status !== 304 && cachedRes) {
+		console.warn(
+			`GitHub tree fetch failed with ${res.status} ${res.statusText}; using cached tree for ${endpoint}`,
+			getGithubRateLimitDebug(res),
+		);
+	}
 
-	const metaDataJson =
-		doFetchMeta && metaDataRes?.ok
-			? ((await metaDataRes!.json()) as Record<string, string>)
-			: undefined;
+	if (globalThis.caches && res.ok && res.status !== 304) {
+		// CF: Our implementation of the Cache API respects the following HTTP headers on the response passed to put(): ETAG, Expires, Last-Modified.  ETAG Allows cache.match() to evaluate conditional requests with If-None-Match.
+		const headers = new Headers(res.headers);
+		headers.set(
+			"Cache-Control",
+			`public, max-age=${githubTreeCacheMaxAgeSeconds}`,
+		);
+		headers.set("x-biel-cache-date", new Date().toUTCString());
+		await globalThis.caches.default.put(
+			endpoint,
+			new Response(res.clone().body, {
+				status: res.status,
+				statusText: res.statusText,
+				headers,
+			}),
+		);
+	}
+	const json = shouldUseCachedTree
+		? ((await cachedRes!.json()) as githubReponse)
+		: ((await res.json()) as githubReponse);
 
 	return { data: json, metaDataJson, USER, REPO };
+}
+
+function isFreshCachedGithubTree(response: Response) {
+	const storedDate =
+		response.headers.get("x-biel-cache-date") || response.headers.get("date");
+	if (!storedDate) return false;
+	const storedMs = Date.parse(storedDate);
+	if (!Number.isFinite(storedMs)) return false;
+	return Date.now() - storedMs < githubTreeCacheMaxAgeSeconds * 1000;
+}
+
+function getGithubRateLimitDebug(res: Response) {
+	return {
+		limit: res.headers.get("x-ratelimit-limit"),
+		remaining: res.headers.get("x-ratelimit-remaining"),
+		reset: res.headers.get("x-ratelimit-reset"),
+		resource: res.headers.get("x-ratelimit-resource"),
+		retryAfter: res.headers.get("retry-after"),
+	};
+}
+
+async function fetchMetadataJson({
+	doFetchMeta,
+	metadataDatesEngpoint,
+}: {
+	doFetchMeta?: boolean;
+	metadataDatesEngpoint: string;
+}) {
+	if (!doFetchMeta) return undefined;
+	const metaDataRes = await fetch(metadataDatesEngpoint, {
+		headers: {
+			"User-Agent": "biel_website",
+		},
+		cf: {
+			headers: {
+				"Cache-Control": "s-maxage=86400",
+			},
+		},
+	});
+	return metaDataRes.ok
+		? ((await metaDataRes.json()) as Record<string, string>)
+		: undefined;
 }
 export async function getLocalizationsForResourceTypes() {
 	const USER = "WycliffeAssociates";

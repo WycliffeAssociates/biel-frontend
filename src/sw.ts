@@ -5,7 +5,7 @@ import { clientsClaim } from "workbox-core";
 import { ExpirationPlugin } from "workbox-expiration";
 import { cleanupOutdatedCaches, precacheAndRoute } from "workbox-precaching";
 import { registerRoute } from "workbox-routing";
-import { CacheFirst, NetworkFirst } from "workbox-strategies";
+import { CacheFirst } from "workbox-strategies";
 import { CacheTags, CustomXCacheTagHeader, constants } from "./lib/constants";
 import {
 	bielExternalCacheName,
@@ -192,20 +192,43 @@ registerRoute(
 			!url.searchParams.get("cache-bust")
 		);
 	},
-	// this is a SWR like strategy, but we also while the revalidting to do a cache-bust query param fetch.
-	new NetworkFirst({
-		cacheName: bielStaticCacheName,
-		plugins: [
-			new ExpirationPlugin({
-				maxAgeSeconds: 60 * 60, // an hour w/o query param in browser
-			}),
-			new CacheableResponsePlugin({
-				statuses: [0, 200, 304],
-			}),
-		],
-	}),
+	async ({ request, event }) => {
+		const cache = await caches.open(bielStaticCacheName);
+		const cacheKey = await getPostCacheKey(request);
+		try {
+			const response = await fetch(request as unknown as RequestInfo);
+			const isCacheable = await cacheablePlugin.cacheWillUpdate?.({
+				event,
+				request,
+				response,
+				state: {},
+			});
+			if (isCacheable) {
+				event.waitUntil(cache.put(cacheKey, response.clone()));
+			}
+			return response;
+		} catch (error) {
+			const cached = await cache.match(cacheKey);
+			if (cached) return cached;
+			throw error;
+		}
+	},
 	"POST",
 );
+
+async function getPostCacheKey(request: Request) {
+	const body = await request.clone().text();
+	const bodyHash = await crypto.subtle.digest(
+		"SHA-256",
+		new TextEncoder().encode(body),
+	);
+	const hashHex = Array.from(new Uint8Array(bodyHash))
+		.map((byte) => byte.toString(16).padStart(2, "0"))
+		.join("");
+	const cacheUrl = new URL(request.url);
+	cacheUrl.searchParams.set("__sw_post_hash", hashHex);
+	return new Request(cacheUrl.toString(), { method: "GET" });
+}
 
 // pf_meta, pf_index, pf_fragment:
 registerRoute(

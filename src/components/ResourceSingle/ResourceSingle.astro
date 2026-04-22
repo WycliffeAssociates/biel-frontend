@@ -14,7 +14,15 @@ import type {LangWithContent} from "@src/data/gqlQueries/queries";
 import {env} from "cloudflare:workers";
 
 const {languageToFetch, i18nDict, languageData, doBustCache} = Astro.props;
-const tsFiles = await getTsFiles(languageToFetch);
+let tsFiles: Awaited<ReturnType<typeof getTsFiles>> | undefined;
+try {
+  tsFiles = await getTsFiles(languageToFetch);
+} catch (error) {
+  console.error("Failed to load TS files for resource single route", {
+    languageToFetch,
+    error,
+  });
+}
 const docUiUrl = env.DOC_UI_URL as string;
 const paramsLower = new URLSearchParams(
   Array.from(Astro.url.searchParams, ([key, value]) => [
