@@ -1,3 +1,4 @@
+import { env } from "cloudflare:workers";
 import type { DirectoryListing } from "@customTypes/types";
 import slugify from "@sindresorhus/slugify";
 
@@ -106,6 +107,16 @@ async function fetchRepo({ doFetchMeta }: FetchRepoArgs) {
 	// https://api.github.com/repos/WycliffeAssociates/TS-biel-files/git/trees?recursive=true
 	const endpoint = `https://api.github.com/repos/${USER}/${REPO}/git/trees/master?recursive=1`;
 	const metadataDatesEngpoint = `https://raw.githubusercontent.com/${USER}/${REPO}/refs/heads/master/metadata.json`;
+	const githubToken =
+		env.GITHUB_TOKEN ||
+		import.meta.env.GITHUB_TOKEN ||
+		process.env.GITHUB_TOKEN;
+	const githubHeaders = {
+		"User-Agent": "biel_website",
+		Accept: "application/vnd.github+json",
+		"X-GitHub-Api-Version": "2022-11-28",
+		...(githubToken && { Authorization: `Bearer ${githubToken}` }),
+	};
 
 	let cachedRes: Response | undefined;
 	let cachedEtag: string | undefined | null;
@@ -134,9 +145,7 @@ async function fetchRepo({ doFetchMeta }: FetchRepoArgs) {
 	// Etag fetches still hit the origin (i.e github) but they avoid the request body, so there will always be the fetch here to check for newest, but there will be no response body if the etag is the same, which lightens up the fetch considerably
 	const res = await fetch(endpoint, {
 		headers: {
-			"User-Agent": "biel_website",
-			Accept: "application/vnd.github+json",
-			"X-GitHub-Api-Version": "2022-11-28",
+			...githubHeaders,
 			...(cachedEtag && { "If-None-Match": cachedEtag }),
 		},
 		cf: {
@@ -148,6 +157,7 @@ async function fetchRepo({ doFetchMeta }: FetchRepoArgs) {
 	const metaDataJson = await fetchMetadataJson({
 		doFetchMeta,
 		metadataDatesEngpoint,
+		githubToken,
 	});
 
 	const shouldUseCachedTree = res.status === 304 || (!res.ok && !!cachedRes);
@@ -213,14 +223,17 @@ function getGithubRateLimitDebug(res: Response) {
 async function fetchMetadataJson({
 	doFetchMeta,
 	metadataDatesEngpoint,
+	githubToken,
 }: {
 	doFetchMeta?: boolean;
 	metadataDatesEngpoint: string;
+	githubToken?: string;
 }) {
 	if (!doFetchMeta) return undefined;
 	const metaDataRes = await fetch(metadataDatesEngpoint, {
 		headers: {
 			"User-Agent": "biel_website",
+			...(githubToken && { Authorization: `Bearer ${githubToken}` }),
 		},
 		cf: {
 			headers: {

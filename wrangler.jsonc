@@ -23,5 +23,21 @@
 	"assets": {
 		"directory": "./dist/client",
 		"binding": "ASSETS"
+	},
+	"env": {
+		"dev": {
+			"name": "biel-frontend-dev",
+			"assets": {
+				"directory": "./dist/client",
+				"binding": "ASSETS"
+			}
+		},
+		"prod": {
+			"name": "biel-frontend",
+			"assets": {
+				"directory": "./dist/client",
+				"binding": "ASSETS"
+			}
+		}
 	}
 }

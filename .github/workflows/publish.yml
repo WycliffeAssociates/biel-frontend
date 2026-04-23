@@ -5,8 +5,11 @@ on:
     # Build daily (just a random early UTC time, that isn't around the hour. GA schedule event can be delayed during periods of high loads of actions runs, which include the start of every hour. If load is sufficiently high, some jobs may be dropped.  Schedule running at a different time of the hour)
     # * is a special character in YAML so you have to quote this string
     # 4:06 UTC = 10pm CST
-    - cron: '6 4 * * *'
+    - cron: "6 4 * * *"
   push:
+    branches:
+      - dev
+      - prod
   workflow_dispatch:
     inputs:
       skipTests:
@@ -15,28 +18,27 @@ on:
         default: false
         description: Whether to skip e2e tests for this run
 
-# Cancel in progress if making multiple prs or pushes to a branch. 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   deploy:
+    if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/prod'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       deployments: write
-    steps: 
+    steps:
       - name: Determine environment
         id: determine_env
         run: |
-          if [[ ${{ github.ref }} == 'refs/heads/prod' || ${{ github.ref }} == 'refs/heads/to-cf-worker' ]]; then
-            echo "ENV=prod" >> $GITHUB_OUTPUT
-          elif [[ ${{ github.ref }} == 'refs/heads/qa' ]]; then
-            echo "ENV=qa" >> $GITHUB_OUTPUT
+          if [[ "${{ github.ref }}" == "refs/heads/prod" ]]; then
+            echo "ENV=prod" >> "$GITHUB_OUTPUT"
           else
-            echo "ENV=dev" >> $GITHUB_OUTPUT
+            echo "ENV=dev" >> "$GITHUB_OUTPUT"
           fi
+
       - name: Load env vars
         id: load_secrets
         uses: 1password/load-secrets-action@v4
@@ -49,84 +51,82 @@ jobs:
           SITE_URL: "op://DevOps/biel-env-vars/${{ steps.determine_env.outputs.ENV }}/${{ steps.determine_env.outputs.ENV }}-site-url"
           WORDPRESS_GQL_URL: "op://DevOps/biel-env-vars/${{ steps.determine_env.outputs.ENV }}/${{ steps.determine_env.outputs.ENV }}-graphql-url"
           PUBLIC_DATA_API_URL: "op://DevOps/biel-env-vars/${{ steps.determine_env.outputs.ENV }}/${{ steps.determine_env.outputs.ENV }}-public-data-api-url"
+          CONTACT_FORM_ENDPOINT: "op://DevOps/biel-env-vars/common/contact-form-endpoint"
+          CONTACT_FORM_EMAILS_BASE64: "op://DevOps/biel-env-vars/common/contact-form-emails-base64"
           TURNSTILE_PUBLIC_KEY: "op://DevOps/biel-env-vars/common/turnstile-public-key"
-         
-          CONTACT_FORM_ENDPOINT: "op://DevOps/biel-env-vars/${{ steps.determine_env.outputs.ENV }}/${{ steps.determine_env.outputs.ENV }}-contact-form-endpoint"
-          CONTACT_FORM_EMAILS_BASE64: "op://DevOps/biel-env-vars/${{ steps.determine_env.outputs.ENV }}/${{ steps.determine_env.outputs.ENV }}-contact-form-emails-base64"
-          SECRET_TURNSTILE_KEY: "op://DevOps/biel-env-vars/common/doc-ui-url"
+          SECRET_TURNSTILE_KEY: "op://DevOps/biel-env-vars/common/secret-turnstile-key"
           DOC_UI_URL: "op://DevOps/biel-env-vars/common/doc-ui-url"
           CF_DEV_VARS: "op://DevOps/biel-env-vars/common/cf-dev-vars"
-      - name: set prod variables
-        id: load_prod_secrets
-        uses: 1password/load-secrets-action@v4
-        if: github.ref == 'refs/heads/prod' || github.ref == 'refs/heads/to-cf-worker'
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          CMS_URL: "op://DevOps/biel-env-vars/prod/prod-cms-url"
-          SITE_URL: "op://DevOps/biel-env-vars/prod/prod-site-url"
-          WORDPRESS_GQL_URL: "op://DevOps/biel-env-vars/prod/prod-graphql-url"
+          GITHUB_TOKEN: "op://DevOps/biel-env-vars/common/biel-github-pat"
 
       - name: Checkout
         uses: actions/checkout@v4
-      - name: get bun
+
+      - name: Get Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.3.10"
-      - name: setup node
+
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: "23"
+
       - name: Install JS dependencies and build
         run: |
-          bun install --frozen-lockfile && bun run build
+          bun install --frozen-lockfile
+          bun run build
         env:
           NODE_OPTIONS: --max_old_space_size=4096
           WORDPRESS_REST_MENU_ENDPOINT: ${{ steps.load_secrets.outputs.WORDPRESS_REST_MENU_ENDPOINT }}
-          CMS_URL: ${{ github.ref == 'refs/heads/prod' && steps.load_prod_secrets.outputs.CMS_URL || steps.load_secrets.outputs.CMS_URL }}
-          SITE_URL: ${{ github.ref == 'refs/heads/prod' && steps.load_prod_secrets.outputs.SITE_URL || steps.load_secrets.outputs.SITE_URL }}
-          WORDPRESS_GQL_URL: ${{ github.ref == 'refs/heads/prod' && steps.load_prod_secrets.outputs.WORDPRESS_GQL_URL || steps.load_secrets.outputs.WORDPRESS_GQL_URL }}
+          CMS_URL: ${{ steps.load_secrets.outputs.CMS_URL }}
+          SITE_URL: ${{ steps.load_secrets.outputs.SITE_URL }}
+          WORDPRESS_GQL_URL: ${{ steps.load_secrets.outputs.WORDPRESS_GQL_URL }}
           PUBLIC_DATA_API: ${{ steps.load_secrets.outputs.PUBLIC_DATA_API_URL }}
           PUBLIC_DATA_API_URL: ${{ steps.load_secrets.outputs.PUBLIC_DATA_API_URL }}
           TURNSTILE_PUBLIC_KEY: ${{ steps.load_secrets.outputs.TURNSTILE_PUBLIC_KEY }}
+          GITHUB_TOKEN: ${{ steps.load_secrets.outputs.GITHUB_TOKEN }}
           IS_MAIN_BRANCH: ${{ github.ref == 'refs/heads/prod' }}
 
-      - name: Purge extra css
-        run: |
-          bun run purgecss
+      - name: Purge extra CSS
+        run: bun run purgecss
+
       - name: Generate Pagefind index
-        run: |
-          bun run pagefind
+        run: bun run pagefind
         env:
-            CMS_URL:  ${{ github.ref == 'refs/heads/prod' && steps.load_prod_secrets.outputs.CMS_URL || steps.load_secrets.outputs.CMS_URL }}
-            SITE_URL:  ${{ github.ref == 'refs/heads/prod' && steps.load_prod_secrets.outputs.SITE_URL || steps.load_secrets.outputs.SITE_URL }}
-            WORDPRESS_GQL_URL:  ${{ github.ref == 'refs/heads/prod' && steps.load_prod_secrets.outputs.WORDPRESS_GQL_URL || steps.load_secrets.outputs.WORDPRESS_GQL_URL }}
-            PUBLIC_DATA_API_URL: ${{ steps.load_secrets.outputs.PUBLIC_DATA_API_URL }}
-      
-      - name: Copy in cf dev vars if testing
-        run: |
-          printf "%s\n" "${{ steps.load_secrets.outputs.CF_DEV_VARS }}" > .dev.vars
-        if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/prod'
-      - name: Install Playwright Browsers
+          CMS_URL: ${{ steps.load_secrets.outputs.CMS_URL }}
+          SITE_URL: ${{ steps.load_secrets.outputs.SITE_URL }}
+          WORDPRESS_GQL_URL: ${{ steps.load_secrets.outputs.WORDPRESS_GQL_URL }}
+          PUBLIC_DATA_API_URL: ${{ steps.load_secrets.outputs.PUBLIC_DATA_API_URL }}
+          GITHUB_TOKEN: ${{ steps.load_secrets.outputs.GITHUB_TOKEN }}
+
+      - name: Copy in CF dev vars if testing
+        run: printf "%s\n" "${{ steps.load_secrets.outputs.CF_DEV_VARS }}" > .dev.vars
+
+      - name: Install Playwright browsers
+        if: ${{ inputs.skipTests != true }}
         run: bun playwright install --with-deps
-        if: ${{inputs.skipTests != true || github.ref == 'refs/heads/to-cf-worker'}}
+
       - name: Run Playwright tests
+        if: ${{ inputs.skipTests != true }}
         run: bun playwright test
-        if: ${{inputs.skipTests != true && github.ref != 'refs/heads/to-cf-worker'}}
-      - uses: actions/upload-artifact@v4
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
           name: playwright-report
           path: playwright-report/
           retention-days: 30
-      
-      - name: upload dist folder as artifact for debugging
+
+      - name: Upload dist folder as artifact for debugging
         uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist/
           retention-days: 21
+
       - name: Write Worker secrets file
-        if: github.ref == 'refs/heads/to-cf-worker'
         run: |
           node <<'NODE'
           const fs = require("node:fs");
@@ -144,13 +144,14 @@ jobs:
             "CONTACT_FORM_EMAILS_BASE64",
             "CONTACT_ENV",
             "DOC_UI_URL",
+            "GITHUB_TOKEN",
           ];
 
           const contents = keys
             .map((key) => `${key}=${JSON.stringify(process.env[key] || "")}`)
             .join("\n");
 
-          fs.writeFileSync(".env.production", `${contents}\n`);
+          fs.writeFileSync(".env.${{ steps.determine_env.outputs.ENV }}", `${contents}\n`);
           NODE
         env:
           WORDPRESS_GQL_URL: ${{ steps.load_secrets.outputs.WORDPRESS_GQL_URL }}
@@ -165,9 +166,11 @@ jobs:
           CONTACT_FORM_EMAILS_BASE64: ${{ steps.load_secrets.outputs.CONTACT_FORM_EMAILS_BASE64 }}
           CONTACT_ENV: ${{ steps.determine_env.outputs.ENV }}
           DOC_UI_URL: ${{ steps.load_secrets.outputs.DOC_UI_URL }}
-      - name: Publish
+          GITHUB_TOKEN: ${{ steps.load_secrets.outputs.GITHUB_TOKEN }}
+
+      - name: Publish Worker
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ steps.load_secrets.outputs.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ steps.load_secrets.outputs.CLOUDFLARE_ACCOUNT_ID }}
-          command: ${{ github.ref == 'refs/heads/to-cf-worker' && 'deploy --name biel-frontend --secrets-file .env.production' || 'pages deploy dist --project-name=headless-biel --upload-source-maps=true' }}
+          command: deploy --env ${{ steps.determine_env.outputs.ENV }} --secrets-file .env.${{ steps.determine_env.outputs.ENV }}

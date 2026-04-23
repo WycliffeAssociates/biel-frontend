@@ -19,6 +19,7 @@ declare namespace Cloudflare {
 		CONTACT_ENV?: string;
 		DOC_BASE_URL?: string;
 		DOC_FILES_URL?: string;
+		GITHUB_TOKEN?: string;
 	}
 }
 
