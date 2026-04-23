@@ -79,6 +79,7 @@ jobs:
           bun install --frozen-lockfile
           bun run build
         env:
+          CLOUDFLARE_ENV: ${{ steps.determine_env.outputs.ENV }}
           NODE_OPTIONS: --max_old_space_size=4096
           WORDPRESS_REST_MENU_ENDPOINT: ${{ steps.load_secrets.outputs.WORDPRESS_REST_MENU_ENDPOINT }}
           CMS_URL: ${{ steps.load_secrets.outputs.CMS_URL }}
@@ -96,6 +97,7 @@ jobs:
       - name: Generate Pagefind index
         run: bun run pagefind
         env:
+          CLOUDFLARE_ENV: ${{ steps.determine_env.outputs.ENV }}
           CMS_URL: ${{ steps.load_secrets.outputs.CMS_URL }}
           SITE_URL: ${{ steps.load_secrets.outputs.SITE_URL }}
           WORDPRESS_GQL_URL: ${{ steps.load_secrets.outputs.WORDPRESS_GQL_URL }}

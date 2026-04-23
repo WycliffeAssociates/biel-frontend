@@ -1,6 +1,6 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "biel-frontend",
+	// "name": "biel-frontend",
 	"main": "@astrojs/cloudflare/entrypoints/server",
 	"compatibility_date": "2026-04-21",
 	"compatibility_flags": ["nodejs_compat"],
@@ -30,7 +30,13 @@
 			"assets": {
 				"directory": "./dist/client",
 				"binding": "ASSETS"
-			}
+			},
+			"routes": [
+				{
+					"pattern": "dev.bibleineverylanguage.org",
+					"custom_domain": true
+				}
+			]
 		},
 		"prod": {
 			"name": "biel-frontend",
