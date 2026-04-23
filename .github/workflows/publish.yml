@@ -35,8 +35,10 @@ jobs:
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/prod" ]]; then
             echo "ENV=prod" >> "$GITHUB_OUTPUT"
+            echo "WORKER_NAME=biel-frontend" >> "$GITHUB_OUTPUT"
           else
             echo "ENV=dev" >> "$GITHUB_OUTPUT"
+            echo "WORKER_NAME=biel-frontend-dev" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Load env vars
@@ -173,4 +175,4 @@ jobs:
         with:
           apiToken: ${{ steps.load_secrets.outputs.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ steps.load_secrets.outputs.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy --env ${{ steps.determine_env.outputs.ENV }} --secrets-file .env.${{ steps.determine_env.outputs.ENV }}
+          command: deploy --env ${{ steps.determine_env.outputs.ENV }} --name ${{ steps.determine_env.outputs.WORKER_NAME }} --secrets-file .env.${{ steps.determine_env.outputs.ENV }}
