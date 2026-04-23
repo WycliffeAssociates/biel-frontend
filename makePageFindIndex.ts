@@ -23,10 +23,10 @@ if (!index) {
 	process.exit(1);
 }
 
-// Index all HTML files in a directory
-console.log("adding dist");
+// Index deployed client HTML so Pagefind URLs match Worker asset paths.
+console.log("adding dist/client");
 await index.addDirectory({
-	path: "dist",
+	path: "dist/client",
 });
 
 const wpInstanceUrl = process.env.WORDPRESS_GQL_URL;
@@ -209,11 +209,7 @@ const devPageFindFilesWritten = await index.writeFiles({
 	outputPath: "./src/pagefind",
 });
 console.log({ devPageFindFilesWritten });
-// for prod Pages and Workers deployments
-const distPageFindFilesWritten = await index.writeFiles({
-	outputPath: "./dist/pagefind",
-});
-console.log({ distPageFindFilesWritten });
+// for prod Worker deployments
 const workerPageFindFilesWritten = await index.writeFiles({
 	outputPath: "./dist/client/pagefind",
 });
