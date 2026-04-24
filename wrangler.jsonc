@@ -30,13 +30,7 @@
 			"assets": {
 				"directory": "./dist/client",
 				"binding": "ASSETS"
-			},
-			"routes": [
-				{
-					"pattern": "dev.bibleineverylanguage.org",
-					"custom_domain": true
-				}
-			]
+			}
 		},
 		"prod": {
 			"name": "biel-frontend",
