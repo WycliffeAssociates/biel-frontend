@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 
 // e2e ideas
 // Rendering for each of the
@@ -191,9 +191,20 @@ test("Doc UI popover opens on desktop", async ({ page }) => {
 	const opts = page.getByTestId("downloadOptionsModal");
 	await expect(opts).toBeVisible();
 });
+// The training/supplemental folders shown here (and their testids) come from
+// live content in the TS-biel-files GitHub repo, which is edited independently
+// of this codebase. Don't hardcode a specific folder's slug - pick whichever
+// one currently exists so these tests don't break when content is reorganized.
+const firstTrainingFolderBtn = (page: Page) =>
+	page
+		.getByText("Training Resources", { exact: true })
+		.locator("xpath=following-sibling::ul[1]")
+		.locator("button")
+		.first();
+
 test("github results for language page show", async ({ page }) => {
 	await page.goto("/resources/languages/en");
-	const tsFileResourceBtn = page.getByTestId("audio-training-btes");
+	const tsFileResourceBtn = firstTrainingFolderBtn(page);
 	await tsFileResourceBtn.click();
 	const contentViewDownloadableFilesList = page.getByTestId(
 		"contentViewDownloadableFilesList",
@@ -205,7 +216,12 @@ test("github results for language page show", async ({ page }) => {
 test("github results for language page show when navigated from resource page", async ({
 	page,
 }) => {
-	await page.goto("/resources/languages/en?download=audio-training-btes");
+	await page.goto("/resources/languages/en");
+	const folderSlug = await firstTrainingFolderBtn(page).getAttribute(
+		"data-testid",
+	);
+
+	await page.goto(`/resources/languages/en?download=${folderSlug}`);
 	const contentViewDownloadableFilesList = page.getByTestId(
 		"contentViewDownloadableFilesList",
 	);
