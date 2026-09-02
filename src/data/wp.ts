@@ -90,17 +90,23 @@ export async function getStaticPageCatalog({ gqlUrl }: { gqlUrl: string }) {
 			}
 
 			page.translations.forEach((translation) => {
-				const isHomeTranslation = page.uri === "/";
-				const routeUri = isHomeTranslation
-					? `/${translation.languageCode}`
-					: translation.uri;
-				const wpUri = isHomeTranslation ? "/" : translation.uri;
+				// WPML reports an untranslated page using the English uri, so a
+				// translation sitting at "/" has no real page behind it. Routing it
+				// would emit a page that can't resolve at build time.
+				if (translation.uri === "/") return;
+
+				// Localized front pages live at /es/, /fr/ etc. in WP, but we route
+				// them at /es, /fr to match what the language picker links to.
+				const routeUri =
+					page.uri === "/" ? `/${translation.languageCode}` : translation.uri;
 				localizedRoutes[translation.languageCode] = routeUri;
 				routeEntries.push({
 					groupId,
 					langCode: translation.languageCode,
 					routeUri,
-					wpUri,
+					// Always the real WP uri: getPage() resolves by matching uri within
+					// the target language, where the front page is /es/ and never "/".
+					wpUri: translation.uri,
 				});
 			});
 
@@ -232,12 +238,14 @@ export async function getPage({
       }
     }
   `;
-	// due to routing.  can't route to just / for this preview route
-	if (uri.includes("home")) {
-		uri = "/";
-	}
+	// The preview route can't address an empty slug, so it names the English front
+	// page "home" (/preview/home). Localized front pages are addressed by their
+	// language code (/preview/es), which already normalizes to their real uri,
+	// /es/. Match "home" exactly: includes("home") also swallowed any real page
+	// whose uri merely contained it, e.g. /homeschool/.
+	const strippedUri = uri.replace(/^\/+|\/+$/g, "");
 	const normalizedUri =
-		uri === "/" ? "/" : `/${uri.replace(/^\/+|\/+$/g, "")}/`;
+		strippedUri === "" || strippedUri === "home" ? "/" : `/${strippedUri}/`;
 
 	const response = await fetch(gqlUrl, {
 		method: "POST",
@@ -330,7 +338,9 @@ export async function getPage({
 
 	const { page } = thatPageData.data;
 
-	page.isHomePage = page.uri === "/";
+	// The front page is "/" in English and "/es/", "/fr/" etc. in every other
+	// language. Both are home pages, and neither wants breadcrumbs or a title.
+	page.isHomePage = page.uri === "/" || page.uri === `/${langCode}/`;
 	if (!page.isHomePage) {
 		// Ancestors are actually treated like crumbs, and we want to always give a clear link back to home, and then indicate the current as well
 		if (!page.ancestors?.nodes) {
