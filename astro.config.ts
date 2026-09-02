@@ -84,7 +84,6 @@ export default defineConfig({
 		prefetchAll: !isDev,
 		defaultStrategy: "hover",
 	},
-	// Reminder uses custom routes.json in public
 	adapter: cloudflare({
 		// Astro v6 + cloudflare adapter v13 defaults to cloudflare-binding.
 		// Keep prior build-time image behavior to avoid runtime behavior drift.
