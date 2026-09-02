@@ -479,11 +479,20 @@ type TitleCaseArgs = {
 };
 
 export function titleCase({ lang = "en", str }: TitleCaseArgs) {
-	// function implementation
-	const words = Array.from(
+	// Segmenter yields the separators (spaces, punctuation) as segments of their
+	// own alongside the words, so capitalize only the word-like ones and rejoin
+	// with nothing. Joining with " " re-inserted a space around every separator,
+	// turning each original space into three, and injected spaces into scripts
+	// that don't use them at all, like zh-hans and th.
+	return Array.from(
 		new Intl.Segmenter(lang, { granularity: "word" }).segment(str),
-	).map((word) => word.segment.charAt(0).toUpperCase() + word.segment.slice(1));
-	return words.join(" ");
+	)
+		.map((segment) =>
+			segment.isWordLike
+				? segment.segment.charAt(0).toUpperCase() + segment.segment.slice(1)
+				: segment.segment,
+		)
+		.join("");
 }
 
 export function returnKnownRedirectPathIfKnown(
