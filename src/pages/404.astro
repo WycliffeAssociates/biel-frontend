@@ -1,5 +1,22 @@
 ---
-
+// Prerendered so the deployed Worker has a real dist/client/404.html to serve.
+// Astro's error-page lookup only reaches for a static 404 when this route is
+// prerendered; left on-demand it has no component instance in the SSR page map
+// and unmatched urls fail instead of rendering a 404.
+export const prerender = true;
 ---
 
-<div class="min-h-screen grid place-content-center text-5xl">404</div>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>404: Page not found</title>
+  </head>
+  <body>
+    <main class="min-h-screen grid place-content-center gap-6 text-center">
+      <p class="text-5xl">404</p>
+      <a href="/" class="underline">Bible in Every Language</a>
+    </main>
+  </body>
+</html>

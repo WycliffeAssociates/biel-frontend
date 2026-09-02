@@ -86,25 +86,27 @@ async function loadSharedRouteData({gqlUrl, restUrl}: SharedRouteDataArgs) {
 }
 
 export async function getStaticPaths() {
-  try {
-    const pages = await getCollection("wpPages");
-    return pages.map((entry) => {
-      const normalizedSlug = entry.data.routeUri.replace(/^\/+|\/+$/g, "");
-      return {
-        params: {
-          slug: normalizedSlug === "" ? undefined : normalizedSlug,
-        },
-        props: {
-          langCode: entry.data.langCode,
-          wpUri: entry.data.wpUri,
-          localizedUrls: entry.data.localizedUrls,
-        } satisfies StaticPathProps,
-      };
-    });
-  } catch (error) {
-    console.error(error);
-    return [];
+  // Deliberately unguarded: swallowing a failure here builds a site with zero
+  // CMS pages and still reports success, which is far worse than a red build.
+  const pages = await getCollection("wpPages");
+  if (pages.length === 0) {
+    throw new Error(
+      "wpPages collection is empty. Refusing to build with zero prerendered CMS pages.",
+    );
   }
+  return pages.map((entry) => {
+    const normalizedSlug = entry.data.routeUri.replace(/^\/+|\/+$/g, "");
+    return {
+      params: {
+        slug: normalizedSlug === "" ? undefined : normalizedSlug,
+      },
+      props: {
+        langCode: entry.data.langCode,
+        wpUri: entry.data.wpUri,
+        localizedUrls: entry.data.localizedUrls,
+      } satisfies StaticPathProps,
+    };
+  });
 }
 const gqlUrl =
   env.WORDPRESS_GQL_URL ||

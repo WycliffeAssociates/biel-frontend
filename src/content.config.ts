@@ -20,7 +20,7 @@ const wpPages = defineCollection({
 		const menus = await getMenus({ restUrl });
 		const visibleLangs = new Set(Object.keys(menus));
 		const seenRoutes = new Set<string>();
-		return routeEntries
+		const entries = routeEntries
 			.filter((entry) => visibleLangs.has(entry.langCode))
 			.filter((entry) => {
 				if (seenRoutes.has(entry.routeUri)) {
@@ -37,6 +37,16 @@ const wpPages = defineCollection({
 				wpUri: entry.wpUri,
 				localizedUrls: routesByGroupId[entry.groupId] ?? {},
 			}));
+
+		// A reachable CMS that returns nothing still builds a "successful" site with
+		// every page missing, so treat an empty catalog as a build failure.
+		if (entries.length === 0) {
+			throw new Error(
+				"wpPages resolved to 0 routes. Refusing to build a site with no CMS pages.",
+			);
+		}
+
+		return entries;
 	},
 	schema: z.object({
 		groupId: z.number(),
