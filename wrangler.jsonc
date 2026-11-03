@@ -27,6 +27,10 @@
 	"env": {
 		"dev": {
 			"name": "biel-frontend-dev",
+			"vars": {
+				"DOC_BASE_URL": "https://doc-api.bibleineverylanguage.org",
+				"DOC_FILES_URL": "https://doc-files.bibleineverylanguage.org"
+			},
 			"assets": {
 				"directory": "./dist/client",
 				"binding": "ASSETS"
@@ -34,6 +38,10 @@
 		},
 		"prod": {
 			"name": "biel-frontend",
+			"vars": {
+				"DOC_BASE_URL": "https://doc-api.bibleineverylanguage.org",
+				"DOC_FILES_URL": "https://doc-files.bibleineverylanguage.org"
+			},
 			"assets": {
 				"directory": "./dist/client",
 				"binding": "ASSETS"
