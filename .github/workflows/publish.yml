@@ -25,7 +25,7 @@ concurrency:
 jobs:
   deploy:
     if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/prod'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       deployments: write
