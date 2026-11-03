@@ -195,12 +195,15 @@ export function DownloadOptions() {
 				body: JSON.stringify(body),
 			});
 			if (!res.ok) {
-				throw new Error(res.statusText);
+				throw new Error(await res.text());
 			}
 			const taskId = await res.text();
 			poll(taskId);
 		} catch (e) {
+			if (e instanceof DOMException && e.name === "AbortError") return;
 			console.error(e);
+			setIsLoading(false);
+			setDocErred(true);
 		}
 	};
 
