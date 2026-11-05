@@ -57,6 +57,7 @@ export function ContentView(props: ContentViewProps) {
 					data-js="contentView"
 					data-testid="contentViewDownloadable"
 					class={`${props.classes || ""} pbe-16! pie-4px!  max-h-70vh! overflow-y-auto!`}
+					ref={pinHashTargetInScroller}
 				>
 					<DownloadableView tsTree={selectedTsFolder()} loopIter={0} />
 				</div>
@@ -70,6 +71,52 @@ export function ContentView(props: ContentViewProps) {
 			</Show>
 		</Suspense>
 	);
+}
+
+/**
+ * Scrolls the downloadable folder box to the folder named by the URL hash.
+ * Layout keeps moving for a while after hydration (other islands, fonts), so
+ * re-pin every frame for a few seconds rather than firing one smooth scroll
+ * that can be cancelled or land on a stale offset. Stops as soon as the user
+ * scrolls themselves.
+ */
+function pinHashTargetInScroller(scroller: HTMLElement) {
+	const hash = decodeURIComponent(window.location.hash.slice(1));
+	if (!hash) return;
+	const PIN_MS = 3000;
+	const start = performance.now();
+	let frame = 0;
+	const stop = () => {
+		cancelAnimationFrame(frame);
+		for (const evt of ["wheel", "touchstart", "keydown", "pointerdown"]) {
+			window.removeEventListener(evt, stop);
+		}
+	};
+	for (const evt of ["wheel", "touchstart", "keydown", "pointerdown"]) {
+		window.addEventListener(evt, stop, { passive: true });
+	}
+	const tick = () => {
+		const label = document.getElementById(hash);
+		// Measure the folder's wrapper, not its heading: the heading is
+		// position: sticky, so its rect is wrong once it is stuck.
+		const section = label?.closest("h2")?.parentElement;
+		if (section && scroller.contains(section)) {
+			const top =
+				section.getBoundingClientRect().top -
+				scroller.getBoundingClientRect().top +
+				scroller.scrollTop;
+			if (Math.abs(scroller.scrollTop - top) > 1) scroller.scrollTop = top;
+			// Bring the box itself into view on the page too.
+			const box = scroller.getBoundingClientRect();
+			if (box.top < 0 || box.top > window.innerHeight) {
+				scroller.scrollIntoView({ block: "start" });
+			}
+		}
+		if (performance.now() - start < PIN_MS) frame = requestAnimationFrame(tick);
+		else stop();
+	};
+	frame = requestAnimationFrame(tick);
+	onCleanup(stop);
 }
 
 function DownloadableView(props: {
@@ -141,15 +188,6 @@ function DownloadableView(props: {
 	});
 
 	const spaceInline = props.loopIter ? props.loopIter * 20 : 0;
-	onMount(() => {
-		const windowHash = window.location.hash;
-		if (windowHash) {
-			const el = document.querySelector(windowHash);
-			if (el) {
-				el.scrollIntoView({ behavior: "smooth", inline: "start" });
-			}
-		}
-	});
 	return (
 		<div>
 			<Show when={props.loopIter && props.loopIter > 0}>
