@@ -420,7 +420,10 @@ function MenuDialog(props: MenuDialogProps) {
 						);
 				}}
 			>
-				<Dialog.Trigger class="dialog__trigger w-full">
+				<Dialog.Trigger
+					class="dialog__trigger w-full"
+					data-testid="reader-chapter-picker"
+				>
 					{props.activeRow()?.scriptural_rendering_metadata?.book_name} {""}
 					{props.activeRow()?.scriptural_rendering_metadata?.chapter}
 				</Dialog.Trigger>
